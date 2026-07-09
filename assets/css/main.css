@@ -1,0 +1,267 @@
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+    background: var(--color-background);
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    color: var(--color-text);
+    background: var(--color-background);
+    font-family: var(--font-family);
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button {
+    border: 0;
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.app-shell {
+    min-height: 100vh;
+}
+
+.material-symbols-rounded {
+    display: inline-flex;
+    font-size: 22px;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.btn {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: var(--radius-md);
+    padding: 0 18px;
+    font-weight: 700;
+    transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    color: #FFFFFF;
+    background: var(--color-primary);
+    box-shadow: 0 6px 14px rgba(26, 115, 232, 0.22);
+}
+
+.btn-primary:hover {
+    background: var(--color-primary-dark);
+}
+
+.btn-ghost {
+    color: var(--color-text);
+    background: #FFFFFF;
+    border: 1px solid var(--color-border);
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 8px 12px;
+    color: var(--color-muted);
+    background: var(--color-surface-strong);
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.loader-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    background: rgba(248, 249, 250, 0.72);
+    backdrop-filter: blur(3px);
+}
+
+.loader-spinner {
+    width: 42px;
+    height: 42px;
+    border: 4px solid #D2E3FC;
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 800ms linear infinite;
+}
+
+.toast-root {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 30;
+    display: grid;
+    gap: 10px;
+    max-width: min(360px, calc(100vw - 32px));
+}
+
+.toast {
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    color: #FFFFFF;
+    background: var(--color-text);
+    box-shadow: var(--shadow-soft);
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.toast.success {
+    background: var(--color-success);
+}
+
+.toast.error {
+    background: var(--color-danger);
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(32, 33, 36, 0.46);
+}
+
+.modal {
+    width: min(440px, 100%);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: #FFFFFF;
+    box-shadow: var(--shadow-soft);
+}
+
+.modal-large {
+    width: min(560px, 100%);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 22px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.modal-close {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    color: var(--color-muted);
+    background: transparent;
+}
+
+.modal-close:hover {
+    background: var(--color-surface-strong);
+}
+
+.modal-body {
+    padding: 22px;
+}
+
+.modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.form-field {
+    display: grid;
+    gap: 8px;
+    color: var(--color-text);
+    font-weight: 700;
+}
+
+.form-field input,
+.form-field select {
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0 14px;
+    color: var(--color-text);
+    background: #FFFFFF;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.14);
+    outline: 0;
+}
+
+.checkbox-group {
+    display: grid;
+    gap: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    margin: 0;
+}
+
+.checkbox-group legend {
+    padding: 0 6px;
+    font-weight: 700;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-text);
+    font-weight: 600;
+}
+
+.checkbox-group input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-primary);
+}
+
+.form-error {
+    min-height: 20px;
+    margin: 0;
+    color: var(--color-danger);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
