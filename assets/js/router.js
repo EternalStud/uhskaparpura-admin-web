@@ -2,13 +2,15 @@
 
 import { initLoginView } from "./login.js";
 import { initDashboardView } from "./dashboard.js";
+import { initSubjectTagView } from "./modules/subjectTag.js";
 import { getSession } from "../../services/session.js";
 import { hideLoader, showLoader } from "../../components/loader.js";
 import { showToast } from "../../components/toast.js";
 
 const routes = new Map([
     ["/login", { view: "views/login.html", init: initLoginView, public: true }],
-    ["/dashboard", { view: "views/dashboard.html", init: initDashboardView, public: false }]
+    ["/dashboard", { view: "views/dashboard.html", init: initDashboardView, public: false }],
+    ["/subject-tag", { view: "views/subjectTag.html", init: initSubjectTagView, public: false }]
 ]);
 
 const getCurrentPath = () => {

@@ -12,11 +12,20 @@ import { getSession } from "./session.js";
 export async function apiRequest(path, options = {}) {
     try {
         const baseUrl = CONFIG.API_BASE_URL ?? "";
-        const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
-        const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
+        const url = new URL(baseUrl);
+        
+        let actionPath = path;
+        if (path.includes("?")) {
+            const parts = path.split("?");
+            actionPath = parts[0];
+            const searchParams = new URLSearchParams(parts[1]);
+            for (const [key, val] of searchParams.entries()) {
+                url.searchParams.set(key, val);
+            }
+        }
+        
+        url.searchParams.set("action", actionPath);
         const session = getSession();
-        const url = new URL(`${normalizedBaseUrl}${normalizedPath}`);
 
         if (session?.user?.email) {
             url.searchParams.set("email", session.user.email);
@@ -25,7 +34,7 @@ export async function apiRequest(path, options = {}) {
         const response = await fetch(url.toString(), {
             ...options,
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "text/plain",
                 ...(options.headers ?? {})
             }
         });

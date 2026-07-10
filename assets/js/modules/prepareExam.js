@@ -44,7 +44,7 @@ const setFormError = (form, message) => {
     }
 };
 
-const submitPrepareExam = async (form, closeModal) => {
+const submitPrepareExam = async (form, modal, closeModal) => {
     try {
         const submitButton = form.querySelector('button[type="submit"]');
         const payload = getFormPayload(form);
@@ -58,13 +58,60 @@ const submitPrepareExam = async (form, closeModal) => {
         submitButton.disabled = true;
         setFormError(form, "");
 
-        const response = await apiRequest("/api/exam/prepare", {
-            method: "POST",
-            body: JSON.stringify(payload)
+        const examTypeMap = {
+            "त्रैमासिक परीक्षा": "Tri",
+            "अर्धवार्षिक परीक्षा": "Half Yearly",
+            "वार्षिक परीक्षा": "Annual",
+            "सेंट-अप परीक्षा": "Sent-Up"
+        };
+        const mappedExamType = examTypeMap[payload.examType] || payload.examType;
+
+        const queryParams = new URLSearchParams({
+            academicYear: payload.academicYear,
+            spreadsheet: payload.spreadsheet,
+            examType: mappedExamType,
+            classes: payload.classes.join(",")
+        });
+        const response = await apiRequest(`exam.prepare?${queryParams.toString()}`, {
+            method: "GET"
         });
 
         showToast("Exam sheets prepared successfully.", "success");
-        closeModal();
+
+        // Hide form and show success UI
+        form.style.display = "none";
+        const successEl = modal.element.querySelector("#prepare-exam-success");
+        if (successEl) {
+            successEl.removeAttribute("hidden");
+            
+            // Populate links list
+            const linksList = successEl.querySelector("#prepared-sheets-links");
+            const files = response.files || [];
+            if (linksList) {
+                linksList.innerHTML = files.map(file => `
+                    <li class="prepared-sheet-item">
+                        <span class="material-symbols-rounded item-icon">description</span>
+                        <a href="${file.url}" class="sheet-link" target="_blank" rel="noopener noreferrer">${file.name}</a>
+                    </li>
+                `).join("");
+            }
+
+            // Bind "Open Google Sheet" primary button to the first file
+            const openBtn = successEl.querySelector("#open-sheet-btn");
+            if (openBtn) {
+                if (files.length > 0) {
+                    openBtn.href = files[0].url;
+                    openBtn.style.display = "inline-flex";
+                } else {
+                    openBtn.style.display = "none";
+                }
+            }
+
+            // Bind Close button
+            successEl.querySelector("[data-modal-close]")?.addEventListener("click", () => closeModal());
+        } else {
+            closeModal();
+        }
     } catch (error) {
         console.error(error);
         showToast(error.message, "error");
@@ -83,7 +130,7 @@ const initializeForm = (modal, closeModal) => {
     form.querySelector("[data-modal-cancel]")?.addEventListener("click", () => closeModal());
     form.addEventListener("submit", (event) => {
         event.preventDefault();
-        void submitPrepareExam(form, closeModal);
+        void submitPrepareExam(form, modal, closeModal);
     });
 };
 

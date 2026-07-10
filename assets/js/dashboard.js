@@ -20,6 +20,12 @@ const modules = [
         action: "prepare-exam"
     },
     {
+        title: "Students-Subject Tag",
+        description: "Assign and manage student BSEB subject mappings.",
+        icon: "bookmarks",
+        action: "subject-tag"
+    },
+    {
         title: "Marks Entry",
         description: "Open marks entry.",
         icon: "edit_note",
@@ -84,6 +90,11 @@ const handleAction = async (action) => {
 
         if (action === "prepare-exam") {
             await openPrepareExamModal();
+            return;
+        }
+
+        if (action === "subject-tag") {
+            await navigateTo("/subject-tag");
             return;
         }
 
