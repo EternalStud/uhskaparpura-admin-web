@@ -1,8 +1,8 @@
 "use strict";
 
-import { initLoginView } from "./login.js?v=1.2.10";
-import { initDashboardView } from "./dashboard.js?v=1.2.10";
-import { initSubjectTagView } from "./modules/subjectTag.js?v=1.2.10";
+import { initLoginView } from "./login.js?t=17892929112";
+import { initDashboardView } from "./dashboard.js?t=17892929112";
+import { initSubjectTagView } from "./modules/subjectTag.js?t=17892929112";
 import { getSession } from "../../services/session.js";
 import { hideLoader, showLoader } from "../../components/loader.js";
 import { showToast } from "../../components/toast.js";
