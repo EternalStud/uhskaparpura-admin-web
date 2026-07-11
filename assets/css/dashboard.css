@@ -161,3 +161,9 @@
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
+
+@media (max-width: 480px) {
+    .topbar-title span {
+        display: none;
+    }
+}

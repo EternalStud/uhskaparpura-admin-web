@@ -733,7 +733,7 @@ const handleLoadStudents = async () => {
     const statsProgressSec = document.querySelector("#stats-progress-section");
     const searchContainer = document.querySelector("#student-search-container");
     const tableToggle = document.querySelector("#mobile-table-toggle");
-    const toggleCheckbox = document.querySelector("#mobile-show-table-toggle");
+    const toggleBtn = document.querySelector("#mobile-show-table-toggle");
     const loadingSkeleton = document.querySelector("#subject-tag-loading");
     const saveBtn = document.querySelector("#save-all-btn");
 
@@ -743,7 +743,7 @@ const handleLoadStudents = async () => {
     statsProgressSec.style.display = "none";
     if (searchContainer) searchContainer.style.display = "none";
     if (tableToggle) tableToggle.style.display = "none";
-    if (toggleCheckbox) toggleCheckbox.checked = false;
+    if (toggleBtn) toggleBtn.textContent = "Show Table View";
     desktopWorkspace.classList.remove("force-show-mobile");
     loadingSkeleton.style.display = "block";
     saveBtn.setAttribute("disabled", "disabled");
@@ -948,13 +948,17 @@ export async function initSubjectTagView() {
         });
 
         // Mobile show table view toggle binding
-        document.querySelector("#mobile-show-table-toggle")?.addEventListener("change", (e) => {
+        const toggleBtn = document.querySelector("#mobile-show-table-toggle");
+        toggleBtn?.addEventListener("click", () => {
             const desktopWorkspace = document.querySelector("#desktop-workspace");
             if (desktopWorkspace) {
-                if (e.target.checked) {
+                const isHidden = !desktopWorkspace.classList.contains("force-show-mobile");
+                if (isHidden) {
                     desktopWorkspace.classList.add("force-show-mobile");
+                    toggleBtn.textContent = "Hide Table View";
                 } else {
                     desktopWorkspace.classList.remove("force-show-mobile");
+                    toggleBtn.textContent = "Show Table View";
                 }
             }
         });
