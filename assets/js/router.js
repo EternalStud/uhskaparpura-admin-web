@@ -1,8 +1,11 @@
 "use strict";
 
-import { initLoginView } from "./login.js?t=17892929112";
-import { initDashboardView } from "./dashboard.js?t=17892929112";
-import { initSubjectTagView } from "./modules/subjectTag.js?t=17892929112";
+import { initLoginView } from "./login.js?t=17892929117";
+import { initDashboardView } from "./dashboard.js?t=17892929117";
+import { initSubjectTagView } from "./modules/subjectTag.js?t=17892929117";
+import { initMarksEntryView } from "./modules/marksEntry.js?t=17892929117";
+import { initResultGenerationView } from "./modules/resultGeneration.js?t=17892929117";
+import { initStudentMasterView } from "./modules/studentMaster.js?t=17892929117";
 import { getSession } from "../../services/session.js";
 import { hideLoader, showLoader } from "../../components/loader.js";
 import { showToast } from "../../components/toast.js";
@@ -10,7 +13,10 @@ import { showToast } from "../../components/toast.js";
 const routes = new Map([
     ["/login", { view: "views/login.html", init: initLoginView, public: true }],
     ["/dashboard", { view: "views/dashboard.html", init: initDashboardView, public: false }],
-    ["/subject-tag", { view: "views/subjectTag.html", init: initSubjectTagView, public: false }]
+    ["/subject-tag", { view: "views/subjectTag.html", init: initSubjectTagView, public: false }],
+    ["/marks-entry", { view: "views/marksEntry.html", init: initMarksEntryView, public: false }],
+    ["/result-generation", { view: "views/resultGeneration.html", init: initResultGenerationView, public: false }],
+    ["/student-master", { view: "views/studentMaster.html", init: initStudentMasterView, public: false }]
 ]);
 
 const getCurrentPath = () => {
@@ -77,6 +83,12 @@ export async function renderRoute(path) {
         }
 
         if (route.public && session) {
+            await navigateTo("/dashboard", { replace: true });
+            return;
+        }
+
+        if (session && session.user.role === "TEACHER" && path === "/result-generation") {
+            showToast("You do not have permission to access Result Generation.", "error");
             await navigateTo("/dashboard", { replace: true });
             return;
         }

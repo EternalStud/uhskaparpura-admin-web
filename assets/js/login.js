@@ -3,6 +3,8 @@
 import { signInWithGoogle } from "../../services/auth.js";
 import { navigateTo } from "./router.js";
 import { showToast } from "../../components/toast.js";
+import { apiRequest } from "../../services/api.js";
+import { getSession, saveSession } from "../../services/session.js";
 
 const googleScriptReady = async () => {
     await new Promise((resolve, reject) => {
@@ -42,6 +44,19 @@ export async function initLoginView() {
         await signInWithGoogle({
             buttonElement: document.querySelector("#google-login-button"),
             onSuccess: async () => {
+                try {
+                    // Fetch user role from backend Database dynamically
+                    const profileRes = await apiRequest("auth.profile");
+                    if (profileRes.success && profileRes.user) {
+                        const session = getSession();
+                        if (session) {
+                            session.user.role = profileRes.user.role;
+                            saveSession(session);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Failed to load user profile role:", err);
+                }
                 showToast("Signed in successfully.", "success");
                 await navigateTo("/dashboard");
             },

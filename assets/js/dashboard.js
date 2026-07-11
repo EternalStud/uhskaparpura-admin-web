@@ -1,22 +1,22 @@
-"use strict";
-
-import { renderNavbar } from "../../components/navbar.js";
+import { renderNavbar } from "../../components/navbar.js?t=17892929117";
 import { logout } from "../../services/auth.js";
 import { navigateTo } from "./router.js";
 import { showToast } from "../../components/toast.js";
 import { openPrepareExamModal } from "./modules/prepareExam.js";
+import { getSession, saveSession } from "../../services/session.js";
+import { apiRequest } from "../../services/api.js";
 
 const modules = [
     {
         title: "Student Master",
-        description: "Open student records.",
-        icon: "groups",
+        description: "Manage student records.",
+        icon: "group",
         action: "student-master"
     },
     {
-        title: "Prepare Exam",
-        description: "Prepare Bihar Board marks entry sheets.",
-        icon: "assignment",
+        title: "Prepare Exam Sheets",
+        description: "Generate templates in Drive.",
+        icon: "article",
         action: "prepare-exam"
     },
     {
@@ -50,17 +50,8 @@ const modules = [
         icon: "app_registration",
         action: "registration-approval",
         hidden: true
-    },
-    {
-        title: "Logout",
-        description: "End this session.",
-        icon: "logout",
-        action: "logout",
-        danger: true
     }
 ];
-
-const cards = modules.filter((module) => !module.hidden);
 
 const createCard = (card) => {
     const button = document.createElement("button");
@@ -93,8 +84,23 @@ const handleAction = async (action) => {
             return;
         }
 
+        if (action === "student-master") {
+            await navigateTo("/student-master");
+            return;
+        }
+
         if (action === "subject-tag") {
             await navigateTo("/subject-tag");
+            return;
+        }
+
+        if (action === "marks-entry") {
+            await navigateTo("/marks-entry");
+            return;
+        }
+
+        if (action === "result-generation") {
+            await navigateTo("/result-generation");
             return;
         }
 
@@ -117,7 +123,33 @@ export async function initDashboardView() {
             throw new Error("Dashboard actions container is missing.");
         }
 
-        actions.replaceChildren(...cards.map(createCard));
+        const session = getSession();
+        let userRole = session?.user?.role;
+        if (session && !userRole) {
+            try {
+                const profileRes = await apiRequest("auth.profile");
+                if (profileRes.success && profileRes.user) {
+                    session.user.role = profileRes.user.role;
+                    saveSession(session);
+                    userRole = session.user.role;
+                }
+            } catch (err) {
+                console.error("Failed to load user role on dashboard load:", err);
+            }
+        }
+
+        const visibleCards = modules.filter(module => {
+            if (module.hidden) return false;
+            // Hide result generation and prepare exam cards for TEACHERs
+            if (userRole === "TEACHER") {
+                if (module.action === "result-generation" || module.action === "prepare-exam") {
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        actions.replaceChildren(...visibleCards.map(createCard));
         actions.addEventListener("click", (event) => {
             const card = event.target.closest("[data-action]");
             if (card) {

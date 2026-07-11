@@ -1,0 +1,152 @@
+<div class="dashboard-layout">
+    <header id="navbar-marks-entry"></header>
+    
+    <main class="dashboard-main subject-tag-main">
+        <div class="subject-tag-container">
+            <!-- Breadcrumbs -->
+            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#/dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Marks Entry</li>
+                </ol>
+            </nav>
+
+            <!-- Page Header -->
+            <header class="subject-tag-header">
+                <div class="subject-tag-title-area">
+                    <a href="#/dashboard" class="btn btn-icon btn-ghost" aria-label="Go back to Dashboard" style="border: 1px solid var(--color-border); border-radius: 50%; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: var(--color-text);">
+                        <span class="material-symbols-rounded" aria-hidden="true" style="font-size: 1.5rem;">arrow_back</span>
+                    </a>
+                    <div>
+                        <h1>Marks Entry</h1>
+                        <p class="subtitle">Enter and manage student subject-wise marks.</p>
+                    </div>
+                </div>
+                
+                <div class="subject-tag-header-actions">
+                    <span id="unsaved-indicator" class="unsaved-badge" style="display: none;">
+                        <span class="dot animate-pulse"></span>
+                        Unsaved Changes
+                    </span>
+                    <button id="save-all-btn" class="btn btn-primary" type="button" disabled>Save</button>
+                </div>
+            </header>
+
+            <!-- Filters Area -->
+            <section class="filters-card" aria-label="Filters">
+                <div class="filters-toolbar">
+                    <label class="filter-field" for="filter-academic-year">
+                        <span class="filter-label">Academic Year</span>
+                        <input id="filter-academic-year" name="academicYear" type="text" autocomplete="off" placeholder="e.g. 2026-27" required>
+                    </label>
+
+                    <label class="filter-field" for="filter-exam">
+                        <span class="filter-label">Exam Name</span>
+                        <select id="filter-exam" name="examName" required>
+                            <option value="">Select Exam</option>
+                            <option value="Trimester">Trimester</option>
+                            <option value="Half yearly">Half yearly</option>
+                            <option value="Sent-up">Sent-up</option>
+                            <option value="Annual">Annual</option>
+                        </select>
+                    </label>
+
+                    <label class="filter-field" for="filter-class">
+                        <span class="filter-label">Class</span>
+                        <select id="filter-class" name="class" required>
+                            <option value="">Select Class</option>
+                            <option value="9">Class 9</option>
+                            <option value="10">Class 10</option>
+                            <option value="11">Class 11</option>
+                            <option value="12">Class 12</option>
+                        </select>
+                    </label>
+
+                    <label class="filter-field" for="filter-section">
+                        <span class="filter-label">Section</span>
+                        <select id="filter-section" name="section" required>
+                            <option value="">Select Section</option>
+                        </select>
+                    </label>
+
+                    <div id="stream-filter-container" class="filter-field" style="display: none;">
+                        <span class="filter-label">Stream</span>
+                        <select id="filter-stream" name="stream">
+                            <option value="">Select Stream</option>
+                            <option value="Science">Science</option>
+                            <option value="Arts">Arts</option>
+                        </select>
+                    </div>
+
+                    <label class="filter-field" for="filter-subject">
+                        <span class="filter-label">Subject</span>
+                        <select id="filter-subject" name="subjectId" required>
+                            <option value="">Select Subject</option>
+                        </select>
+                    </label>
+
+                    <button id="load-students-btn" class="btn btn-primary btn-load" type="button">
+                        <span class="material-symbols-rounded" aria-hidden="true">search</span>
+                        Load Students
+                    </button>
+                </div>
+            </section>
+
+            <!-- Stats Summary -->
+            <section id="stats-progress-section" class="stats-summary-text" style="display: none; margin-bottom: 16px; font-size: 0.9rem; color: var(--color-muted); display: flex; align-items: center; gap: 16px;">
+                <span id="stats-summary-text-container">0 Students</span>
+                
+                <span id="stat-total" style="display: none;">0</span>
+                <span id="stat-completed" style="display: none;">0</span>
+                <span id="stat-pending" style="display: none;">0</span>
+                <span id="stat-rate" style="display: none;">0%</span>
+                <span id="progress-text" style="display: none;"></span>
+                <div id="progress-bar-fill" style="display: none;"></div>
+            </section>
+
+            <!-- Workspace Area -->
+            <section class="workspace-card" aria-label="Student marks entry">
+                <!-- Loading State (Skeleton) -->
+                <div id="subject-tag-loading" class="skeleton-container" style="display: none;">
+                    <div class="skeleton-row header"></div>
+                    <div class="skeleton-row"></div>
+                    <div class="skeleton-row"></div>
+                    <div class="skeleton-row"></div>
+                </div>
+
+                <!-- Empty State -->
+                <div id="subject-tag-empty-state" class="subject-tag-empty-state" style="padding: 60px 24px; text-align: center; color: var(--color-muted); display: flex; flex-direction: column; align-items: center; gap: 12px;">
+                    <span class="material-symbols-rounded" aria-hidden="true" style="font-size: 3.5rem; color: var(--color-border);">edit_square</span>
+                    <h3 style="margin: 0; color: var(--color-text); font-size: 1.2rem; font-weight: 700;">No Marks Records Loaded</h3>
+                    <p style="margin: 0; max-width: 400px; line-height: 1.5;">Configure filters in the toolbar above and click <strong>Load Students</strong> to begin entering marks.</p>
+                </div>
+
+                <!-- Desktop Table Workspace -->
+                <div id="desktop-workspace" class="desktop-workspace-container" style="display: none; overflow-x: auto;">
+                    <table class="workspace-table">
+                        <thead>
+                            <tr>
+                                <th class="col-sticky col-roll" style="width: 80px;">Roll No</th>
+                                <th class="col-sticky col-name" style="width: 200px;">Student Name</th>
+                                <th style="width: 180px;">Father Name</th>
+                                <th style="width: 140px; text-align: center;" id="hdr-theory">Theory Marks</th>
+                                <th style="width: 140px; text-align: center;" id="hdr-practical">Practical Marks</th>
+                                <th style="width: 140px; text-align: center;" id="hdr-internal">Internal Marks</th>
+                                <th style="width: 120px; text-align: center;">Total</th>
+                                <th style="width: 100px; text-align: center;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="desktop-table-body">
+                            <!-- Rows dynamically populated -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Cards Workspace -->
+                <div id="mobile-workspace" class="mobile-workspace-container" style="display: none;">
+                    <!-- Cards dynamically populated -->
+                </div>
+            </section>
+        </div>
+    </main>
+</div>

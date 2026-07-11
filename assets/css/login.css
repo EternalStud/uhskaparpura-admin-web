@@ -4,8 +4,8 @@
     align-items: center;
     padding: 28px 18px;
     background:
-        linear-gradient(135deg, rgba(26, 115, 232, 0.10), transparent 44%),
-        linear-gradient(315deg, rgba(52, 168, 83, 0.10), transparent 38%),
+        radial-gradient(circle at 10% 20%, rgba(79, 70, 229, 0.06) 0%, transparent 45%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 45%),
         var(--color-background);
 }
 
@@ -28,8 +28,8 @@
     place-items: center;
     border-radius: var(--radius-md);
     color: #FFFFFF;
-    background: var(--color-primary);
-    box-shadow: 0 8px 20px rgba(26, 115, 232, 0.22);
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+    box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25);
 }
 
 .login-brand h1 {
@@ -37,7 +37,8 @@
     max-width: 720px;
     font-size: clamp(2rem, 9vw, 4rem);
     line-height: 1.04;
-    letter-spacing: 0;
+    letter-spacing: -1px;
+    font-weight: 800;
 }
 
 .login-brand p {
@@ -51,9 +52,9 @@
 .login-card {
     display: grid;
     gap: 20px;
-    border: 1px solid rgba(218, 220, 224, 0.78);
-    border-radius: var(--radius-md);
-    padding: 22px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
     background: var(--color-card);
     box-shadow: var(--shadow-soft);
 }

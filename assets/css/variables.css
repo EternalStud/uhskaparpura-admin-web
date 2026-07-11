@@ -1,18 +1,20 @@
 :root {
-    --color-primary: #1A73E8;
-    --color-primary-dark: #1558B0;
-    --color-background: #F8F9FA;
+    --color-primary: #4F46E5;
+    --color-primary-dark: #3730A3;
+    --color-background: #F8FAFC;
     --color-card: #FFFFFF;
-    --color-success: #34A853;
-    --color-warning: #FBBC04;
-    --color-danger: #EA4335;
-    --color-text: #202124;
-    --color-muted: #5F6368;
-    --color-border: #DADCE0;
-    --color-surface-strong: #EEF3FB;
+    --color-success: #10B981;
+    --color-warning: #F59E0B;
+    --color-danger: #EF4444;
+    --color-text: #0F172A;
+    --color-muted: #64748B;
+    --color-border: #E2E8F0;
+    --color-surface-strong: #F1F5F9;
+    --radius-lg: 16px;
     --radius-md: 12px;
     --radius-sm: 8px;
-    --shadow-soft: 0 8px 24px rgba(60, 64, 67, 0.12);
-    --shadow-card: 0 2px 10px rgba(60, 64, 67, 0.10);
-    --font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --shadow-soft: 0 20px 40px -15px rgba(79, 70, 229, 0.12), 0 8px 16px -4px rgba(0, 0, 0, 0.03);
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.02);
+    --shadow-glow: 0 0 24px rgba(79, 70, 229, 0.15);
+    --font-family: "Plus Jakarta Sans", "Inter", system-ui, -apple-system, sans-serif;
 }

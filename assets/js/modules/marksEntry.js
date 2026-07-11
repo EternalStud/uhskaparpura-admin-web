@@ -1,0 +1,673 @@
+"use strict";
+
+import { showToast } from "../../../components/toast.js";
+import { showLoader, hideLoader } from "../../../components/loader.js";
+import { apiRequest } from "../../../services/api.js";
+import { renderNavbar } from "../../../components/navbar.js?t=17892929117";
+
+// Local state variables
+let dropdownSubjects = [];  // Available subjects for selected class & stream
+let studentsState = [];     // State tracking loaded students and their marks
+let currentFilters = {};    // Active filters
+let maxMarks = { theory: 100, practical: 0, internal: 0 }; // Maximum marks config
+
+const getDefaultAcademicYear = () => {
+    const year = new Date().getFullYear();
+    return `${year}-${String(year + 1).slice(-2)}`;
+};
+
+/**
+ * Derives maximum BSEB marks for theory/practical/internal based on class and subject code.
+ */
+const deriveMaxMarks = (classNum, subjectId) => {
+    const cls = Number(classNum);
+    const id = String(subjectId || "").toUpperCase();
+
+    // Defaults
+    let theory = 100;
+    let practical = 0;
+    let internal = 0;
+
+    if (cls <= 10) {
+        // Classes 9 & 10
+        if (id.endsWith("_SCI") || id.endsWith("_SST")) {
+            theory = 80;
+            practical = 20; // BSEB internal/practicals
+        }
+    } else {
+        // Classes 11 & 12
+        // Science electives with practicals
+        const hasPracticalArtsOrSci = [
+            "_PHY", "_CHE", "_BIO", "_GEO", "_HSC", "_PSY", "_MUS", "_AGR", "_CSC", "_MWT"
+        ].some(suffix => id.endsWith(suffix));
+
+        if (hasPracticalArtsOrSci) {
+            theory = 70;
+            practical = 30;
+        }
+    }
+
+    return { theory, practical, internal };
+};
+
+/**
+ * Checks and updates the visibility of the Stream filter.
+ */
+const updateStreamFilterVisibility = (classVal) => {
+    const streamContainer = document.querySelector("#stream-filter-container");
+    const streamSelect = document.querySelector("#filter-stream");
+    
+    if (classVal === "11" || classVal === "12") {
+        streamContainer.style.display = "flex";
+        streamSelect.setAttribute("required", "required");
+    } else {
+        streamContainer.style.display = "none";
+        streamSelect.removeAttribute("required");
+        streamSelect.value = "";
+    }
+};
+
+/**
+ * Dynamically queries available sections for the selected year and class.
+ */
+const updateAvailableSections = async () => {
+    const yearInput = document.querySelector("#filter-academic-year");
+    const classSelect = document.querySelector("#filter-class");
+    const sectionSelect = document.querySelector("#filter-section");
+
+    if (!yearInput || !classSelect || !sectionSelect) return;
+
+    const year = String(yearInput.value || "").trim();
+    const classNum = String(classSelect.value || "").trim();
+
+    if (!year || !classNum) {
+        sectionSelect.innerHTML = '<option value="">Select Section</option>';
+        return;
+    }
+
+    try {
+        const response = await apiRequest(`subject.tag.getSections?academicYear=${year}&classNum=${classNum}`);
+        if (response.success && response.sections) {
+            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+            response.sections.forEach(sec => {
+                sectionSelect.innerHTML += `<option value="${sec}">Section ${sec}</option>`;
+            });
+            
+            if (response.sections.length === 0) {
+                sectionSelect.innerHTML = '<option value="">No sections available</option>';
+            } else {
+                if (response.sections.includes("A")) {
+                    sectionSelect.value = "A";
+                } else {
+                    sectionSelect.value = response.sections[0];
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Failed to load sections:", error);
+    }
+};
+
+/**
+ * Load subjects list based on class and stream.
+ */
+const updateSubjectsDropdown = async () => {
+    const classSelect = document.querySelector("#filter-class");
+    const streamSelect = document.querySelector("#filter-stream");
+    const subjectSelect = document.querySelector("#filter-subject");
+
+    if (!classSelect || !subjectSelect) return;
+
+    const classNum = classSelect.value;
+    const stream = streamSelect ? streamSelect.value : "";
+
+    if (!classNum) {
+        subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+        return;
+    }
+
+    try {
+        const response = await apiRequest(`subject.tag.getDropdowns?classNum=${classNum}&stream=${stream}`);
+        if (response.success && response.subjects) {
+            dropdownSubjects = response.subjects;
+            subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+            response.subjects.forEach(sub => {
+                subjectSelect.innerHTML += `<option value="${sub.subjectId}">${sub.name} (${sub.code})</option>`;
+            });
+        }
+    } catch (error) {
+        console.error("Failed to load subjects:", error);
+        showToast("Error loading subjects list", "error");
+    }
+};
+
+/**
+ * Validates mark input values for a student.
+ */
+const validateStudentMarks = (student) => {
+    const parseVal = (v, max) => {
+        if (v === "" || v === null || v === undefined) return { valid: true, val: "", err: "" };
+        const s = String(v).trim().toUpperCase();
+        if (s === "A") return { valid: true, val: "A", err: "" };
+        
+        const num = Number(s);
+        if (isNaN(num) || num < 0 || num > max) {
+            return { valid: false, val: s, err: `Must be 0-${max} or A` };
+        }
+        return { valid: true, val: num, err: "" };
+    };
+
+    const theoryRes = parseVal(student.current.theory, maxMarks.theory);
+    const practicalRes = parseVal(student.current.practical, maxMarks.practical);
+    const internalRes = parseVal(student.current.internal, maxMarks.internal);
+
+    student.errors = {
+        theory: theoryRes.err,
+        practical: practicalRes.err,
+        internal: internalRes.err
+    };
+
+    student.hasError = Boolean(theoryRes.err || practicalRes.err || internalRes.err);
+    
+    // Compute total
+    let total = 0;
+    let allAbsent = true;
+    let hasEntry = false;
+
+    const addVal = (res) => {
+        if (res.val !== "") {
+            hasEntry = true;
+            if (res.val !== "A") {
+                total += res.val;
+                allAbsent = false;
+            }
+        }
+    };
+
+    if (maxMarks.theory > 0) addVal(theoryRes);
+    if (maxMarks.practical > 0) addVal(practicalRes);
+    if (maxMarks.internal > 0) addVal(internalRes);
+
+    student.current.total = hasEntry ? (allAbsent ? "A" : total) : "";
+
+    // Complete state (all active inputs filled)
+    const theoryDone = maxMarks.theory === 0 || theoryRes.val !== "";
+    const practicalDone = maxMarks.practical === 0 || practicalRes.val !== "";
+    const internalDone = maxMarks.internal === 0 || internalRes.val !== "";
+
+    student.isComplete = theoryDone && practicalDone && internalDone;
+    student.isValid = student.isComplete && !student.hasError;
+
+    student.isChanged = (
+        String(student.original.theory) !== String(student.current.theory) ||
+        String(student.original.practical) !== String(student.current.practical) ||
+        String(student.original.internal) !== String(student.current.internal)
+    );
+};
+
+/**
+ * Calculates statistics and completion progress.
+ */
+const updateStatsAndProgress = () => {
+    const total = studentsState.length;
+    let completed = 0;
+    let pending = 0;
+    let changedCount = 0;
+
+    studentsState.forEach(s => {
+        if (s.isValid) {
+            completed++;
+        } else {
+            pending++;
+        }
+        if (s.isChanged) {
+            changedCount++;
+        }
+    });
+
+    const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    // Update stats text
+    const summaryContainer = document.querySelector("#stats-summary-text-container");
+    if (summaryContainer) {
+        summaryContainer.innerHTML = `
+            <strong>📊 Stats Summary:</strong> 
+            Total: <span>${total}</span> | 
+            Completed: <span style="color:var(--color-success); font-weight:bold;">${completed}</span> | 
+            Pending: <span style="color:var(--color-muted);">${pending}</span> | 
+            Progress: <span style="color:var(--color-primary);">${rate}%</span>
+        `;
+    }
+
+    // Save button state
+    const saveBtn = document.querySelector("#save-all-btn");
+    const unsavedBadge = document.querySelector("#unsaved-indicator");
+    if (saveBtn) {
+        saveBtn.disabled = changedCount === 0 || studentsState.some(s => s.hasError);
+    }
+    if (unsavedBadge) {
+        unsavedBadge.style.display = changedCount > 0 ? "inline-flex" : "none";
+    }
+};
+
+/**
+ * Setup double-axis sticky elements horizontal scrolls
+ */
+const syncStickyColumnsPositions = () => {
+    const container = document.querySelector(".desktop-workspace-container");
+    if (!container) return;
+
+    const stickiesRoll = container.querySelectorAll(".col-sticky.col-roll");
+    const stickiesName = container.querySelectorAll(".col-sticky.col-name");
+
+    container.addEventListener("scroll", () => {
+        const left = container.scrollLeft;
+        stickiesRoll.forEach(el => { el.style.left = `${left}px`; });
+        stickiesName.forEach(el => { el.style.left = `${left + 80}px`; });
+    }, { passive: true });
+};
+
+/**
+ * Renders the Workspace (both Desktop table and Mobile card list).
+ */
+const renderWorkspace = () => {
+    const desktopWorkspace = document.querySelector("#desktop-workspace");
+    const mobileWorkspace = document.querySelector("#mobile-workspace");
+    const emptyState = document.querySelector("#subject-tag-empty-state");
+    const loadingState = document.querySelector("#subject-tag-loading");
+
+    loadingState.style.display = "none";
+
+    if (studentsState.length === 0) {
+        emptyState.style.display = "flex";
+        desktopWorkspace.style.display = "none";
+        mobileWorkspace.style.display = "none";
+        return;
+    }
+
+    emptyState.style.display = "none";
+
+    // Set columns headers max limits
+    document.querySelector("#hdr-theory").textContent = `Theory (${maxMarks.theory})`;
+    document.querySelector("#hdr-practical").textContent = `Practical (${maxMarks.practical})`;
+    document.querySelector("#hdr-internal").textContent = `Internal (${maxMarks.internal})`;
+
+    // Hide inactive columns header
+    document.querySelector("#hdr-practical").style.display = maxMarks.practical > 0 ? "table-cell" : "none";
+    document.querySelector("#hdr-internal").style.display = maxMarks.internal > 0 ? "table-cell" : "none";
+
+    // 1. Desktop Render
+    const desktopTbody = document.querySelector("#desktop-table-body");
+    desktopTbody.innerHTML = studentsState.map((student, idx) => {
+        const hasErr = student.hasError;
+        const theoryError = student.errors.theory ? `<span class="field-error-text">${student.errors.theory}</span>` : "";
+        const practicalError = student.errors.practical ? `<span class="field-error-text">${student.errors.practical}</span>` : "";
+        const internalError = student.errors.internal ? `<span class="field-error-text">${student.errors.internal}</span>` : "";
+
+        // Status Badge
+        let statusBadge = `<span class="badge badge-grey">Pending</span>`;
+        if (student.hasError) {
+            statusBadge = `<span class="badge badge-red">Error</span>`;
+        } else if (student.isValid) {
+            statusBadge = `<span class="badge badge-green">Completed</span>`;
+        }
+
+        return `
+            <tr class="${hasErr ? "row-error" : ""} ${student.isChanged ? "row-changed" : ""}" data-student-id="${student.studentId}">
+                <td class="col-sticky col-roll">${student.rollNo}</td>
+                <td class="col-sticky col-name">
+                    <div class="student-name-main">${student.studentName}</div>
+                </td>
+                <td><div class="student-father-name">${student.fatherName}</div></td>
+                
+                <td style="text-align: center;">
+                    <input type="text" class="mark-input input-theory" value="${student.current.theory}" 
+                           placeholder="0-${maxMarks.theory} or A" ${maxMarks.theory === 0 ? "disabled value='0'" : ""}>
+                    ${theoryError}
+                </td>
+                <td style="text-align: center; display: ${maxMarks.practical > 0 ? "table-cell" : "none"};">
+                    <input type="text" class="mark-input input-practical" value="${student.current.practical}" 
+                           placeholder="0-${maxMarks.practical} or A" ${maxMarks.practical === 0 ? "disabled value='0'" : ""}>
+                    ${practicalError}
+                </td>
+                <td style="text-align: center; display: ${maxMarks.internal > 0 ? "table-cell" : "none"};">
+                    <input type="text" class="mark-input input-internal" value="${student.current.internal}" 
+                           placeholder="0-${maxMarks.internal} or A" ${maxMarks.internal === 0 ? "disabled value='0'" : ""}>
+                    ${internalError}
+                </td>
+                
+                <td style="text-align: center; font-weight: bold; color: var(--color-text);">
+                    <span class="mark-total-display">${student.current.total}</span>
+                </td>
+                <td style="text-align: center;">${statusBadge}</td>
+            </tr>
+        `;
+    }).join("");
+
+    // 2. Mobile Cards Render
+    mobileWorkspace.innerHTML = studentsState.map((student) => {
+        let statusBadge = `<span class="badge badge-grey">Pending</span>`;
+        if (student.hasError) {
+            statusBadge = `<span class="badge badge-red">Error</span>`;
+        } else if (student.isValid) {
+            statusBadge = `<span class="badge badge-green">Completed</span>`;
+        }
+
+        return `
+            <div class="student-mobile-card ${student.hasError ? "card-error" : ""} ${student.isChanged ? "card-changed" : ""}" data-student-id="${student.studentId}">
+                <div class="card-header">
+                    <div class="roll-badge">Roll ${student.rollNo}</div>
+                    <div class="student-meta">
+                        <h3>${student.studentName}</h3>
+                        <p>Father: ${student.fatherName}</p>
+                    </div>
+                    <div class="status-wrap">${statusBadge}</div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="field-item">
+                        <span class="field-label">Theory (Max ${maxMarks.theory}):</span>
+                        <input type="text" class="mark-input input-theory" value="${student.current.theory}" 
+                               placeholder="0-${maxMarks.theory} or A" ${maxMarks.theory === 0 ? "disabled value='0'" : ""}>
+                        ${student.errors.theory ? `<span class="field-error-text">${student.errors.theory}</span>` : ""}
+                    </div>
+                    
+                    ${maxMarks.practical > 0 ? `
+                    <div class="field-item">
+                        <span class="field-label">Practical (Max ${maxMarks.practical}):</span>
+                        <input type="text" class="mark-input input-practical" value="${student.current.practical}" 
+                               placeholder="0-${maxMarks.practical} or A">
+                        ${student.errors.practical ? `<span class="field-error-text">${student.errors.practical}</span>` : ""}
+                    </div>` : ""}
+
+                    ${maxMarks.internal > 0 ? `
+                    <div class="field-item">
+                        <span class="field-label">Internal (Max ${maxMarks.internal}):</span>
+                        <input type="text" class="mark-input input-internal" value="${student.current.internal}" 
+                               placeholder="0-${maxMarks.internal} or A">
+                        ${student.errors.internal ? `<span class="field-error-text">${student.errors.internal}</span>` : ""}
+                    </div>` : ""}
+
+                    <div class="field-item total-item">
+                        <span class="field-label">Total Marks:</span>
+                        <span class="mark-total-display" style="font-weight: bold;">${student.current.total}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    desktopWorkspace.style.display = "block";
+    mobileWorkspace.style.display = "block";
+
+    syncStickyColumnsPositions();
+    bindWorkspaceInputListeners();
+};
+
+/**
+ * Binds dynamically rendered input listeners to keep state synchronized.
+ */
+const bindWorkspaceInputListeners = () => {
+    const handleInput = (element, field) => {
+        const tr = element.closest("[data-student-id]");
+        if (!tr) return;
+
+        const studentId = tr.dataset.studentId;
+        const student = studentsState.find(s => s.studentId === studentId);
+        if (!student) return;
+
+        const rawVal = element.value.trim();
+        student.current[field] = rawVal;
+        
+        validateStudentMarks(student);
+
+        // Update total display in both desktop and mobile row/card
+        const allDisplays = document.querySelectorAll(`[data-student-id="${studentId}"] .mark-total-display`);
+        allDisplays.forEach(disp => {
+            disp.textContent = student.current.total;
+        });
+
+        // Re-render status and input error styling without full redraw
+        const allStatusWraps = document.querySelectorAll(`[data-student-id="${studentId}"]`);
+        allStatusWraps.forEach(wrap => {
+            // Update row/card classes
+            wrap.classList.toggle("row-error", student.hasError);
+            wrap.classList.toggle("card-error", student.hasError);
+            wrap.classList.toggle("row-changed", student.isChanged);
+            wrap.classList.toggle("card-changed", student.isChanged);
+
+            // Update status badge
+            const badge = wrap.querySelector(".badge");
+            if (badge) {
+                badge.className = "badge " + (student.hasError ? "badge-red" : (student.isValid ? "badge-green" : "badge-grey"));
+                badge.textContent = student.hasError ? "Error" : (student.isValid ? "Completed" : "Pending");
+            }
+
+            // Sync values to other matching inputs (desktop to mobile sync)
+            const input = wrap.querySelector(`.input-${field}`);
+            if (input && input !== element) {
+                input.value = rawVal;
+            }
+
+            // Show field errors
+            const errSpan = input ? input.parentElement.querySelector(".field-error-text") : null;
+            if (errSpan) {
+                errSpan.textContent = student.errors[field] || "";
+            }
+        });
+
+        updateStatsAndProgress();
+    };
+
+    const inputs = document.querySelectorAll(".workspace-card .mark-input");
+    inputs.forEach(input => {
+        let field = "theory";
+        if (input.classList.contains("input-practical")) field = "practical";
+        if (input.classList.contains("input-internal")) field = "internal";
+
+        input.addEventListener("input", () => handleInput(input, field));
+    });
+};
+
+/**
+ * Query students list and saved marks from Google Apps Script.
+ */
+const loadStudentMarks = async () => {
+    const yearSelect = document.querySelector("#filter-academic-year");
+    const examSelect = document.querySelector("#filter-exam");
+    const classSelect = document.querySelector("#filter-class");
+    const sectionSelect = document.querySelector("#filter-section");
+    const streamSelect = document.querySelector("#filter-stream");
+    const subjectSelect = document.querySelector("#filter-subject");
+
+    const filters = {
+        academicYear: yearSelect.value,
+        examName: examSelect.value,
+        classNum: classSelect.value,
+        section: sectionSelect.value,
+        stream: streamSelect ? streamSelect.value : "",
+        subjectId: subjectSelect.value
+    };
+
+    if (!filters.academicYear || !filters.examName || !filters.classNum || !filters.section || !filters.subjectId) {
+        showToast("Please fill all required filters.", "error");
+        return;
+    }
+
+    currentFilters = { ...filters };
+    maxMarks = deriveMaxMarks(filters.classNum, filters.subjectId);
+
+    // Show skeleton
+    document.querySelector("#subject-tag-empty-state").style.display = "none";
+    document.querySelector("#desktop-workspace").style.display = "none";
+    document.querySelector("#mobile-workspace").style.display = "none";
+    document.querySelector("#stats-progress-section").style.display = "none";
+    document.querySelector("#subject-tag-loading").style.display = "block";
+
+    try {
+        const query = new URLSearchParams(filters).toString();
+        const response = await apiRequest(`exam.marks.load?${query}`);
+
+        if (response.success && response.students) {
+            studentsState = response.students.map(s => {
+                const theory = s.theory !== null && s.theory !== undefined ? String(s.theory) : "";
+                const practical = s.practical !== null && s.practical !== undefined ? String(s.practical) : "";
+                const internal = s.internal !== null && s.internal !== undefined ? String(s.internal) : "";
+                
+                const studentObj = {
+                    studentId: s.studentId,
+                    rollNo: s.rollNo,
+                    studentName: s.studentName,
+                    fatherName: s.fatherName,
+                    original: { theory, practical, internal, total: s.total || "" },
+                    current: { theory, practical, internal, total: s.total || "" },
+                    errors: { theory: "", practical: "", internal: "" },
+                    hasError: false,
+                    isComplete: false,
+                    isValid: false,
+                    isChanged: false
+                };
+
+                validateStudentMarks(studentObj);
+                return studentObj;
+            });
+
+            renderWorkspace();
+            document.querySelector("#stats-progress-section").style.display = "flex";
+            updateStatsAndProgress();
+            showToast("Student marks loaded successfully.", "success");
+        }
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "Failed to load marks.", "error");
+        document.querySelector("#subject-tag-loading").style.display = "none";
+        document.querySelector("#subject-tag-empty-state").style.display = "flex";
+    }
+};
+
+/**
+ * Submit changes to GAS
+ */
+const saveAllMarks = async () => {
+    const dirtyStudents = studentsState.filter(s => s.isChanged);
+    if (dirtyStudents.length === 0) return;
+
+    // Strict client-side check
+    const hasAnyError = studentsState.some(s => s.hasError);
+    if (hasAnyError) {
+        showToast("Please fix validation errors before saving.", "error");
+        return;
+    }
+
+    const saveBtn = document.querySelector("#save-all-btn");
+    if (saveBtn) saveBtn.disabled = true;
+
+    showLoader();
+
+    const payload = dirtyStudents.map(s => ({
+        studentId: s.studentId,
+        academicYear: currentFilters.academicYear,
+        examName: currentFilters.examName,
+        classNum: currentFilters.classNum,
+        section: currentFilters.section,
+        stream: currentFilters.stream,
+        subjectId: currentFilters.subjectId,
+        theory: s.current.theory,
+        practical: s.current.practical,
+        internal: s.current.internal
+    }));
+
+    try {
+        const response = await apiRequest("exam.marks.save", {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+
+        if (response.success) {
+            showToast(`Saved ${response.count} student marks successfully!`, "success");
+            
+            // Sync current to original state
+            studentsState.forEach(s => {
+                if (s.isChanged) {
+                    s.original = { ...s.current };
+                    s.isChanged = false;
+                }
+            });
+            
+            // Update table rendering classes
+            studentsState.forEach(student => {
+                const trs = document.querySelectorAll(`[data-student-id="${student.studentId}"]`);
+                trs.forEach(tr => {
+                    tr.classList.remove("row-changed", "card-changed");
+                });
+            });
+
+            updateStatsAndProgress();
+        }
+    } catch (error) {
+        console.error(error);
+        showToast(error.message || "Failed to save marks.", "error");
+    } finally {
+        hideLoader();
+        if (saveBtn) saveBtn.disabled = false;
+    }
+};
+
+/**
+ * Initializes the Marks Entry module view shell.
+ */
+export async function initMarksEntryView() {
+    try {
+        renderNavbar(document.querySelector("#navbar-marks-entry"));
+
+        // Setup filter defaults
+        const yearInput = document.querySelector("#filter-academic-year");
+        if (yearInput) {
+            yearInput.value = getDefaultAcademicYear();
+        }
+
+        // Setup filter listeners
+        const classSelect = document.querySelector("#filter-class");
+        const streamSelect = document.querySelector("#filter-stream");
+        const loadBtn = document.querySelector("#load-students-btn");
+        const saveBtn = document.querySelector("#save-all-btn");
+
+        if (classSelect) {
+            classSelect.addEventListener("change", async () => {
+                const val = classSelect.value;
+                updateStreamFilterVisibility(val);
+                await updateAvailableSections();
+                await updateSubjectsDropdown();
+            });
+        }
+
+        if (streamSelect) {
+            streamSelect.addEventListener("change", async () => {
+                await updateSubjectsDropdown();
+            });
+        }
+
+        // Section dropdown updates on year input change
+        if (yearInput) {
+            yearInput.addEventListener("input", async () => {
+                await updateAvailableSections();
+            });
+        }
+
+        if (loadBtn) {
+            loadBtn.addEventListener("click", loadStudentMarks);
+        }
+
+        if (saveBtn) {
+            saveBtn.addEventListener("click", saveAllMarks);
+        }
+
+        // Initial setup
+        updateStreamFilterVisibility("");
+        await updateAvailableSections();
+
+    } catch (error) {
+        console.error(error);
+        showToast("Marks Entry could not be initialized.", "error");
+    }
+}

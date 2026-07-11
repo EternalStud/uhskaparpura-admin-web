@@ -1,0 +1,124 @@
+<div class="dashboard-layout">
+    <header id="navbar-result-generation"></header>
+    
+    <main class="dashboard-main subject-tag-main">
+        <div class="subject-tag-container">
+            <!-- Breadcrumbs -->
+            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#/dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Result Generation</li>
+                </ol>
+            </nav>
+
+            <!-- Page Header -->
+            <header class="subject-tag-header">
+                <div class="subject-tag-title-area">
+                    <a href="#/dashboard" class="btn btn-icon btn-ghost" aria-label="Go back to Dashboard" style="border: 1px solid var(--color-border); border-radius: 50%; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: var(--color-text);">
+                        <span class="material-symbols-rounded" aria-hidden="true" style="font-size: 1.5rem;">arrow_back</span>
+                    </a>
+                    <div>
+                        <h1>Result Generation</h1>
+                        <p class="subtitle">Compile and export class-wise student results.</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Filters Area -->
+            <section class="filters-card" aria-label="Filters">
+                <div class="filters-toolbar">
+                    <label class="filter-field" for="filter-academic-year">
+                        <span class="filter-label">Academic Year</span>
+                        <input id="filter-academic-year" name="academicYear" type="text" autocomplete="off" placeholder="e.g. 2026-27" required>
+                    </label>
+
+                    <label class="filter-field" for="filter-exam">
+                        <span class="filter-label">Exam Name</span>
+                        <select id="filter-exam" name="examName" required>
+                            <option value="">Select Exam</option>
+                            <option value="Trimester">Trimester</option>
+                            <option value="Half yearly">Half yearly</option>
+                            <option value="Sent-up">Sent-up</option>
+                            <option value="Annual">Annual</option>
+                        </select>
+                    </label>
+
+                    <div class="filter-field">
+                        <span class="filter-label">Classes</span>
+                        <div class="class-checkboxes" style="display: flex; gap: 16px; align-items: center; height: 44px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface);">
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--color-text);">
+                                <input type="checkbox" name="classes" value="9" style="width: 16px; height: 16px; accent-color: var(--color-primary);" checked> 9
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--color-text);">
+                                <input type="checkbox" name="classes" value="10" style="width: 16px; height: 16px; accent-color: var(--color-primary);"> 10
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--color-text);">
+                                <input type="checkbox" name="classes" value="11" style="width: 16px; height: 16px; accent-color: var(--color-primary);"> 11
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--color-text);">
+                                <input type="checkbox" name="classes" value="12" style="width: 16px; height: 16px; accent-color: var(--color-primary);"> 12
+                            </label>
+                        </div>
+                    </div>
+
+                    <label class="filter-field" for="filter-section">
+                        <span class="filter-label">Section</span>
+                        <select id="filter-section" name="section" required>
+                            <option value="">Select Section</option>
+                        </select>
+                    </label>
+
+                    <div id="stream-filter-container" class="filter-field" style="display: none;">
+                        <span class="filter-label">Stream</span>
+                        <select id="filter-stream" name="stream">
+                            <option value="">Select Stream</option>
+                            <option value="Science">Science</option>
+                            <option value="Arts">Arts</option>
+                        </select>
+                    </div>
+
+                    <button id="generate-results-btn" class="btn btn-primary btn-load" type="button">
+                        <span class="material-symbols-rounded" aria-hidden="true">settings</span>
+                        Generate Results
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Output Area -->
+            <section class="workspace-card" id="results-output-card" style="display: none; padding: 32px 24px;">
+                <div style="text-align: center; max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                    <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(34, 197, 94, 0.1); color: var(--color-success); display: inline-flex; align-items: center; justify-content: center;">
+                        <span class="material-symbols-rounded" style="font-size: 2.5rem;">check_circle</span>
+                    </div>
+                    <h3 style="margin: 0; color: var(--color-text); font-size: 1.4rem; font-weight: 700;">Results Compiled Successfully!</h3>
+                    <p style="margin: 0; color: var(--color-muted); line-height: 1.5;">You can now view and download the generated mark lists and division summaries below.</p>
+                    
+                    <!-- File Links List -->
+                    <div style="width: 100%; margin-top: 16px; display: flex; flex-direction: column; gap: 12px; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface);">
+                            <span class="material-symbols-rounded" style="font-size: 2rem; color: #107C41;">description</span>
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600;" id="excel-file-name">Result Excel Sheet</h4>
+                                <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--color-muted);">Formatted student result table</p>
+                            </div>
+                            <a id="excel-download-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="min-height: 36px; height: 36px; padding: 0 14px; font-size: 0.85rem; font-weight: 600;">
+                                Open Excel
+                            </a>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface);">
+                            <span class="material-symbols-rounded" style="font-size: 2rem; color: #E01A22;">picture_as_pdf</span>
+                            <div style="flex: 1;">
+                                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600;" id="pdf-file-name">Result PDF Report</h4>
+                                <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--color-muted);">Print-ready landscape PDF report</p>
+                            </div>
+                            <a id="pdf-download-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="min-height: 36px; height: 36px; padding: 0 14px; font-size: 0.85rem; font-weight: 600;">
+                                Open PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>

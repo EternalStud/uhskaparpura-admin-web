@@ -13,9 +13,10 @@
     justify-content: space-between;
     gap: 16px;
     padding: 14px 18px;
-    border-bottom: 1px solid var(--color-border);
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.02);
 }
 
 .topbar-brand {
@@ -91,50 +92,69 @@
 }
 
 .dashboard-card {
-    min-height: 148px;
+    min-height: 154px;
     display: grid;
     align-content: space-between;
-    gap: 22px;
-    border: 1px solid rgba(218, 220, 224, 0.82);
-    border-radius: var(--radius-md);
-    padding: 20px;
+    gap: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
     color: var(--color-text);
     background: var(--color-card);
     box-shadow: var(--shadow-card);
     text-align: left;
-    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dashboard-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(26, 115, 232, 0.34);
+    transform: translateY(-3px);
+    border-color: rgba(79, 70, 229, 0.3);
     box-shadow: var(--shadow-soft);
 }
 
 .dashboard-card-icon {
-    width: 46px;
-    height: 46px;
+    width: 48px;
+    height: 48px;
     display: grid;
     place-items: center;
     border-radius: var(--radius-md);
     color: var(--color-primary);
-    background: #E8F0FE;
+    background: rgba(79, 70, 229, 0.08);
+    border: 1px solid rgba(79, 70, 229, 0.15);
+    transition: all 0.25s ease;
+}
+
+.dashboard-card:hover .dashboard-card-icon {
+    background: var(--color-primary);
+    color: #FFFFFF;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
 .dashboard-card h2 {
-    margin: 0 0 8px;
-    font-size: 1.08rem;
+    margin: 0 0 6px;
+    font-size: 1.15rem;
+    font-weight: 700;
 }
 
 .dashboard-card p {
     margin: 0;
     color: var(--color-muted);
     line-height: 1.5;
+    font-size: 0.9rem;
 }
 
 .logout-card .dashboard-card-icon {
     color: var(--color-danger);
-    background: #FCE8E6;
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.15);
+}
+
+.logout-card:hover .dashboard-card-icon {
+    background: var(--color-danger);
+    color: #FFFFFF;
+    border-color: var(--color-danger);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
 
 .prepare-exam-form {
