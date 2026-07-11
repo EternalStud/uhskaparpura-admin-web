@@ -1,7 +1,7 @@
 <div class="dashboard-layout">
     <header id="navbar-subject-tag"></header>
     
-    <main class="dashboard-main">
+    <main class="dashboard-main subject-tag-main">
         <div class="subject-tag-container">
             <!-- Breadcrumbs -->
             <nav class="breadcrumb-nav" aria-label="Breadcrumb">
@@ -28,10 +28,7 @@
                         <span class="dot animate-pulse"></span>
                         Unsaved Changes
                     </span>
-                    <button id="save-all-btn" class="btn btn-primary" type="button" disabled>
-                        <span class="material-symbols-rounded" aria-hidden="true">save</span>
-                        Save All
-                    </button>
+                    <button id="save-all-btn" class="btn btn-primary" type="button" disabled>Save</button>
                 </div>
             </header>
 
@@ -70,6 +67,11 @@
                         </select>
                     </div>
 
+                    <div id="student-search-container" class="filter-field" style="display: none;">
+                        <span class="filter-label">Search</span>
+                        <input type="text" id="student-search-input" placeholder="Search by name or roll..." autocomplete="off">
+                    </div>
+
                     <button id="load-students-btn" class="btn btn-primary btn-load" type="button">
                         <span class="material-symbols-rounded" aria-hidden="true">search</span>
                         Load Students
@@ -79,13 +81,13 @@
 
             <!-- Simple Stats Summary (Minimalist text-only tracker) -->
             <section id="stats-progress-section" class="stats-summary-text" style="display: none; margin-bottom: 16px; font-size: 0.9rem; color: var(--color-muted); display: flex; align-items: center; gap: 16px;">
-                <span>Total Students: <strong id="stat-total">0</strong></span>
-                <span class="divider">|</span>
-                <span>Completed: <strong id="stat-completed">0</strong> (<strong id="stat-rate">0%</strong>)</span>
-                <span class="divider">|</span>
-                <span>Pending: <strong id="stat-pending">0</strong></span>
+                <span id="stats-summary-text-container">0 Students</span>
                 
                 <!-- Hidden elements to satisfy existing JS bindings -->
+                <span id="stat-total" style="display: none;">0</span>
+                <span id="stat-completed" style="display: none;">0</span>
+                <span id="stat-pending" style="display: none;">0</span>
+                <span id="stat-rate" style="display: none;">0%</span>
                 <span id="progress-text" style="display: none;"></span>
                 <div id="progress-bar-fill" style="display: none;"></div>
             </section>
@@ -107,12 +109,12 @@
                     <p style="margin: 0; max-width: 400px; line-height: 1.5;">Configure filters in the toolbar above and click <strong>Load Students</strong> to begin assigning subjects.</p>
                 </div>
 
-                <!-- Search Workspace Bar -->
-                <div id="workspace-header" class="workspace-header" style="display: none; padding: 16px; border-bottom: 1px solid var(--color-border); background: var(--color-card);">
-                    <div class="search-box" style="position: relative; max-width: 360px; width: 100%;">
-                        <span class="material-symbols-rounded search-icon" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-muted); font-size: 1.2rem; pointer-events: none;">search</span>
-                        <input type="text" id="student-search-input" placeholder="Search by name or roll number..." style="width: 100%; padding: 10px 12px 10px 38px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 0.9rem; outline: none; background: var(--color-background); color: var(--color-text);">
-                    </div>
+                <!-- Desktop Table View Toggle (Mobile only) -->
+                <div id="mobile-table-toggle" class="mobile-table-toggle-container" style="display: none; padding: 12px 16px; border-bottom: 1px solid var(--color-border); background: var(--color-surface-strong);">
+                    <label style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--color-text);">
+                        <input type="checkbox" id="mobile-show-table-toggle" style="width: 16px; height: 16px; margin: 0;">
+                        Show Desktop Table View
+                    </label>
                 </div>
 
                 <!-- Desktop Table Workspace -->

@@ -195,16 +195,34 @@ const updateStatsAndProgress = () => {
     document.querySelector("#progress-text").textContent = `${completed} of ${total} students completed`;
     document.querySelector("#progress-bar-fill").style.width = `${rate}%`;
 
+    // Update minimalist stats summary
+    const summaryContainer = document.querySelector("#stats-summary-text-container");
+    if (summaryContainer) {
+        if (changedCount > 0) {
+            summaryContainer.innerHTML = `${total} Students <span class="divider">|</span> <span style="color: var(--color-warning); font-weight: 600;">${changedCount} Unsaved Changes</span>`;
+        } else {
+            summaryContainer.textContent = `${total} Students`;
+        }
+    }
+
     // Update save header actions
     const unsavedIndicator = document.querySelector("#unsaved-indicator");
     const saveBtn = document.querySelector("#save-all-btn");
 
-    if (changedCount > 0) {
-        unsavedIndicator.style.display = "inline-flex";
-        saveBtn.removeAttribute("disabled");
-    } else {
-        unsavedIndicator.style.display = "none";
-        saveBtn.setAttribute("disabled", "disabled");
+    if (saveBtn) {
+        if (changedCount > 0) {
+            if (saveBtn.textContent !== "Saving..." && saveBtn.textContent !== "Saved ✓") {
+                saveBtn.textContent = `Save (${changedCount})`;
+            }
+            saveBtn.removeAttribute("disabled");
+            if (unsavedIndicator) unsavedIndicator.style.display = "inline-flex";
+        } else {
+            if (saveBtn.textContent !== "Saving..." && saveBtn.textContent !== "Saved ✓") {
+                saveBtn.textContent = "Save";
+            }
+            saveBtn.setAttribute("disabled", "disabled");
+            if (unsavedIndicator) unsavedIndicator.style.display = "none";
+        }
     }
 };
 
@@ -713,7 +731,9 @@ const handleLoadStudents = async () => {
     const desktopWorkspace = document.querySelector("#desktop-workspace");
     const mobileWorkspace = document.querySelector("#mobile-workspace");
     const statsProgressSec = document.querySelector("#stats-progress-section");
-    const workspaceHeader = document.querySelector("#workspace-header");
+    const searchContainer = document.querySelector("#student-search-container");
+    const tableToggle = document.querySelector("#mobile-table-toggle");
+    const toggleCheckbox = document.querySelector("#mobile-show-table-toggle");
     const loadingSkeleton = document.querySelector("#subject-tag-loading");
     const saveBtn = document.querySelector("#save-all-btn");
 
@@ -721,7 +741,10 @@ const handleLoadStudents = async () => {
     desktopWorkspace.style.display = "none";
     mobileWorkspace.style.display = "none";
     statsProgressSec.style.display = "none";
-    if (workspaceHeader) workspaceHeader.style.display = "none";
+    if (searchContainer) searchContainer.style.display = "none";
+    if (tableToggle) tableToggle.style.display = "none";
+    if (toggleCheckbox) toggleCheckbox.checked = false;
+    desktopWorkspace.classList.remove("force-show-mobile");
     loadingSkeleton.style.display = "block";
     saveBtn.setAttribute("disabled", "disabled");
 
@@ -780,11 +803,12 @@ const handleLoadStudents = async () => {
             desktopWorkspace.style.display = "";
             mobileWorkspace.style.display = "";
             statsProgressSec.style.display = "flex";
-            if (workspaceHeader) {
-                workspaceHeader.style.display = "block";
-                const searchInput = workspaceHeader.querySelector("#student-search-input");
+            if (searchContainer) {
+                searchContainer.style.display = "";
+                const searchInput = document.querySelector("#student-search-input");
                 if (searchInput) searchInput.value = ""; // Reset search
             }
+            if (tableToggle) tableToggle.style.display = "";
             
             renderWorkspaceData();
             showToast(`Loaded ${studentsState.length} students.`, "success");
@@ -841,7 +865,7 @@ const handleSaveAll = async () => {
         additional: s.current.add
     }));
 
-    showLoader();
+    saveBtn.textContent = "Saving...";
     saveBtn.setAttribute("disabled", "disabled");
 
     try {
@@ -854,16 +878,21 @@ const handleSaveAll = async () => {
             throw new Error(response.error || "Failed to save subject assignments.");
         }
 
-        showToast(`Successfully saved subject assignments for ${response.count} students.`, "success");
+        saveBtn.textContent = "Saved ✓";
         
         // Reload student records to refresh originally loaded values state
         await handleLoadStudents();
+
+        setTimeout(() => {
+            if (saveBtn.textContent === "Saved ✓") {
+                saveBtn.textContent = "Save";
+            }
+        }, 2000);
     } catch (error) {
         console.error(error);
         showToast(error.message, "error");
+        saveBtn.textContent = "Save";
         saveBtn.removeAttribute("disabled");
-    } finally {
-        hideLoader();
     }
 };
 
@@ -916,6 +945,18 @@ export async function initSubjectTagView() {
                 const matches = name.includes(query) || roll.includes(query);
                 card.style.display = matches ? "" : "none";
             });
+        });
+
+        // Mobile show table view toggle binding
+        document.querySelector("#mobile-show-table-toggle")?.addEventListener("change", (e) => {
+            const desktopWorkspace = document.querySelector("#desktop-workspace");
+            if (desktopWorkspace) {
+                if (e.target.checked) {
+                    desktopWorkspace.classList.add("force-show-mobile");
+                } else {
+                    desktopWorkspace.classList.remove("force-show-mobile");
+                }
+            }
         });
 
         // Run section lookup initially
