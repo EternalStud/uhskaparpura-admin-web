@@ -891,7 +891,7 @@ a {
 
 /* Mobile cards layout */
 .mobile-workspace-container {
-    display: none;
+    display: none !important;
     flex-direction: column;
     gap: 16px;
     padding: 16px;

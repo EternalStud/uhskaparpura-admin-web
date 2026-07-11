@@ -351,16 +351,7 @@ const openSearchableDropdown = (triggerBtn, studentId, fieldName, currentVal, op
 
     const dropdownEl = document.createElement("div");
     dropdownEl.className = "custom-select-dropdown";
-
-    const searchContainer = document.createElement("div");
-    searchContainer.className = "custom-select-search-container";
-    const searchInput = document.createElement("input");
-    searchInput.type = "text";
-    searchInput.className = "custom-select-search";
-    searchInput.placeholder = "Type to search...";
-    searchInput.autocomplete = "off";
-    searchContainer.appendChild(searchInput);
-    dropdownEl.appendChild(searchContainer);
+    dropdownEl.tabIndex = -1; // Allow keyboard focus
 
     const optionsList = document.createElement("ul");
     optionsList.className = "custom-select-options";
@@ -371,12 +362,11 @@ const openSearchableDropdown = (triggerBtn, studentId, fieldName, currentVal, op
         closeActiveDropdown();
     };
 
-    const renderOptions = (filterQuery = "") => {
+    const renderOptions = () => {
         optionsList.innerHTML = "";
-        const query = filterQuery.toLowerCase().trim();
 
         // Clear option for additional
-        if (fieldName === "add" && ("none".includes(query) || query === "")) {
+        if (fieldName === "add") {
             const li = document.createElement("li");
             li.className = "custom-select-option" + (currentVal === "" ? " selected" : "");
             li.innerHTML = `<span>None</span>`;
@@ -384,12 +374,7 @@ const openSearchableDropdown = (triggerBtn, studentId, fieldName, currentVal, op
             optionsList.appendChild(li);
         }
 
-        const filtered = options.filter(opt =>
-            opt.name.toLowerCase().includes(query) ||
-            String(opt.code).includes(query)
-        );
-
-        filtered.forEach((opt) => {
+        options.forEach((opt) => {
             const li = document.createElement("li");
             li.className = "custom-select-option";
             if (opt.subjectId === currentVal) {
@@ -411,11 +396,11 @@ const openSearchableDropdown = (triggerBtn, studentId, fieldName, currentVal, op
         }
     };
 
-    renderOptions("");
+    renderOptions();
 
-    // Keyboard support
+    // Keyboard support directly on the dropdown container
     let focusedIndex = -1;
-    searchInput.addEventListener("keydown", (e) => {
+    dropdownEl.addEventListener("keydown", (e) => {
         const visibleItems = Array.from(optionsList.querySelectorAll(".custom-select-option:not(.disabled)"));
         
         if (e.key === "ArrowDown") {
@@ -445,11 +430,6 @@ const openSearchableDropdown = (triggerBtn, studentId, fieldName, currentVal, op
         }
     });
 
-    searchInput.addEventListener("input", (e) => {
-        renderOptions(e.target.value);
-        focusedIndex = -1;
-    });
-
     document.body.appendChild(dropdownEl);
     
     // Position dropdown absolute based on trigger coordinates
@@ -475,7 +455,7 @@ const openSearchableDropdown = (triggerBtn, studentId, fieldName, currentVal, op
         document.addEventListener("click", activeDropdown.onOutsideClick);
     }, 0);
 
-    searchInput.focus();
+    dropdownEl.focus();
 };
 
 /**
