@@ -10,6 +10,7 @@ let dropdownSubjects = [];  // All available subjects for selected class & strea
 let studentsList = [];      // Raw loaded student list
 let studentsState = [];     // Unified state tracking loaded students
 let currentFilters = {};    // Currently active filters
+let activeDropdown = null;  // Track currently open dropdown
 
 const getDefaultAcademicYear = () => {
     const year = new Date().getFullYear();
@@ -287,7 +288,7 @@ const getFieldOptions = (student, fieldName, classNum) => {
 };
 
 /**
- * Creates custom select component layout trigger using native select.
+ * Creates custom select component layout trigger.
  */
 const renderSelectTrigger = (containerEl, student, fieldName, classNum) => {
     containerEl.innerHTML = "";
@@ -296,56 +297,159 @@ const renderSelectTrigger = (containerEl, student, fieldName, classNum) => {
     const isError = student.errors[fieldName] !== "";
     containerEl.classList.toggle("dropdown-error", isError);
 
-    const selectEl = document.createElement("select");
-    selectEl.className = "custom-select-trigger";
+    const triggerBtn = document.createElement("button");
+    triggerBtn.className = "custom-select-trigger";
+    triggerBtn.type = "button";
     
     if (isError) {
-        selectEl.title = student.errors[fieldName];
+        triggerBtn.title = student.errors[fieldName];
     }
 
-    const options = getFieldOptions(student, fieldName, classNum);
+    const selectedSubj = dropdownSubjects.find(s => s.subjectId === value);
 
-    // If it's the "additional" field, we add a "None" option at the top
+    if (selectedSubj) {
+        triggerBtn.innerHTML = `
+            <span class="trigger-text">${selectedSubj.name}</span>
+            <span class="trigger-code">${selectedSubj.code}</span>
+            <span class="material-symbols-rounded dropdown-chevron">expand_more</span>
+        `;
+    } else {
+        const placeholder = fieldName === "add" ? "None" : `Select ${fieldName.toUpperCase()}`;
+        triggerBtn.innerHTML = `
+            <span class="trigger-text" style="color: var(--color-muted);">${placeholder}</span>
+            <span class="material-symbols-rounded dropdown-chevron">expand_more</span>
+        `;
+    }
+
+    // Attach click listener to spawn shared custom select dropdown (no search text)
+    triggerBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const options = getFieldOptions(student, fieldName, classNum);
+        openSelectDropdown(triggerBtn, student.studentId, fieldName, value, options);
+    });
+
+    containerEl.appendChild(triggerBtn);
+};
+
+/**
+ * Closes the active open floating dropdown.
+ */
+const closeActiveDropdown = () => {
+    if (activeDropdown) {
+        document.removeEventListener("click", activeDropdown.onOutsideClick);
+        activeDropdown.dropdownEl.remove();
+        activeDropdown.triggerBtn.parentElement?.classList.remove("open");
+        activeDropdown = null;
+    }
+};
+
+/**
+ * Creates and displays the shared floating select dropdown.
+ */
+const openSelectDropdown = (triggerBtn, studentId, fieldName, currentVal, options) => {
+    closeActiveDropdown();
+
+    const dropdownEl = document.createElement("div");
+    dropdownEl.className = "custom-select-dropdown";
+    dropdownEl.tabIndex = -1; // Allow keyboard focus
+
+    const optionsList = document.createElement("ul");
+    optionsList.className = "custom-select-options";
+    dropdownEl.appendChild(optionsList);
+
+    const onOptionSelected = (newValue) => {
+        handleValueChange(studentId, fieldName, newValue);
+        closeActiveDropdown();
+    };
+
+    // Clear option for additional
     if (fieldName === "add") {
-        const optEl = document.createElement("option");
-        optEl.value = "";
-        optEl.textContent = "None";
-        selectEl.appendChild(optEl);
-    } else if (options.length > 0 && value === "") {
-        // If there's no selected value, show a placeholder option
-        const optEl = document.createElement("option");
-        optEl.value = "";
-        optEl.textContent = `Select ${fieldName.toUpperCase()}`;
-        optEl.disabled = true;
-        optEl.selected = true;
-        selectEl.appendChild(optEl);
+        const li = document.createElement("li");
+        li.className = "custom-select-option" + (currentVal === "" ? " selected" : "");
+        li.innerHTML = `<span>None</span>`;
+        li.addEventListener("click", () => onOptionSelected(""));
+        optionsList.appendChild(li);
     }
 
     options.forEach((opt) => {
-        const optEl = document.createElement("option");
-        optEl.value = opt.subjectId;
-        optEl.textContent = `${opt.name} (${opt.code})`;
-        if (opt.subjectId === value) {
-            optEl.selected = true;
+        const li = document.createElement("li");
+        li.className = "custom-select-option";
+        if (opt.subjectId === currentVal) {
+            li.classList.add("selected");
         }
-        selectEl.appendChild(optEl);
+        li.innerHTML = `
+            <span>${opt.name}</span>
+            <span class="option-code">${opt.code}</span>
+        `;
+        li.addEventListener("click", () => onOptionSelected(opt.subjectId));
+        optionsList.appendChild(li);
     });
 
-    // Disable if there are no options available (not editable)
     if (options.length === 0) {
-        selectEl.setAttribute("disabled", "disabled");
-        // Add a "None" or placeholder so it's not empty
-        const optEl = document.createElement("option");
-        optEl.value = "";
-        optEl.textContent = fieldName === "add" ? "None" : "N/A";
-        selectEl.appendChild(optEl);
+        const emptyLi = document.createElement("li");
+        emptyLi.className = "custom-select-option disabled";
+        emptyLi.textContent = "No subjects found";
+        optionsList.appendChild(emptyLi);
     }
 
-    selectEl.addEventListener("change", (e) => {
-        handleValueChange(student.studentId, fieldName, e.target.value);
+    // Keyboard support directly on the dropdown container
+    let focusedIndex = -1;
+    dropdownEl.addEventListener("keydown", (e) => {
+        const visibleItems = Array.from(optionsList.querySelectorAll(".custom-select-option:not(.disabled)"));
+        
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            focusedIndex = (focusedIndex + 1) % visibleItems.length;
+            visibleItems.forEach((el, idx) => {
+                el.classList.toggle("focused", idx === focusedIndex);
+                if (idx === focusedIndex) el.scrollIntoView({ block: "nearest" });
+            });
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            focusedIndex = (focusedIndex - 1 + visibleItems.length) % visibleItems.length;
+            visibleItems.forEach((el, idx) => {
+                el.classList.toggle("focused", idx === focusedIndex);
+                if (idx === focusedIndex) el.scrollIntoView({ block: "nearest" });
+            });
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            if (focusedIndex >= 0 && focusedIndex < visibleItems.length) {
+                visibleItems[focusedIndex].click();
+            } else if (visibleItems.length > 0) {
+                visibleItems[0].click();
+            }
+        } else if (e.key === "Escape") {
+            e.preventDefault();
+            closeActiveDropdown();
+        }
     });
 
-    containerEl.appendChild(selectEl);
+    document.body.appendChild(dropdownEl);
+    
+    // Position dropdown absolute based on trigger coordinates
+    const rect = triggerBtn.getBoundingClientRect();
+    dropdownEl.style.position = "absolute";
+    dropdownEl.style.top = `${rect.bottom + window.scrollY}px`;
+    dropdownEl.style.left = `${rect.left + window.scrollX}px`;
+    dropdownEl.style.width = `${Math.max(rect.width, 220)}px`;
+
+    triggerBtn.parentElement?.classList.add("open");
+
+    activeDropdown = {
+        dropdownEl,
+        triggerBtn,
+        onOutsideClick(e) {
+            if (!dropdownEl.contains(e.target) && !triggerBtn.contains(e.target)) {
+                closeActiveDropdown();
+            }
+        }
+    };
+
+    setTimeout(() => {
+        document.addEventListener("click", activeDropdown.onOutsideClick);
+    }, 0);
+
+    dropdownEl.focus();
 };
 
 /**
@@ -595,6 +699,8 @@ const handleLoadStudents = async () => {
         return;
     }
 
+    closeActiveDropdown();
+
     const emptyState = document.querySelector("#subject-tag-empty-state");
     const desktopWorkspace = document.querySelector("#desktop-workspace");
     const mobileWorkspace = document.querySelector("#mobile-workspace");
@@ -833,6 +939,11 @@ export async function initSubjectTagView() {
 
         // Run section lookup initially
         updateAvailableSections();
+
+        // SPA Navigation cleanup to prevent memory leaks from global click listeners
+        window.addEventListener("hashchange", () => {
+            closeActiveDropdown();
+        }, { once: true });
 
     } catch (error) {
         console.error(error);
