@@ -889,6 +889,14 @@ a {
     color: var(--color-primary);
 }
 
+/* Mobile cards layout */
+.mobile-workspace-container {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+}
+
 .student-mobile-card {
     background: #FFFFFF;
     border: 1px solid var(--color-border);
