@@ -708,7 +708,6 @@ const handleLoadStudents = async () => {
     }
 
     closeActiveDropdown();
-    closeQuickFillMenu();
 
     const emptyState = document.querySelector("#subject-tag-empty-state");
     const desktopWorkspace = document.querySelector("#desktop-workspace");
