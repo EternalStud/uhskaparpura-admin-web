@@ -310,7 +310,6 @@ const renderSelectTrigger = (containerEl, student, fieldName, classNum) => {
     if (selectedSubj) {
         triggerBtn.innerHTML = `
             <span class="trigger-text">${selectedSubj.name}</span>
-            <span class="trigger-code">${selectedSubj.code}</span>
             <span class="material-symbols-rounded dropdown-chevron">expand_more</span>
         `;
     } else {
@@ -379,7 +378,6 @@ const openSelectDropdown = (triggerBtn, studentId, fieldName, currentVal, option
         }
         li.innerHTML = `
             <span>${opt.name}</span>
-            <span class="option-code">${opt.code}</span>
         `;
         li.addEventListener("click", () => onOptionSelected(opt.subjectId));
         optionsList.appendChild(li);
