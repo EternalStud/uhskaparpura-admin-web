@@ -1016,6 +1016,9 @@ a {
     .btn-load {
         margin-top: 10px;
     }
+    #student-search-container {
+        display: none !important;
+    }
     .mobile-table-toggle-container {
         display: block !important;
     }
