@@ -59,6 +59,13 @@
     padding: 26px 18px 40px;
 }
 
+.subject-tag-main {
+    width: 98% !important;
+    max-width: 98% !important;
+    padding: 12px 16px !important;
+    margin: 0 auto !important;
+}
+
 .dashboard-head {
     display: grid;
     gap: 10px;
