@@ -77,50 +77,17 @@
                 </div>
             </section>
 
-            <!-- Stats & Progress Area -->
-            <section id="stats-progress-section" class="stats-progress-section" style="display: none;">
-                <!-- Overall Progress Bar -->
-                <div class="progress-card">
-                    <div class="progress-meta">
-                        <span class="progress-title">Overall Completion</span>
-                        <span id="progress-text" class="progress-count">0 of 0 students completed</span>
-                    </div>
-                    <div class="progress-bar-track">
-                        <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%;"></div>
-                    </div>
-                </div>
-
-                <!-- Stats Cards Grid -->
-                <div class="stats-grid">
-                    <div class="stats-card">
-                        <span class="stats-icon text-primary"><span class="material-symbols-rounded">groups</span></span>
-                        <div class="stats-info">
-                            <span class="stats-label">Total Students</span>
-                            <span id="stat-total" class="stats-val">0</span>
-                        </div>
-                    </div>
-                    <div class="stats-card">
-                        <span class="stats-icon text-success"><span class="material-symbols-rounded">check_circle</span></span>
-                        <div class="stats-info">
-                            <span class="stats-label">Completed</span>
-                            <span id="stat-completed" class="stats-val">0</span>
-                        </div>
-                    </div>
-                    <div class="stats-card">
-                        <span class="stats-icon text-warning"><span class="material-symbols-rounded">pending</span></span>
-                        <div class="stats-info">
-                            <span class="stats-label">Pending</span>
-                            <span id="stat-pending" class="stats-val">0</span>
-                        </div>
-                    </div>
-                    <div class="stats-card">
-                        <span class="stats-icon text-info"><span class="material-symbols-rounded">percent</span></span>
-                        <div class="stats-info">
-                            <span class="stats-label">Completion Rate</span>
-                            <span id="stat-rate" class="stats-val">0%</span>
-                        </div>
-                    </div>
-                </div>
+            <!-- Simple Stats Summary (Minimalist text-only tracker) -->
+            <section id="stats-progress-section" class="stats-summary-text" style="display: none; margin-bottom: 16px; font-size: 0.9rem; color: var(--color-muted); display: flex; align-items: center; gap: 16px;">
+                <span>Total Students: <strong id="stat-total">0</strong></span>
+                <span class="divider">|</span>
+                <span>Completed: <strong id="stat-completed">0</strong> (<strong id="stat-rate">0%</strong>)</span>
+                <span class="divider">|</span>
+                <span>Pending: <strong id="stat-pending">0</strong></span>
+                
+                <!-- Hidden elements to satisfy existing JS bindings -->
+                <span id="progress-text" style="display: none;"></span>
+                <div id="progress-bar-fill" style="display: none;"></div>
             </section>
 
             <!-- Workspace Area -->
@@ -138,6 +105,14 @@
                     <span class="material-symbols-rounded" aria-hidden="true" style="font-size: 3.5rem; color: var(--color-border);">assignment_ind</span>
                     <h3 style="margin: 0; color: var(--color-text); font-size: 1.2rem; font-weight: 700;">No Records Loaded</h3>
                     <p style="margin: 0; max-width: 400px; line-height: 1.5;">Configure filters in the toolbar above and click <strong>Load Students</strong> to begin assigning subjects.</p>
+                </div>
+
+                <!-- Search Workspace Bar -->
+                <div id="workspace-header" class="workspace-header" style="display: none; padding: 16px; border-bottom: 1px solid var(--color-border); background: var(--color-card);">
+                    <div class="search-box" style="position: relative; max-width: 360px; width: 100%;">
+                        <span class="material-symbols-rounded search-icon" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--color-muted); font-size: 1.2rem; pointer-events: none;">search</span>
+                        <input type="text" id="student-search-input" placeholder="Search by name or roll number..." style="width: 100%; padding: 10px 12px 10px 38px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 0.9rem; outline: none; background: var(--color-background); color: var(--color-text);">
+                    </div>
                 </div>
 
                 <!-- Desktop Table Workspace -->

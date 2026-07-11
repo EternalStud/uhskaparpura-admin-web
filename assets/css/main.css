@@ -400,6 +400,12 @@ a {
     justify-content: space-between;
     gap: 20px;
     flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--color-background);
+    padding: 16px 0;
+    border-bottom: 1px solid var(--color-border);
 }
 
 .subject-tag-title-area {
@@ -519,102 +525,20 @@ a {
 }
 
 /* Stats and progress bar */
-.stats-progress-section {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.progress-card {
-    background: #FFFFFF;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: 18px 24px;
-    box-shadow: var(--shadow-card);
-}
-
-.progress-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.progress-title {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--color-text);
-}
-
-.progress-count {
+/* Minimalist stats summary */
+.stats-summary-text {
     font-size: 0.88rem;
     color: var(--color-muted);
     font-weight: 500;
+    padding: 4px 0;
 }
-
-.progress-bar-track {
-    height: 10px;
-    background-color: var(--color-background);
-    border-radius: 5px;
-    overflow: hidden;
+.stats-summary-text .divider {
+    color: var(--color-border);
+    margin: 0 4px;
 }
-
-.progress-bar-fill {
-    height: 100%;
-    background-color: var(--color-primary);
-    border-radius: 5px;
-    transition: width 0.4s ease-out;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
-}
-
-.stats-card {
-    background: #FFFFFF;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    padding: 16px 20px;
-    box-shadow: var(--shadow-card);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.stats-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-}
-
-.text-primary { background: #E8F0FE; color: var(--color-primary); }
-.text-success { background: #E6F4EA; color: #137333; }
-.text-warning { background: #FEF7E0; color: #B06000; }
-.text-info { background: #E8F7FA; color: #007B83; }
-
-.stats-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.stats-label {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--color-muted);
-    text-transform: uppercase;
-}
-
-.stats-val {
-    font-size: 1.4rem;
-    font-weight: 800;
+.stats-summary-text strong {
     color: var(--color-text);
-    margin-top: 2px;
+    font-weight: 600;
 }
 
 /* Workspace cards */
@@ -864,37 +788,34 @@ a {
 
 /* Badges */
 .badge-status {
-    display: inline-flex;
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-size: 0.76rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+    display: inline-block;
+    padding: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
 .badge-pending {
-    background: #F3F4F6;
-    color: #4B5563;
-    border: 1px solid #E5E7EB;
+    background: none;
+    color: var(--color-muted);
+    border: none;
 }
 
 .badge-completed {
-    background: #E6F4EA;
-    color: #137333;
-    border: 1px solid #CEEAD6;
+    background: none;
+    color: var(--color-success);
+    border: none;
 }
 
 .badge-error {
-    background: #FCE8E6;
-    color: #C5221F;
-    border: 1px solid #FAD2CF;
+    background: none;
+    color: var(--color-danger);
+    border: none;
 }
 
 .badge-unsaved {
-    background: #FEF7E0;
-    color: #B06000;
-    border: 1px solid #FEEFC3;
+    background: none;
+    color: var(--color-warning);
+    border: none;
 }
 
 /* Inline error styles */
@@ -962,7 +883,7 @@ a {
 
 /* Mobile cards layout */
 .mobile-workspace-container {
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 16px;
     padding: 16px;
@@ -1083,7 +1004,7 @@ a {
 }
 
 /* Responsive adjustments */
-@media (max-width: 900px) {
+@media (max-width: 768px) {
     .subject-tag-container {
         padding: 16px;
     }
@@ -1095,10 +1016,10 @@ a {
         margin-top: 10px;
     }
     .desktop-workspace-container {
-        display: none;
+        display: none !important;
     }
     .mobile-workspace-container {
-        display: flex;
+        display: flex !important;
     }
 }
 

@@ -713,6 +713,7 @@ const handleLoadStudents = async () => {
     const desktopWorkspace = document.querySelector("#desktop-workspace");
     const mobileWorkspace = document.querySelector("#mobile-workspace");
     const statsProgressSec = document.querySelector("#stats-progress-section");
+    const workspaceHeader = document.querySelector("#workspace-header");
     const loadingSkeleton = document.querySelector("#subject-tag-loading");
     const saveBtn = document.querySelector("#save-all-btn");
 
@@ -720,6 +721,7 @@ const handleLoadStudents = async () => {
     desktopWorkspace.style.display = "none";
     mobileWorkspace.style.display = "none";
     statsProgressSec.style.display = "none";
+    if (workspaceHeader) workspaceHeader.style.display = "none";
     loadingSkeleton.style.display = "block";
     saveBtn.setAttribute("disabled", "disabled");
 
@@ -775,9 +777,14 @@ const handleLoadStudents = async () => {
             emptyState.style.display = "flex";
             showToast("No student records found matching filters.", "warning");
         } else {
-            desktopWorkspace.style.display = "block";
-            mobileWorkspace.style.display = "flex";
+            desktopWorkspace.style.display = "";
+            mobileWorkspace.style.display = "";
             statsProgressSec.style.display = "flex";
+            if (workspaceHeader) {
+                workspaceHeader.style.display = "block";
+                const searchInput = workspaceHeader.querySelector("#student-search-input");
+                if (searchInput) searchInput.value = ""; // Reset search
+            }
             
             renderWorkspaceData();
             showToast(`Loaded ${studentsState.length} students.`, "success");
@@ -889,6 +896,27 @@ export async function initSubjectTagView() {
         // Button click bindings
         document.querySelector("#load-students-btn")?.addEventListener("click", handleLoadStudents);
         document.querySelector("#save-all-btn")?.addEventListener("click", handleSaveAll);
+
+        // Search input binding
+        document.querySelector("#student-search-input")?.addEventListener("input", (e) => {
+            const query = String(e.target.value || "").trim().toLowerCase();
+            const rows = document.querySelectorAll("#desktop-table-body tr");
+            const cards = document.querySelectorAll("#mobile-workspace .student-mobile-card");
+
+            rows.forEach(row => {
+                const name = String(row.querySelector(".col-name")?.textContent || "").toLowerCase();
+                const roll = String(row.querySelector(".col-roll")?.textContent || "").toLowerCase();
+                const matches = name.includes(query) || roll.includes(query);
+                row.style.display = matches ? "" : "none";
+            });
+
+            cards.forEach(card => {
+                const name = String(card.querySelector(".mobile-card-name")?.textContent || "").toLowerCase();
+                const roll = String(card.querySelector(".mobile-card-roll")?.textContent || "").toLowerCase();
+                const matches = name.includes(query) || roll.includes(query);
+                card.style.display = matches ? "" : "none";
+            });
+        });
 
         // Run section lookup initially
         updateAvailableSections();
