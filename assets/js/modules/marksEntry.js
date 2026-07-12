@@ -10,6 +10,56 @@ let dropdownSubjects = [];  // Available subjects for selected class & stream
 let studentsState = [];     // State tracking loaded students and their marks
 let currentFilters = {};    // Active filters
 let maxMarks = { theory: 100, practical: 0, internal: 0 }; // Maximum marks config
+let isExamLockedForTeacher = false; // Lock flag based on system settings
+
+/**
+ * Enforces numeric keypress and maximum value restrictions on a mark input field.
+ */
+const enforceMarkInputRules = (input, max) => {
+    if (max === 0) return;
+
+    let lastValidValue = input.value;
+
+    const validateAndNormalize = (val) => {
+        let s = String(val).trim();
+        if (s === "") return { valid: true, val: "" };
+        if (s.toUpperCase() === "A") return { valid: true, val: "A" };
+        if (!/^\d+$/.test(s)) return { valid: false };
+        
+        const num = Number(s);
+        if (num < 0 || num > max) return { valid: false };
+        return { valid: true, val: num };
+    };
+
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" || e.key === "Delete" || e.key === "Tab" || e.key === "Escape" || e.key === "Enter" || 
+            e.key === "ArrowLeft" || e.key === "ArrowRight" || e.ctrlKey || e.metaKey) {
+            return;
+        }
+
+        const isDigit = /^[0-9]$/.test(e.key);
+        const isA = e.key === "a" || e.key === "A";
+
+        if (!isDigit && !isA) {
+            e.preventDefault();
+        }
+    });
+
+    input.addEventListener("input", () => {
+        let rawVal = input.value;
+        if (rawVal.toLowerCase() === "a") {
+            rawVal = "A";
+            input.value = "A";
+        }
+
+        const res = validateAndNormalize(rawVal);
+        if (res.valid) {
+            lastValidValue = rawVal;
+        } else {
+            input.value = lastValidValue;
+        }
+    });
+};
 
 const getDefaultAcademicYear = () => {
     const year = new Date().getFullYear();
@@ -243,7 +293,7 @@ const updateStatsAndProgress = () => {
     const saveBtn = document.querySelector("#save-all-btn");
     const unsavedBadge = document.querySelector("#unsaved-indicator");
     if (saveBtn) {
-        saveBtn.disabled = changedCount === 0 || studentsState.some(s => s.hasError);
+        saveBtn.disabled = isExamLockedForTeacher || changedCount === 0 || studentsState.some(s => s.hasError);
     }
     if (unsavedBadge) {
         unsavedBadge.style.display = changedCount > 0 ? "inline-flex" : "none";
@@ -275,8 +325,14 @@ const renderWorkspace = () => {
     const mobileWorkspace = document.querySelector("#mobile-workspace");
     const emptyState = document.querySelector("#subject-tag-empty-state");
     const loadingState = document.querySelector("#subject-tag-loading");
+    const lockBanner = document.querySelector("#lock-warning-banner");
 
     loadingState.style.display = "none";
+
+    // Show/hide lock warning banner
+    if (lockBanner) {
+        lockBanner.style.display = isExamLockedForTeacher ? "flex" : "none";
+    }
 
     if (studentsState.length === 0) {
         emptyState.style.display = "flex";
@@ -321,18 +377,27 @@ const renderWorkspace = () => {
                 <td><div class="student-father-name">${student.fatherName}</div></td>
                 
                 <td style="text-align: center;">
-                    <input type="text" class="mark-input input-theory" value="${student.current.theory}" 
-                           placeholder="0-${maxMarks.theory} or A" ${maxMarks.theory === 0 ? "disabled value='0'" : ""}>
+                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                        <input type="text" class="mark-input input-theory" value="${student.current.theory}" 
+                               inputmode="numeric" placeholder="0-${maxMarks.theory}" ${maxMarks.theory === 0 || isExamLockedForTeacher ? "disabled" : ""}>
+                        ${maxMarks.theory > 0 && !isExamLockedForTeacher ? `<button type="button" class="btn-absent-toggle ${student.current.theory === "A" ? "active" : ""}" data-field="theory" style="padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid var(--color-border); font-weight: bold; cursor: pointer; background: var(--color-bg);">AB</button>` : ""}
+                    </div>
                     ${theoryError}
                 </td>
                 <td style="text-align: center; display: ${maxMarks.practical > 0 ? "table-cell" : "none"};">
-                    <input type="text" class="mark-input input-practical" value="${student.current.practical}" 
-                           placeholder="0-${maxMarks.practical} or A" ${maxMarks.practical === 0 ? "disabled value='0'" : ""}>
+                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                        <input type="text" class="mark-input input-practical" value="${student.current.practical}" 
+                               inputmode="numeric" placeholder="0-${maxMarks.practical}" ${maxMarks.practical === 0 || isExamLockedForTeacher ? "disabled" : ""}>
+                        ${maxMarks.practical > 0 && !isExamLockedForTeacher ? `<button type="button" class="btn-absent-toggle ${student.current.practical === "A" ? "active" : ""}" data-field="practical" style="padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid var(--color-border); font-weight: bold; cursor: pointer; background: var(--color-bg);">AB</button>` : ""}
+                    </div>
                     ${practicalError}
                 </td>
                 <td style="text-align: center; display: ${maxMarks.internal > 0 ? "table-cell" : "none"};">
-                    <input type="text" class="mark-input input-internal" value="${student.current.internal}" 
-                           placeholder="0-${maxMarks.internal} or A" ${maxMarks.internal === 0 ? "disabled value='0'" : ""}>
+                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                        <input type="text" class="mark-input input-internal" value="${student.current.internal}" 
+                               inputmode="numeric" placeholder="0-${maxMarks.internal}" ${maxMarks.internal === 0 || isExamLockedForTeacher ? "disabled" : ""}>
+                        ${maxMarks.internal > 0 && !isExamLockedForTeacher ? `<button type="button" class="btn-absent-toggle ${student.current.internal === "A" ? "active" : ""}" data-field="internal" style="padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid var(--color-border); font-weight: bold; cursor: pointer; background: var(--color-bg);">AB</button>` : ""}
+                    </div>
                     ${internalError}
                 </td>
                 
@@ -367,30 +432,42 @@ const renderWorkspace = () => {
                 <div class="card-body">
                     <div class="field-item">
                         <span class="field-label">Theory (Max ${maxMarks.theory}):</span>
-                        <input type="text" class="mark-input input-theory" value="${student.current.theory}" 
-                               placeholder="0-${maxMarks.theory} or A" ${maxMarks.theory === 0 ? "disabled value='0'" : ""}>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                            <input type="text" class="mark-input input-theory" value="${student.current.theory}" 
+                                   inputmode="numeric" placeholder="0-${maxMarks.theory}" ${maxMarks.theory === 0 || isExamLockedForTeacher ? "disabled" : ""}
+                                   style="flex: 1; height: 42px; font-size: 1.1rem; font-weight: bold; text-align: center;">
+                            ${maxMarks.theory > 0 && !isExamLockedForTeacher ? `<button type="button" class="btn-absent-toggle ${student.current.theory === "A" ? "active" : ""}" data-field="theory" style="height: 42px; padding: 0 16px; font-weight: bold; border-radius: var(--radius-md); border: 1px solid var(--color-border); cursor: pointer; background: var(--color-bg);">AB</button>` : ""}
+                        </div>
                         ${student.errors.theory ? `<span class="field-error-text">${student.errors.theory}</span>` : ""}
                     </div>
                     
                     ${maxMarks.practical > 0 ? `
                     <div class="field-item">
                         <span class="field-label">Practical (Max ${maxMarks.practical}):</span>
-                        <input type="text" class="mark-input input-practical" value="${student.current.practical}" 
-                               placeholder="0-${maxMarks.practical} or A">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                            <input type="text" class="mark-input input-practical" value="${student.current.practical}" 
+                                   inputmode="numeric" placeholder="0-${maxMarks.practical}" ${isExamLockedForTeacher ? "disabled" : ""}
+                                   style="flex: 1; height: 42px; font-size: 1.1rem; font-weight: bold; text-align: center;">
+                            ${!isExamLockedForTeacher ? `<button type="button" class="btn-absent-toggle ${student.current.practical === "A" ? "active" : ""}" data-field="practical" style="height: 42px; padding: 0 16px; font-weight: bold; border-radius: var(--radius-md); border: 1px solid var(--color-border); cursor: pointer; background: var(--color-bg);">AB</button>` : ""}
+                        </div>
                         ${student.errors.practical ? `<span class="field-error-text">${student.errors.practical}</span>` : ""}
                     </div>` : ""}
 
                     ${maxMarks.internal > 0 ? `
                     <div class="field-item">
                         <span class="field-label">Internal (Max ${maxMarks.internal}):</span>
-                        <input type="text" class="mark-input input-internal" value="${student.current.internal}" 
-                               placeholder="0-${maxMarks.internal} or A">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                            <input type="text" class="mark-input input-internal" value="${student.current.internal}" 
+                                   inputmode="numeric" placeholder="0-${maxMarks.internal}" ${isExamLockedForTeacher ? "disabled" : ""}
+                                   style="flex: 1; height: 42px; font-size: 1.1rem; font-weight: bold; text-align: center;">
+                            ${!isExamLockedForTeacher ? `<button type="button" class="btn-absent-toggle ${student.current.internal === "A" ? "active" : ""}" data-field="internal" style="height: 42px; padding: 0 16px; font-weight: bold; border-radius: var(--radius-md); border: 1px solid var(--color-border); cursor: pointer; background: var(--color-bg);">AB</button>` : ""}
+                        </div>
                         ${student.errors.internal ? `<span class="field-error-text">${student.errors.internal}</span>` : ""}
                     </div>` : ""}
 
-                    <div class="field-item total-item">
+                    <div class="field-item total-item" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.04); padding-top: 8px;">
                         <span class="field-label">Total Marks:</span>
-                        <span class="mark-total-display" style="font-weight: bold;">${student.current.total}</span>
+                        <span class="mark-total-display" style="font-weight: 800; font-size: 1.1rem; color: var(--color-primary);">${student.current.total}</span>
                     </div>
                 </div>
             </div>
@@ -449,6 +526,12 @@ const bindWorkspaceInputListeners = () => {
                 input.value = rawVal;
             }
 
+            // Sync AB button active class
+            const toggle = wrap.querySelector(`.btn-absent-toggle[data-field="${field}"]`);
+            if (toggle) {
+                toggle.classList.toggle("active", rawVal === "A");
+            }
+
             // Show field errors
             const errSpan = input ? input.parentElement.querySelector(".field-error-text") : null;
             if (errSpan) {
@@ -462,10 +545,65 @@ const bindWorkspaceInputListeners = () => {
     const inputs = document.querySelectorAll(".workspace-card .mark-input");
     inputs.forEach(input => {
         let field = "theory";
-        if (input.classList.contains("input-practical")) field = "practical";
-        if (input.classList.contains("input-internal")) field = "internal";
+        let max = maxMarks.theory;
+        if (input.classList.contains("input-practical")) {
+            field = "practical";
+            max = maxMarks.practical;
+        }
+        if (input.classList.contains("input-internal")) {
+            field = "internal";
+            max = maxMarks.internal;
+        }
+
+        // Apply typing enforcement
+        enforceMarkInputRules(input, max);
 
         input.addEventListener("input", () => handleInput(input, field));
+
+        // Enter key navigation
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                const allInputs = Array.from(document.querySelectorAll(".workspace-card .mark-input:not([disabled])"));
+                const idx = allInputs.indexOf(input);
+                if (idx !== -1 && idx < allInputs.length - 1) {
+                    allInputs[idx + 1].focus();
+                    allInputs[idx + 1].select();
+                }
+            }
+        });
+    });
+
+    // AB Button toggle click handlers
+    const abToggles = document.querySelectorAll(".workspace-card .btn-absent-toggle");
+    abToggles.forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            const container = e.target.closest("[data-student-id]");
+            if (!container) return;
+            const studentId = container.dataset.studentId;
+            const student = studentsState.find(s => s.studentId === studentId);
+            if (!student) return;
+
+            const field = e.target.dataset.field;
+            const inputGroup = e.target.parentElement;
+            const input = inputGroup.querySelector(".mark-input");
+            if (!input || input.disabled) return;
+
+            // Toggle absent
+            const currentVal = student.current[field];
+            const newVal = currentVal === "A" ? "" : "A";
+
+            input.value = newVal;
+            handleInput(input, field);
+            
+            // Advance focus on toggle click
+            const allInputs = Array.from(document.querySelectorAll(".workspace-card .mark-input:not([disabled])"));
+            const idx = allInputs.indexOf(input);
+            if (idx !== -1 && idx < allInputs.length - 1) {
+                allInputs[idx + 1].focus();
+                allInputs[idx + 1].select();
+            }
+        });
     });
 };
 
@@ -496,6 +634,23 @@ const loadStudentMarks = async () => {
 
     currentFilters = { ...filters };
     maxMarks = deriveMaxMarks(filters.classNum, filters.subjectId);
+
+    // Check if the exam is locked for teachers
+    try {
+        const settingsRes = await apiRequest("settings.load");
+        if (settingsRes.success && settingsRes.settings) {
+            const key = `exam_status_${filters.examName}`;
+            const status = settingsRes.settings[key];
+            const session = getSession();
+            const role = (session?.user?.role || "").toUpperCase();
+            isExamLockedForTeacher = (role === "TEACHER" && status === "CLOSED");
+        } else {
+            isExamLockedForTeacher = false;
+        }
+    } catch (e) {
+        console.warn("Could not load settings:", e);
+        isExamLockedForTeacher = false;
+    }
 
     // Show skeleton
     document.querySelector("#subject-tag-empty-state").style.display = "none";

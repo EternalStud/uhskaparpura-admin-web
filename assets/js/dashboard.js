@@ -56,6 +56,12 @@ const modules = [
         description: "Sync student database via e-Shikshakosh Excel.",
         icon: "sync",
         action: "sync-schooldb"
+    },
+    {
+        title: "Exam Lock Control",
+        description: "Control teacher marks entry access.",
+        icon: "lock_open",
+        action: "exam-control"
     }
 ];
 
@@ -115,6 +121,11 @@ const handleAction = async (action) => {
             return;
         }
 
+        if (action === "exam-control") {
+            await navigateTo("/exam-control");
+            return;
+        }
+
         showToast("This module will be implemented next.", "success");
     } catch (error) {
         console.error(error);
@@ -153,12 +164,16 @@ export async function initDashboardView() {
             if (module.hidden) return false;
             // Hide result generation and prepare exam cards for TEACHERs
             if (userRole === "TEACHER") {
-                if (module.action === "result-generation" || module.action === "prepare-exam" || module.action === "sync-schooldb") {
+                if (module.action === "result-generation" || module.action === "prepare-exam" || module.action === "sync-schooldb" || module.action === "exam-control") {
                     return false;
                 }
             }
             // Sync SchoolDB is ADMIN only
             if (module.action === "sync-schooldb" && userRole !== "ADMIN") {
+                return false;
+            }
+            // Exam Lock Control is ADMIN and HM only
+            if (module.action === "exam-control" && userRole !== "ADMIN" && userRole !== "HM") {
                 return false;
             }
             return true;

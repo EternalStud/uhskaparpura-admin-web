@@ -1,0 +1,152 @@
+<div class="dashboard-layout">
+    <header id="navbar-exam-control"></header>
+    
+    <main class="dashboard-main subject-tag-main">
+        <div class="subject-tag-container" style="max-width: 800px; margin: 0 auto;">
+            <!-- Breadcrumbs -->
+            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#/dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Exam Lock Control</li>
+                </ol>
+            </nav>
+
+            <!-- Page Header -->
+            <header class="subject-tag-header">
+                <div class="subject-tag-title-area">
+                    <a href="#/dashboard" class="btn btn-icon btn-ghost" aria-label="Go back to Dashboard" style="border: 1px solid var(--color-border); border-radius: 50%; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: var(--color-text);">
+                        <span class="material-symbols-rounded" style="font-size: 1.5rem;">arrow_back</span>
+                    </a>
+                    <div>
+                        <h1>Exam Lock Control</h1>
+                        <p class="subtitle">Enable or disable marks entry access for teachers.</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Settings Card -->
+            <section class="workspace-card" style="padding: 28px; margin-top: 16px;">
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--color-text); display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-rounded" style="color: var(--color-primary);">lock</span>
+                    Active Marks Entry Settings
+                </h3>
+
+                <!-- Loading Spinner -->
+                <div id="settings-loading" style="text-align: center; padding: 40px 0;">
+                    <div class="spinner animate-spin" style="width: 32px; height: 32px; border: 4px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; display: inline-block;"></div>
+                    <p style="color: var(--color-muted); font-size: 0.9rem; margin-top: 12px;">Loading system settings...</p>
+                </div>
+
+                <!-- Settings Controls (Hidden initially) -->
+                <div id="settings-controls-container" style="display: none; flex-direction: column; gap: 20px;">
+                    
+                    <div style="background: rgba(79, 70, 229, 0.03); border: 1px solid rgba(79, 70, 229, 0.1); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px;">
+                        <p style="margin: 0; font-size: 0.88rem; line-height: 1.5; color: var(--color-muted);">
+                            <strong>💡 Admin Guide:</strong> Toggle an exam to <strong>OPEN</strong> to allow teachers to enter and save student marks. If an exam is set to <strong>CLOSED</strong>, teachers will only have read-only access and cannot save any modifications.
+                        </p>
+                    </div>
+
+                    <!-- Exam List Grid -->
+                    <div class="exam-settings-list" style="display: flex; flex-direction: column; gap: 16px;">
+                        <!-- Dynamically generated rows -->
+                    </div>
+
+                    <div style="margin-top: 24px; border-top: 1px solid var(--color-border); padding-top: 20px; display: flex; justify-content: flex-end;">
+                        <button id="save-settings-btn" class="btn btn-primary" style="font-weight: 600;">Save Settings</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<style>
+.exam-setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: #ffffff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.exam-setting-row:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+}
+.exam-setting-info {
+    text-align: left;
+}
+.exam-setting-name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+.exam-setting-desc {
+    margin: 2px 0 0 0;
+    font-size: 0.82rem;
+    color: var(--color-muted);
+}
+
+/* Switch Styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 30px;
+}
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-border);
+  transition: .3s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .3s;
+}
+input:checked + .slider {
+  background-color: var(--color-primary);
+}
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--color-primary);
+}
+input:checked + .slider:before {
+  transform: translateX(30px);
+}
+.slider.round {
+  border-radius: 34px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
+.status-indicator-text {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-right: 12px;
+    text-transform: uppercase;
+}
+.status-open {
+    color: var(--color-success);
+}
+.status-closed {
+    color: var(--color-error);
+}
+</style>
