@@ -66,6 +66,18 @@
                 </div>
             </section>
 
+            <!-- Class-wise Statistics Panel -->
+            <section class="workspace-card" id="stats-panel" style="display: none; padding: 20px; margin-bottom: 16px; border: 1px solid var(--color-border); background: #ffffff;">
+                <h3 style="font-size: 1rem; font-weight: 700; margin: 0 0 16px 0; color: var(--color-text); display: flex; align-items: center; gap: 8px;">
+                    <span class="material-symbols-rounded" style="color: var(--color-primary);">analytics</span>
+                    Enrollment Statistics Summary
+                </h3>
+                
+                <div id="stats-grid-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+                    <!-- Stats cards dynamically generated -->
+                </div>
+            </section>
+
             <!-- Stats tracker -->
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0;">
                 <div class="stats-summary-text">

@@ -13,6 +13,112 @@ let rawStudents = [];
 let isLoaded = false;
 
 /**
+ * Calculates and renders class-wise statistics for the loaded students.
+ */
+const calculateAndRenderStats = (students) => {
+    const statsPanel = document.querySelector("#stats-panel");
+    const gridContainer = document.querySelector("#stats-grid-container");
+    if (!statsPanel || !gridContainer) return;
+
+    if (students.length === 0) {
+        statsPanel.style.display = "none";
+        return;
+    }
+
+    const groups = {};
+
+    students.forEach(s => {
+        const cls = String(s.className || "").trim();
+        const stream = String(s.stream || "").trim();
+        const sec = String(s.section || "").trim();
+        const gender = String(s.genderName || "").trim().toLowerCase();
+
+        // Determine group key & display title
+        let key = "";
+        let displayTitle = "";
+        
+        if (cls === "9" || cls === "10") {
+            key = `Class_${cls}`;
+            displayTitle = `Class ${cls}`;
+        } else {
+            const streamStr = stream || "General";
+            const secStr = sec ? ` Sec ${sec}` : "";
+            key = `Class_${cls}_${streamStr.replace(/\s+/g, "_")}_${sec.replace(/\s+/g, "_")}`;
+            displayTitle = `Class ${cls} - ${streamStr}${secStr}`;
+        }
+
+        if (!groups[key]) {
+            groups[key] = {
+                title: displayTitle,
+                classNum: cls,
+                stream: stream,
+                section: sec,
+                boys: 0,
+                girls: 0,
+                total: 0
+            };
+        }
+
+        const g = groups[key];
+        const isBoy = gender.startsWith("boy") || gender.startsWith("male") || gender === "m";
+        const isGirl = gender.startsWith("girl") || gender.startsWith("female") || gender === "f";
+
+        if (isBoy) {
+            g.boys++;
+        } else if (isGirl) {
+            g.girls++;
+        }
+        g.total++;
+    });
+
+    // Sort: Class 9 -> Class 10 -> Class 11 -> Class 12
+    const sortedKeys = Object.keys(groups).sort((a, b) => {
+        const gA = groups[a];
+        const gB = groups[b];
+        
+        const numA = Number(gA.classNum) || 0;
+        const numB = Number(gB.classNum) || 0;
+        
+        if (numA !== numB) return numA - numB;
+        
+        const streamA = gA.stream || "";
+        const streamB = gB.stream || "";
+        if (streamA !== streamB) return streamA.localeCompare(streamB);
+
+        const secA = gA.section || "";
+        const secB = gB.section || "";
+        return secA.localeCompare(secB);
+    });
+
+    gridContainer.innerHTML = sortedKeys.map(key => {
+        const g = groups[key];
+        return `
+            <div style="background: rgba(79, 70, 229, 0.02); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 14px 16px; text-align: left;">
+                <h4 style="margin: 0 0 10px 0; font-size: 0.9rem; font-weight: 700; color: var(--color-primary); border-bottom: 1px solid rgba(0,0,0,0.04); padding-bottom: 4px;">
+                    ${g.title}
+                </h4>
+                <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; color: var(--color-text);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="display: flex; align-items: center; gap: 4px; color: var(--color-muted);"><span class="material-symbols-rounded" style="font-size: 0.95rem; color: #3B82F6;">man</span> Boys</span>
+                        <strong style="font-weight: 700;">${g.boys}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="display: flex; align-items: center; gap: 4px; color: var(--color-muted);"><span class="material-symbols-rounded" style="font-size: 0.95rem; color: #EC4899;">woman</span> Girls</span>
+                        <strong style="font-weight: 700;">${g.girls}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed rgba(0,0,0,0.06); padding-top: 4px; margin-top: 2px;">
+                        <strong style="font-weight: 800;">Total</strong>
+                        <strong style="font-weight: 800; color: var(--color-primary);">${g.total}</strong>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    statsPanel.style.display = "block";
+};
+
+/**
  * Filter the loaded students in memory and render to the table and mobile workspace.
  */
 function applyFiltersAndRender() {
@@ -21,6 +127,9 @@ function applyFiltersAndRender() {
     const countLabel = document.querySelector("#student-count");
 
     if (!isLoaded) {
+        const statsPanel = document.querySelector("#stats-panel");
+        if (statsPanel) statsPanel.style.display = "none";
+
         const placeholderHtml = `
             <tr>
                 <td colspan="9" style="text-align: center; padding: 48px; color: var(--color-muted); font-weight: 500;">
@@ -142,6 +251,8 @@ export async function initStudentMasterView() {
         // Clear state
         rawStudents = [];
         isLoaded = false;
+        const statsPanel = document.querySelector("#stats-panel");
+        if (statsPanel) statsPanel.style.display = "none";
 
         // Set default academic year
         if (academicYearInput) {
@@ -204,6 +315,7 @@ export async function initStudentMasterView() {
                     if (skeleton) skeleton.style.display = "none";
                     if (tableContainer) tableContainer.style.display = "block";
                     if (mobileWorkspace) mobileWorkspace.style.display = "flex";
+                    calculateAndRenderStats(rawStudents);
                     applyFiltersAndRender();
                 }
             };
