@@ -27,6 +27,11 @@
             <!-- Search and Filter Toolbar -->
             <section class="filters-card" aria-label="Filters">
                 <div class="filters-toolbar" style="gap: 16px;">
+                    <label class="filter-field" for="filter-academic-year">
+                        <span class="filter-label">Academic Year</span>
+                        <input id="filter-academic-year" name="academicYear" type="text" autocomplete="off" placeholder="e.g. 2026-27" required style="height: 44px;">
+                    </label>
+
                     <label class="filter-field" for="filter-class">
                         <span class="filter-label">Filter by Class</span>
                         <select id="filter-class" name="class">
@@ -53,6 +58,11 @@
                             <input id="search-roll" type="text" autocomplete="off" placeholder="e.g. 15" style="padding-left: 38px; height: 44px;">
                         </div>
                     </label>
+
+                    <button id="btn-go" class="btn btn-primary btn-load" type="button" style="height: 44px;">
+                        <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+                        Go
+                    </button>
                 </div>
             </section>
 
@@ -94,6 +104,11 @@
                           <!-- Filled dynamically -->
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Mobile Cards Workspace -->
+                <div id="mobile-workspace" class="mobile-workspace-container" style="display: none;">
+                    <!-- Cards dynamically populated -->
                 </div>
             </section>
         </div>

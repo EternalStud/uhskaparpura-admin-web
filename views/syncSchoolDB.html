@@ -1,0 +1,110 @@
+<div class="dashboard-layout">
+    <header id="navbar-sync-schooldb"></header>
+    
+    <main class="dashboard-main subject-tag-main">
+        <div class="subject-tag-container">
+            <!-- Breadcrumbs -->
+            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#/dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Sync SchoolDB</li>
+                </ol>
+            </nav>
+
+            <!-- Page Header -->
+            <header class="subject-tag-header">
+                <div class="subject-tag-title-area">
+                    <a href="#/dashboard" class="btn btn-icon btn-ghost" aria-label="Go back to Dashboard" style="border: 1px solid var(--color-border); border-radius: 50%; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: var(--color-text);">
+                        <span class="material-symbols-rounded" aria-hidden="true" style="font-size: 1.5rem;">arrow_back</span>
+                    </a>
+                    <div>
+                        <h1>Sync SchoolDB</h1>
+                        <p class="subtitle">Import e-Shikshakosh scraper Excel output to synchronize SchoolDB.</p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="sync-grid" style="display: grid; grid-template-columns: 1fr; gap: 24px; margin-top: 16px;">
+                <!-- Google Colab Cloud Scraper Callout -->
+                <div style="background: rgba(79, 70, 229, 0.04); border: 1px solid rgba(79, 70, 229, 0.15); border-radius: var(--radius-md); padding: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="material-symbols-rounded" style="color: var(--color-primary); font-size: 2rem;">labs</span>
+                        <div style="text-align: left;">
+                            <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--color-text);">Cloud Scraper (Google Colab)</h4>
+                            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--color-muted);">Run the scraper directly in the cloud via Google Colab. The script solves captchas and synchronizes the database automatically.</p>
+                        </div>
+                    </div>
+                    <a href="https://colab.research.google.com/drive/1ibsoFprzgZvPp5DnINcECBq8kO8-JYet?authuser=1#scrollTo=37f64459" target="_blank" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600;">
+                        <span class="material-symbols-rounded" style="font-size: 1.25rem;">open_in_new</span>
+                        Open Colab Notebook
+                    </a>
+                </div>
+
+                <!-- Drag and Drop Zone -->
+                <section class="filters-card" style="padding: 32px; text-align: center;">
+                    <div id="drop-zone" style="border: 2px dashed var(--color-border); border-radius: var(--radius-lg); padding: 48px 24px; cursor: pointer; transition: all 0.2s; background: rgba(249, 250, 251, 0.3);">
+                        <span class="material-symbols-rounded" style="font-size: 4rem; color: var(--color-primary); margin-bottom: 16px; display: block;">cloud_upload</span>
+                        <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 8px;">Upload Scraper Excel File</h3>
+                        <p style="color: var(--color-muted); font-size: 0.9rem; margin-bottom: 16px;">Drag and drop the Excel file here, or click to browse</p>
+                        <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display: none;">
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('excel-file-input').click()">Browse Files</button>
+                    </div>
+                </section>
+
+                <!-- File Summary & Action (Hidden by default) -->
+                <section class="workspace-card" id="summary-card" style="display: none; padding: 24px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-rounded" style="color: var(--color-success);">task_alt</span>
+                        File Summary
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                        <div style="background: var(--color-background); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                            <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-muted); font-weight: 600; display: block; margin-bottom: 4px;">File Name</span>
+                            <span id="summary-filename" style="font-weight: 600; font-size: 0.95rem; word-break: break-all;">-</span>
+                        </div>
+                        <div style="background: var(--color-background); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                            <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-muted); font-weight: 600; display: block; margin-bottom: 4px;">Academic Session</span>
+                            <span id="summary-session" style="font-weight: 700; font-size: 1rem; color: var(--color-primary);">-</span>
+                        </div>
+                        <div style="background: var(--color-background); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                            <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-muted); font-weight: 600; display: block; margin-bottom: 4px;">Students Count</span>
+                            <span id="summary-count" style="font-weight: 700; font-size: 1rem; color: var(--color-success);">-</span>
+                        </div>
+                        <div style="background: var(--color-background); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+                            <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-muted); font-weight: 600; display: block; margin-bottom: 4px;">Schools / UDISE</span>
+                            <span id="summary-schools" style="font-weight: 600; font-size: 0.95rem;">-</span>
+                        </div>
+                    </div>
+
+                    <div style="border-top: 1px solid var(--color-border); padding-top: 20px; display: flex; justify-content: flex-end; gap: 12px; align-items: center; flex-wrap: wrap;">
+                        <span id="sync-warning" style="font-size: 0.85rem; color: var(--color-danger); font-weight: 500; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-rounded" style="font-size: 1.1rem;">warning</span>
+                            Syncing will replace all records for the session in SchoolDB.
+                        </span>
+                        <button type="button" id="btn-cancel-sync" class="btn btn-secondary">Cancel</button>
+                        <button type="button" id="btn-start-sync" class="btn btn-primary" style="min-width: 140px;">
+                            <span class="material-symbols-rounded">sync</span>
+                            Sync Database
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Instructions / Help Card -->
+                <section class="workspace-card" style="padding: 24px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-rounded" style="color: var(--color-primary);">info</span>
+                        Instructions
+                    </h3>
+                    <ol style="margin-left: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem; color: var(--color-text-light); line-height: 1.5;">
+                        <li>Run your local Python script: <code>python eshikshakosh_scraper.py</code>.</li>
+                        <li>Provide credentials and complete the captcha in the browser that opens.</li>
+                        <li>Wait for the scraping process to finish and generate the Excel output file.</li>
+                        <li>Upload the generated Excel file (typically named <code>Shikshakosh_*.xlsx</code> or <code>Shikshakosh_MultiSchool_*.xlsx</code> from the scraper's output folder) into the upload zone above.</li>
+                        <li>Verify the academic year and student count in the summary section.</li>
+                        <li>Click <strong>Sync Database</strong> to overwrite the matching session records in Google Sheets database.</li>
+                    </ol>
+                </section>
+            </div>
+        </div>
+    </main>
+</div>

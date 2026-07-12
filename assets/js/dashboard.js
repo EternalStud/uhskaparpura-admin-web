@@ -50,6 +50,12 @@ const modules = [
         icon: "app_registration",
         action: "registration-approval",
         hidden: true
+    },
+    {
+        title: "Sync SchoolDB",
+        description: "Sync student database via e-Shikshakosh Excel.",
+        icon: "sync",
+        action: "sync-schooldb"
     }
 ];
 
@@ -104,6 +110,11 @@ const handleAction = async (action) => {
             return;
         }
 
+        if (action === "sync-schooldb") {
+            await navigateTo("/sync-schooldb");
+            return;
+        }
+
         showToast("This module will be implemented next.", "success");
     } catch (error) {
         console.error(error);
@@ -124,14 +135,14 @@ export async function initDashboardView() {
         }
 
         const session = getSession();
-        let userRole = session?.user?.role;
-        if (session && !userRole) {
+        let userRole = (session?.user?.role || "").toUpperCase();
+        if (session && !session.user.role) {
             try {
                 const profileRes = await apiRequest("auth.profile");
                 if (profileRes.success && profileRes.user) {
                     session.user.role = profileRes.user.role;
                     saveSession(session);
-                    userRole = session.user.role;
+                    userRole = (profileRes.user.role || "").toUpperCase();
                 }
             } catch (err) {
                 console.error("Failed to load user role on dashboard load:", err);
@@ -142,9 +153,13 @@ export async function initDashboardView() {
             if (module.hidden) return false;
             // Hide result generation and prepare exam cards for TEACHERs
             if (userRole === "TEACHER") {
-                if (module.action === "result-generation" || module.action === "prepare-exam") {
+                if (module.action === "result-generation" || module.action === "prepare-exam" || module.action === "sync-schooldb") {
                     return false;
                 }
+            }
+            // Sync SchoolDB is ADMIN only
+            if (module.action === "sync-schooldb" && userRole !== "ADMIN") {
+                return false;
             }
             return true;
         });

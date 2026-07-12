@@ -6,6 +6,7 @@ import { initSubjectTagView } from "./modules/subjectTag.js?t=17892929117";
 import { initMarksEntryView } from "./modules/marksEntry.js?t=17892929117";
 import { initResultGenerationView } from "./modules/resultGeneration.js?t=17892929117";
 import { initStudentMasterView } from "./modules/studentMaster.js?t=17892929117";
+import { initSyncSchoolDBView } from "./modules/syncSchoolDB.js?t=17892929117";
 import { getSession } from "../../services/session.js";
 import { hideLoader, showLoader } from "../../components/loader.js";
 import { showToast } from "../../components/toast.js";
@@ -16,7 +17,8 @@ const routes = new Map([
     ["/subject-tag", { view: "views/subjectTag.html", init: initSubjectTagView, public: false }],
     ["/marks-entry", { view: "views/marksEntry.html", init: initMarksEntryView, public: false }],
     ["/result-generation", { view: "views/resultGeneration.html", init: initResultGenerationView, public: false }],
-    ["/student-master", { view: "views/studentMaster.html", init: initStudentMasterView, public: false }]
+    ["/student-master", { view: "views/studentMaster.html", init: initStudentMasterView, public: false }],
+    ["/sync-schooldb", { view: "views/syncSchoolDB.html", init: initSyncSchoolDBView, public: false }]
 ]);
 
 const getCurrentPath = () => {
@@ -87,8 +89,15 @@ export async function renderRoute(path) {
             return;
         }
 
-        if (session && session.user.role === "TEACHER" && path === "/result-generation") {
+        const userRole = (session?.user?.role || "").toUpperCase();
+        if (session && userRole === "TEACHER" && path === "/result-generation") {
             showToast("You do not have permission to access Result Generation.", "error");
+            await navigateTo("/dashboard", { replace: true });
+            return;
+        }
+
+        if (session && userRole !== "ADMIN" && path === "/sync-schooldb") {
+            showToast("You do not have permission to access Sync SchoolDB.", "error");
             await navigateTo("/dashboard", { replace: true });
             return;
         }
