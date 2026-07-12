@@ -31,6 +31,10 @@ export async function apiRequest(path, options = {}) {
             url.searchParams.set("email", session.user.email);
         }
 
+        if (session?.token) {
+            url.searchParams.set("token", session.token);
+        }
+
         const response = await fetch(url.toString(), {
             ...options,
             headers: {
@@ -39,6 +43,8 @@ export async function apiRequest(path, options = {}) {
             }
         });
         const payload = await response.json();
+
+
 
         if (!response.ok) {
             throw new Error(payload.error ?? payload.message ?? `API request failed with ${response.status}`);

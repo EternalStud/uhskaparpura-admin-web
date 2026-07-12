@@ -1,6 +1,6 @@
 "use strict";
 
-import { signInWithGoogle } from "../../services/auth.js";
+import { signInWithGoogle, logout } from "../../services/auth.js";
 import { navigateTo } from "./router.js";
 import { showToast } from "../../components/toast.js";
 import { apiRequest } from "../../services/api.js";
@@ -53,12 +53,17 @@ export async function initLoginView() {
                             session.user.role = profileRes.user.role;
                             saveSession(session);
                         }
+                        showToast("Signed in successfully.", "success");
+                        await navigateTo("/dashboard");
+                    } else {
+                        throw new Error("You are not authorized to access this portal.");
                     }
                 } catch (err) {
                     console.error("Failed to load user profile role:", err);
+                    await logout();
+                    showLoginWarning(err.message || "You are not authorized to access this portal.");
+                    showToast(err.message || "You are not authorized to access this portal.", "error");
                 }
-                showToast("Signed in successfully.", "success");
-                await navigateTo("/dashboard");
             },
             onError: (message) => {
                 showLoginWarning(message);
@@ -70,3 +75,4 @@ export async function initLoginView() {
         showLoginWarning("Google sign-in is unavailable. Check the client ID and network connection.");
     }
 }
+
