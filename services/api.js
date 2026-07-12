@@ -1,7 +1,8 @@
 "use strict";
 
 import { CONFIG } from "../config/config.js";
-import { getSession } from "./session.js";
+import { getSession, clearSession } from "./session.js";
+
 
 /**
  * Sends a request to the Google Apps Script REST API.
@@ -51,8 +52,14 @@ export async function apiRequest(path, options = {}) {
         }
 
         if (payload?.success === false) {
+            const code = payload.code;
+            if (code === "UNAUTHORIZED" || code === "USER_NOT_REGISTERED" || code === "TOKEN_INVALID" || code === "TOKEN_MISSING" || code === "EMAIL_MISMATCH") {
+                clearSession();
+                window.location.hash = "#/login";
+            }
             throw new Error(payload.error ?? payload.message ?? "API request failed.");
         }
+
 
         return payload;
     } catch (error) {

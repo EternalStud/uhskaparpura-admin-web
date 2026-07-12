@@ -8,9 +8,10 @@ import { initResultGenerationView } from "./modules/resultGeneration.js?t=178929
 import { initStudentMasterView } from "./modules/studentMaster.js?t=17892929117";
 import { initSyncSchoolDBView } from "./modules/syncSchoolDB.js?t=17892929117";
 import { init as initExamControlView } from "./modules/examControl.js?t=17892929117";
-import { getSession } from "../../services/session.js";
+import { getSession, clearSession } from "../../services/session.js";
 import { hideLoader, showLoader } from "../../components/loader.js";
 import { showToast } from "../../components/toast.js";
+
 
 const routes = new Map([
     ["/login", { view: "views/login.html", init: initLoginView, public: true }],
@@ -81,15 +82,19 @@ export async function renderRoute(path) {
         }
 
         const session = getSession();
-        if (!route.public && !session) {
+        const hasValidSession = session && session.user?.role;
+
+        if (!route.public && !hasValidSession) {
+            clearSession();
             await navigateTo("/login", { replace: true });
             return;
         }
 
-        if (route.public && session) {
+        if (route.public && hasValidSession) {
             await navigateTo("/dashboard", { replace: true });
             return;
         }
+
 
         const userRole = (session?.user?.role || "").toUpperCase();
         if (session && userRole === "TEACHER" && path === "/result-generation") {
