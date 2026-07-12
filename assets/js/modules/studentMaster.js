@@ -42,9 +42,8 @@ const calculateAndRenderStats = (students) => {
             displayTitle = `Class ${cls}`;
         } else {
             const streamStr = stream || "General";
-            const secStr = sec ? ` Sec ${sec}` : "";
-            key = `Class_${cls}_${streamStr.replace(/\s+/g, "_")}_${sec.replace(/\s+/g, "_")}`;
-            displayTitle = `Class ${cls} - ${streamStr}${secStr}`;
+            key = `Class_${cls}_${streamStr.replace(/\s+/g, "_")}`;
+            displayTitle = `Class ${cls} - ${streamStr}`;
         }
 
         if (!groups[key]) {
@@ -52,7 +51,6 @@ const calculateAndRenderStats = (students) => {
                 title: displayTitle,
                 classNum: cls,
                 stream: stream,
-                section: sec,
                 boys: 0,
                 girls: 0,
                 total: 0
@@ -83,11 +81,7 @@ const calculateAndRenderStats = (students) => {
         
         const streamA = gA.stream || "";
         const streamB = gB.stream || "";
-        if (streamA !== streamB) return streamA.localeCompare(streamB);
-
-        const secA = gA.section || "";
-        const secB = gB.section || "";
-        return secA.localeCompare(secB);
+        return streamA.localeCompare(streamB);
     });
 
     gridContainer.innerHTML = sortedKeys.map(key => {
