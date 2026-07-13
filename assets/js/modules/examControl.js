@@ -88,7 +88,10 @@ export const init = async () => {
         });
 
         try {
-            const response = await apiRequest("settings.save", payload);
+            const response = await apiRequest("settings.save", {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
             if (response.success) {
                 showToast("System lock settings saved successfully.", "success");
             } else {
