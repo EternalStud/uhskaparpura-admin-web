@@ -12,6 +12,12 @@ let currentFilters = {};    // Active filters
 let maxMarks = { theory: 100, practical: 0, internal: 0 }; // Maximum marks config
 let isExamLockedForTeacher = false; // Lock flag based on system settings
 
+// Cache to eliminate latency on filter changes
+const metadataCache = {
+    sections: {}, // Key: `${year}_${classNum}` -> Value: array of sections
+    subjects: {}  // Key: `${classNum}_${stream}_${section}_${year}` -> Value: array of subjects
+};
+
 /**
  * Enforces numeric keypress and maximum value restrictions on a mark input field.
  */
