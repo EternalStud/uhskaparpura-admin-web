@@ -684,6 +684,7 @@ const loadStudentMarks = async () => {
     document.querySelector("#stats-progress-section").style.display = "none";
     document.querySelector("#subject-tag-loading").style.display = "block";
 
+    showLoader({ blocking: false });
     try {
         const query = new URLSearchParams(filters).toString();
         const response = await apiRequest(`exam.marks.load?${query}`);
@@ -722,6 +723,8 @@ const loadStudentMarks = async () => {
         showToast(error.message || "Failed to load marks.", "error");
         document.querySelector("#subject-tag-loading").style.display = "none";
         document.querySelector("#subject-tag-empty-state").style.display = "flex";
+    } finally {
+        hideLoader();
     }
 };
 
