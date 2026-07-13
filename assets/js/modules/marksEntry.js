@@ -180,11 +180,15 @@ const updateSubjectsDropdown = async () => {
     const classSelect = document.querySelector("#filter-class");
     const streamSelect = document.querySelector("#filter-stream");
     const subjectSelect = document.querySelector("#filter-subject");
+    const sectionSelect = document.querySelector("#filter-section");
+    const yearInput = document.querySelector("#filter-academic-year");
 
     if (!classSelect || !subjectSelect) return;
 
     const classNum = classSelect.value;
     const stream = streamSelect ? streamSelect.value : "";
+    const section = sectionSelect ? sectionSelect.value : "";
+    const academicYear = yearInput ? yearInput.value : "";
 
     if (!classNum) {
         subjectSelect.innerHTML = '<option value="">Select Subject</option>';
@@ -192,7 +196,7 @@ const updateSubjectsDropdown = async () => {
     }
 
     try {
-        const response = await apiRequest(`subject.tag.getDropdowns?classNum=${classNum}&stream=${stream}`);
+        const response = await apiRequest(`subject.tag.getDropdowns?classNum=${classNum}&stream=${stream}&section=${section}&academicYear=${academicYear}`);
         if (response.success && response.subjects) {
             dropdownSubjects = response.subjects;
             subjectSelect.innerHTML = '<option value="">Select Subject</option>';
@@ -796,9 +800,9 @@ export async function initMarksEntryView() {
             yearInput.value = getDefaultAcademicYear();
         }
 
-        // Setup filter listeners
         const classSelect = document.querySelector("#filter-class");
         const streamSelect = document.querySelector("#filter-stream");
+        const sectionSelect = document.querySelector("#filter-section");
         const loadBtn = document.querySelector("#load-students-btn");
         const saveBtn = document.querySelector("#save-all-btn");
 
@@ -817,10 +821,17 @@ export async function initMarksEntryView() {
             });
         }
 
+        if (sectionSelect) {
+            sectionSelect.addEventListener("change", async () => {
+                await updateSubjectsDropdown();
+            });
+        }
+
         // Section dropdown updates on year input change
         if (yearInput) {
             yearInput.addEventListener("input", async () => {
                 await updateAvailableSections();
+                await updateSubjectsDropdown();
             });
         }
 
