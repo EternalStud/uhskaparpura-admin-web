@@ -1,7 +1,7 @@
 "use strict";
 
 import { signInWithGoogle, logout } from "../../services/auth.js";
-import { navigateTo } from "./router.js";
+import { navigateTo } from "./router.js?t=17892929125";
 import { showToast } from "../../components/toast.js";
 import { apiRequest } from "../../services/api.js";
 import { getSession, saveSession } from "../../services/session.js";
