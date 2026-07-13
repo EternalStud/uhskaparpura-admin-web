@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=17892929125";
+import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=17892929130";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=17892929125";
+import { renderNavbar } from "../../../components/navbar.js?t=17892929130";
 
 // Local state variables
 let dropdownSubjects = [];  // Available subjects for selected class & stream
@@ -754,7 +754,7 @@ const loadStudentMarks = async () => {
     document.querySelector("#stats-progress-section").style.display = "none";
     document.querySelector("#subject-tag-loading").style.display = "block";
 
-    showLoader({ blocking: false });
+    showLoader();
     try {
         const query = new URLSearchParams(filters).toString();
         const response = await apiRequest(`exam.marks.load?${query}`);

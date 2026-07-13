@@ -1,6 +1,6 @@
-import { renderNavbar } from "../../components/navbar.js?t=17892929125";
+import { renderNavbar } from "../../components/navbar.js?t=17892929130";
 import { logout } from "../../services/auth.js";
-import { navigateTo } from "./router.js?t=17892929125";
+import { navigateTo } from "./router.js?t=17892929130";
 import { showToast } from "../../components/toast.js";
 import { openPrepareExamModal } from "./modules/prepareExam.js";
 import { getSession, saveSession } from "../../services/session.js";
