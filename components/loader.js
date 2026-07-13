@@ -57,15 +57,10 @@ function injectStyles() {
  * Shows the global loading indicator with a top progress bar.
  * @returns {void}
  */
-export function showLoader() {
+export function showLoader(options = { blocking: true }) {
     try {
         injectStyles();
         
-        const root = document.querySelector("#loader-root");
-        if (!root || root.children.length) {
-            return;
-        }
-
         // Add top progress bar directly to body
         if (!document.querySelector(".top-progress-bar")) {
             const bar = document.createElement("div");
@@ -73,14 +68,19 @@ export function showLoader() {
             document.body.appendChild(bar);
         }
 
-        root.innerHTML = `
-            <div class="loader-backdrop" role="status" aria-label="Loading">
-                <div class="loader-spinner-container">
-                    <div class="loader-spinner"></div>
-                    <div class="loader-spinner-text">Processing request...</div>
-                </div>
-            </div>
-        `;
+        if (options && options.blocking !== false) {
+            const root = document.querySelector("#loader-root");
+            if (root && !root.children.length) {
+                root.innerHTML = `
+                    <div class="loader-backdrop" role="status" aria-label="Loading">
+                        <div class="loader-spinner-container">
+                            <div class="loader-spinner"></div>
+                            <div class="loader-spinner-text">Processing request...</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
 
         startProgressBar();
     } catch (error) {

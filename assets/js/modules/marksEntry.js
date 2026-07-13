@@ -150,6 +150,7 @@ const updateAvailableSections = async () => {
         return;
     }
 
+    showLoader({ blocking: false });
     try {
         const response = await apiRequest(`subject.tag.getSections?academicYear=${year}&classNum=${classNum}`);
         if (response.success && response.sections) {
@@ -170,6 +171,8 @@ const updateAvailableSections = async () => {
         }
     } catch (error) {
         console.error("Failed to load sections:", error);
+    } finally {
+        hideLoader();
     }
 };
 
@@ -195,6 +198,7 @@ const updateSubjectsDropdown = async () => {
         return;
     }
 
+    showLoader({ blocking: false });
     try {
         const response = await apiRequest(`subject.tag.getDropdowns?classNum=${classNum}&stream=${stream}&section=${section}&academicYear=${academicYear}`);
         if (response.success && response.subjects) {
@@ -207,6 +211,8 @@ const updateSubjectsDropdown = async () => {
     } catch (error) {
         console.error("Failed to load subjects:", error);
         showToast("Error loading subjects list", "error");
+    } finally {
+        hideLoader();
     }
 };
 
