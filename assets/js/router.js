@@ -9,7 +9,7 @@ import { initStudentMasterView } from "./modules/studentMaster.js?t=17892929125"
 import { initSyncSchoolDBView } from "./modules/syncSchoolDB.js?t=17892929125";
 import { init as initExamControlView } from "./modules/examControl.js?t=17892929125";
 import { getSession, clearSession } from "../../services/session.js";
-import { hideLoader, showLoader } from "../../components/loader.js";
+import { hideLoader, showLoader } from "../../components/loader.js?t=17892929125";
 import { showToast } from "../../components/toast.js";
 
 

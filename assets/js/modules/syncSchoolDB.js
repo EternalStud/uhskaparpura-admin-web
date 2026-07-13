@@ -3,7 +3,7 @@
 import { showToast } from "../../../components/toast.js";
 import { apiRequest } from "../../../services/api.js";
 import { renderNavbar } from "../../../components/navbar.js?t=17892929125";
-import { hideLoader, showLoader } from "../../../components/loader.js";
+import { hideLoader, showLoader } from "../../../components/loader.js?t=17892929125";
 
 let parsedStudents = [];
 let fileAcademicYear = "";
