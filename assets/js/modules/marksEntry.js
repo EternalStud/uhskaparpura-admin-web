@@ -67,33 +67,48 @@ const getDefaultAcademicYear = () => {
 };
 
 /**
- * Derives maximum BSEB marks for theory/practical/internal based on class and subject code.
+ * Derives maximum BSEB marks for theory/practical/internal based on class, subject code, and exam.
  */
-const deriveMaxMarks = (classNum, subjectId) => {
+const deriveMaxMarks = (classNum, subjectId, examName = "Annual") => {
     const cls = Number(classNum);
     const id = String(subjectId || "").toUpperCase();
+    const exam = String(examName || "").trim();
 
     // Defaults
     let theory = 100;
     let practical = 0;
     let internal = 0;
 
+    if (exam === "Trimester") {
+        return { theory: 80, practical: 0, internal: 0 };
+    }
+
     if (cls <= 10) {
         // Classes 9 & 10
-        if (id.endsWith("_SCI") || id.endsWith("_SST")) {
-            theory = 80;
-            practical = 20; // BSEB internal/practicals
+        if (exam === "Half yearly") {
+            return { theory: 80, practical: 0, internal: 0 };
+        } else {
+            // Annual & Sent-up
+            if (id.endsWith("_SCI") || id.endsWith("_SST")) {
+                theory = 80;
+                practical = 20; // BSEB internal/practicals
+            }
         }
     } else {
         // Classes 11 & 12
-        // Science electives with practicals
-        const hasPracticalArtsOrSci = [
-            "_PHY", "_CHE", "_BIO", "_GEO", "_HSC", "_PSY", "_MUS", "_AGR", "_CSC", "_MWT"
-        ].some(suffix => id.endsWith(suffix));
+        if (exam === "Half yearly") {
+            return { theory: 100, practical: 0, internal: 0 };
+        } else {
+            // Annual & Sent-up
+            // Science electives with practicals
+            const hasPracticalArtsOrSci = [
+                "_PHY", "_CHE", "_BIO", "_GEO", "_HSC", "_PSY", "_MUS", "_AGR", "_CSC", "_MWT"
+            ].some(suffix => id.endsWith(suffix));
 
-        if (hasPracticalArtsOrSci) {
-            theory = 70;
-            practical = 30;
+            if (hasPracticalArtsOrSci) {
+                theory = 70;
+                practical = 30;
+            }
         }
     }
 
@@ -633,7 +648,7 @@ const loadStudentMarks = async () => {
     }
 
     currentFilters = { ...filters };
-    maxMarks = deriveMaxMarks(filters.classNum, filters.subjectId);
+    maxMarks = deriveMaxMarks(filters.classNum, filters.subjectId, filters.examName);
 
     // Check if the exam is locked for teachers
     try {
