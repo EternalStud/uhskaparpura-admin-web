@@ -5,6 +5,7 @@ import { navigateTo } from "./router.js";
 import { showToast } from "../../components/toast.js";
 import { apiRequest } from "../../services/api.js";
 import { getSession, saveSession } from "../../services/session.js";
+import { showLoader, hideLoader } from "../../components/loader.js";
 
 const googleScriptReady = async () => {
     await new Promise((resolve, reject) => {
@@ -44,6 +45,7 @@ export async function initLoginView() {
         await signInWithGoogle({
             buttonElement: document.querySelector("#google-login-button"),
             onSuccess: async () => {
+                showLoader();
                 try {
                     // Fetch user role from backend Database dynamically
                     const profileRes = await apiRequest("auth.profile");
@@ -63,6 +65,8 @@ export async function initLoginView() {
                     await logout();
                     showLoginWarning(err.message || "You are not authorized to access this portal.");
                     showToast(err.message || "You are not authorized to access this portal.", "error");
+                } finally {
+                    hideLoader();
                 }
             },
             onError: (message) => {

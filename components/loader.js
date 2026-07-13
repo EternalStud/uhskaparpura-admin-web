@@ -4,7 +4,7 @@ let progressInterval = null;
 let currentProgress = 0;
 
 /**
- * Injects required styles for the premium loader and progress bar.
+ * Injects required styles for the premium loader, eyes animation, and progress bar.
  */
 function injectStyles() {
     if (document.getElementById("loader-styles")) return;
@@ -23,27 +23,55 @@ function injectStyles() {
             box-shadow: 0 0 8px rgba(79, 70, 229, 0.4);
         }
         .loader-backdrop {
-            background: rgba(248, 250, 252, 0.4) !important;
-            backdrop-filter: blur(8px) !important;
+            background: rgba(248, 250, 252, 0.45) !important;
+            backdrop-filter: blur(6px) !important;
             transition: opacity 300ms ease-in-out;
         }
         .loader-spinner-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
             background: var(--color-bg, #ffffff);
-            padding: 24px 36px;
+            padding: 20px 32px;
             border-radius: var(--radius-lg, 12px);
             border: 1px solid var(--color-border, rgba(0, 0, 0, 0.05));
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
             animation: loaderPop 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .loader-spinner-text {
-            font-size: 0.85rem;
+            font-size: 0.825rem;
             font-weight: 600;
-            color: var(--color-text, #1e293b);
-            letter-spacing: -0.01em;
+            color: var(--color-text-dark, #1e293b);
+            letter-spacing: -0.012em;
+        }
+        .eyes-loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 32px;
+            margin-bottom: 2px;
+        }
+        .eyes-loader svg {
+            animation: eyesBlink 4s infinite ease-in-out;
+            transform-origin: center;
+        }
+        .loader-pupil {
+            animation: pupilLook 3s infinite ease-in-out;
+            transform-origin: center;
+        }
+        @keyframes pupilLook {
+            0%, 100% { transform: translate(0px, 0px); }
+            15% { transform: translate(-3px, 0px); }
+            30% { transform: translate(-3px, 0px); }
+            45% { transform: translate(3px, 0px); }
+            60% { transform: translate(3px, 0px); }
+            75% { transform: translate(0px, -2px); }
+            85% { transform: translate(0px, 0px); }
+        }
+        @keyframes eyesBlink {
+            0%, 48%, 50%, 98%, 100% { transform: scaleY(1); }
+            49%, 99% { transform: scaleY(0.08); }
         }
         @keyframes loaderPop {
             0% { transform: scale(0.9); opacity: 0; }
@@ -74,7 +102,14 @@ export function showLoader(options = { blocking: true }) {
                 root.innerHTML = `
                     <div class="loader-backdrop" role="status" aria-label="Loading">
                         <div class="loader-spinner-container">
-                            <div class="loader-spinner"></div>
+                            <div class="eyes-loader">
+                                <svg width="70" height="30" viewBox="0 0 70 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <ellipse cx="22" cy="15" rx="12" ry="12" fill="white" stroke="var(--color-primary, #4f46e5)" stroke-width="2.5"/>
+                                    <ellipse cx="48" cy="15" rx="12" ry="12" fill="white" stroke="var(--color-primary, #4f46e5)" stroke-width="2.5"/>
+                                    <circle class="loader-pupil" cx="22" cy="15" r="4.5" fill="#1e293b"/>
+                                    <circle class="loader-pupil" cx="48" cy="15" r="4.5" fill="#1e293b"/>
+                                </svg>
+                            </div>
                             <div class="loader-spinner-text">Processing request...</div>
                         </div>
                     </div>

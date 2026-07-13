@@ -52,6 +52,7 @@ const updateAvailableSections = async () => {
         return;
     }
 
+    showLoader({ blocking: false });
     try {
         const response = await apiRequest(`subject.tag.getSections?academicYear=${year}&classNum=${classNum}`);
         if (response.success && response.sections) {
@@ -74,6 +75,8 @@ const updateAvailableSections = async () => {
     } catch (error) {
         console.error("Failed to load sections:", error);
         sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
+    } finally {
+        hideLoader();
     }
 };
 
@@ -720,6 +723,7 @@ const handleLoadStudents = async () => {
     loadingSkeleton.style.display = "block";
     saveBtn.setAttribute("disabled", "disabled");
 
+    showLoader({ blocking: false });
     try {
         currentFilters = { academicYear, classNum, section, stream };
 
@@ -791,6 +795,7 @@ const handleLoadStudents = async () => {
         emptyState.style.display = "flex";
     } finally {
         loadingSkeleton.style.display = "none";
+        hideLoader();
     }
 };
 
