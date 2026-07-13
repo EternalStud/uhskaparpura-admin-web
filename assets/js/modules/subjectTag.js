@@ -63,7 +63,7 @@ const updateAvailableSections = async () => {
         return;
     }
 
-    showLocalLoader('label[for="filter-section"]');
+    showLocalLoader('#filter-section');
     try {
         const response = await apiRequest(`subject.tag.getSections?academicYear=${year}&classNum=${classNum}`);
         if (response.success && response.sections) {
@@ -74,7 +74,7 @@ const updateAvailableSections = async () => {
         console.error("Failed to load sections:", error);
         sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
     } finally {
-        hideLocalLoader('label[for="filter-section"]');
+        hideLocalLoader('#filter-section');
     }
 
     function renderSections(sections) {

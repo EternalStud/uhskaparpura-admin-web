@@ -156,7 +156,7 @@ const updateAvailableSections = async () => {
         return;
     }
 
-    showLocalLoader('label[for="filter-section"]');
+    showLocalLoader('#filter-section');
     try {
         const response = await apiRequest(`subject.tag.getSections?academicYear=${year}&classNum=${classNum}`);
         if (response.success && response.sections) {
@@ -166,7 +166,7 @@ const updateAvailableSections = async () => {
     } catch (error) {
         console.error("Failed to load sections:", error);
     } finally {
-        hideLocalLoader('label[for="filter-section"]');
+        hideLocalLoader('#filter-section');
     }
 
     function renderSections(sections) {
@@ -215,7 +215,7 @@ const updateSubjectsDropdown = async () => {
         return;
     }
 
-    showLocalLoader('label[for="filter-subject"]');
+    showLocalLoader('#filter-subject');
     try {
         const response = await apiRequest(`subject.tag.getDropdowns?classNum=${classNum}&stream=${stream}&section=${section}&academicYear=${academicYear}`);
         if (response.success && response.subjects) {
@@ -226,7 +226,7 @@ const updateSubjectsDropdown = async () => {
         console.error("Failed to load subjects:", error);
         showToast("Error loading subjects list", "error");
     } finally {
-        hideLocalLoader('label[for="filter-subject"]');
+        hideLocalLoader('#filter-subject');
     }
 
     function renderSubjects(subjects) {

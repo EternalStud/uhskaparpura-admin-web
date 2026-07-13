@@ -168,13 +168,16 @@ export function hideLoader() {
 }
 
 /**
- * Shows an inline contextual progress bar at the bottom of a specific container.
- * @param {string} containerSelector CSS selector of the parent element.
+ * Shows an inline contextual progress bar at the bottom of the wrapper of a specific element.
+ * @param {string} elementSelector CSS selector of the input/select element.
  */
-export function showLocalLoader(containerSelector) {
+export function showLocalLoader(elementSelector) {
     try {
         injectStyles();
-        const container = document.querySelector(containerSelector);
+        const element = document.querySelector(elementSelector);
+        if (!element) return;
+        
+        const container = element.closest(".filter-field") || element.parentElement;
         if (!container) return;
         
         if (container.querySelector(".local-progress-bar")) return;
@@ -190,13 +193,17 @@ export function showLocalLoader(containerSelector) {
 }
 
 /**
- * Removes an inline contextual progress bar from a specific container.
- * @param {string} containerSelector CSS selector of the parent element.
+ * Removes an inline contextual progress bar from the wrapper of a specific element.
+ * @param {string} elementSelector CSS selector of the input/select element.
  */
-export function hideLocalLoader(containerSelector) {
+export function hideLocalLoader(elementSelector) {
     try {
-        const container = document.querySelector(containerSelector);
+        const element = document.querySelector(elementSelector);
+        if (!element) return;
+        
+        const container = element.closest(".filter-field") || element.parentElement;
         if (!container) return;
+        
         const bar = container.querySelector(".local-progress-bar");
         if (bar) {
             bar.classList.add("fade-out");
