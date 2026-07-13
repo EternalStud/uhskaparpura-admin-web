@@ -1,7 +1,7 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader } from "../../../components/loader.js";
+import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js";
 import { apiRequest } from "../../../services/api.js";
 import { renderNavbar } from "../../../components/navbar.js?t=17892929117";
 
@@ -156,7 +156,7 @@ const updateAvailableSections = async () => {
         return;
     }
 
-    showLoader({ blocking: false });
+    showLocalLoader('label[for="filter-section"]');
     try {
         const response = await apiRequest(`subject.tag.getSections?academicYear=${year}&classNum=${classNum}`);
         if (response.success && response.sections) {
@@ -166,7 +166,7 @@ const updateAvailableSections = async () => {
     } catch (error) {
         console.error("Failed to load sections:", error);
     } finally {
-        hideLoader();
+        hideLocalLoader('label[for="filter-section"]');
     }
 
     function renderSections(sections) {
@@ -215,7 +215,7 @@ const updateSubjectsDropdown = async () => {
         return;
     }
 
-    showLoader({ blocking: false });
+    showLocalLoader('label[for="filter-subject"]');
     try {
         const response = await apiRequest(`subject.tag.getDropdowns?classNum=${classNum}&stream=${stream}&section=${section}&academicYear=${academicYear}`);
         if (response.success && response.subjects) {
@@ -226,7 +226,7 @@ const updateSubjectsDropdown = async () => {
         console.error("Failed to load subjects:", error);
         showToast("Error loading subjects list", "error");
     } finally {
-        hideLoader();
+        hideLocalLoader('label[for="filter-subject"]');
     }
 
     function renderSubjects(subjects) {

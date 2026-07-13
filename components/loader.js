@@ -4,7 +4,7 @@ let progressInterval = null;
 let currentProgress = 0;
 
 /**
- * Injects required styles for the premium loader, eyes animation, and progress bar.
+ * Injects required styles for the premium loader, eyes animation, progress bar, and local loaders.
  */
 function injectStyles() {
     if (document.getElementById("loader-styles")) return;
@@ -60,6 +60,32 @@ function injectStyles() {
             animation: pupilLook 3s infinite ease-in-out;
             transform-origin: center;
         }
+        
+        /* Local Progress Indicator Styles */
+        .local-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(79, 70, 229, 0.08);
+            border-radius: 0 0 var(--radius-md, 6px) var(--radius-md, 6px);
+            overflow: hidden;
+            z-index: 10;
+        }
+        .local-progress-bar-fill {
+            height: 100%;
+            width: 40%;
+            background: linear-gradient(90deg, var(--color-primary, #4f46e5), #818cf8);
+            border-radius: inherit;
+            animation: localProgressAnim 1s infinite linear;
+            transform-origin: left;
+        }
+        .local-progress-bar.fade-out {
+            opacity: 0;
+            transition: opacity 250ms ease-in-out;
+        }
+
         @keyframes pupilLook {
             0%, 100% { transform: translate(0px, 0px); }
             15% { transform: translate(-3px, 0px); }
@@ -76,6 +102,11 @@ function injectStyles() {
         @keyframes loaderPop {
             0% { transform: scale(0.9); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes localProgressAnim {
+            0% { transform: translateX(-100%) scaleX(1); }
+            50% { transform: translateX(0%) scaleX(1.4); }
+            100% { transform: translateX(100%) scaleX(1); }
         }
     `;
     document.head.appendChild(style);
@@ -131,6 +162,48 @@ export function hideLoader() {
     try {
         document.querySelector("#loader-root")?.replaceChildren();
         finishProgressBar();
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+/**
+ * Shows an inline contextual progress bar at the bottom of a specific container.
+ * @param {string} containerSelector CSS selector of the parent element.
+ */
+export function showLocalLoader(containerSelector) {
+    try {
+        injectStyles();
+        const container = document.querySelector(containerSelector);
+        if (!container) return;
+        
+        if (container.querySelector(".local-progress-bar")) return;
+        
+        container.style.position = "relative";
+        const bar = document.createElement("div");
+        bar.className = "local-progress-bar";
+        bar.innerHTML = `<div class="local-progress-bar-fill"></div>`;
+        container.appendChild(bar);
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+/**
+ * Removes an inline contextual progress bar from a specific container.
+ * @param {string} containerSelector CSS selector of the parent element.
+ */
+export function hideLocalLoader(containerSelector) {
+    try {
+        const container = document.querySelector(containerSelector);
+        if (!container) return;
+        const bar = container.querySelector(".local-progress-bar");
+        if (bar) {
+            bar.classList.add("fade-out");
+            setTimeout(() => {
+                bar.remove();
+            }, 250);
+        }
     } catch (error) {
         console.error(error);
     }
