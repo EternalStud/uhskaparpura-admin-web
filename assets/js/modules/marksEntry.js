@@ -150,29 +150,40 @@ const updateAvailableSections = async () => {
         return;
     }
 
+    const cacheKey = `${year}_${classNum}`;
+    if (metadataCache.sections[cacheKey]) {
+        renderSections(metadataCache.sections[cacheKey]);
+        return;
+    }
+
     showLoader({ blocking: false });
     try {
         const response = await apiRequest(`subject.tag.getSections?academicYear=${year}&classNum=${classNum}`);
         if (response.success && response.sections) {
-            sectionSelect.innerHTML = '<option value="">Select Section</option>';
-            response.sections.forEach(sec => {
-                sectionSelect.innerHTML += `<option value="${sec}">Section ${sec}</option>`;
-            });
-            
-            if (response.sections.length === 0) {
-                sectionSelect.innerHTML = '<option value="">No sections available</option>';
-            } else {
-                if (response.sections.includes("A")) {
-                    sectionSelect.value = "A";
-                } else {
-                    sectionSelect.value = response.sections[0];
-                }
-            }
+            metadataCache.sections[cacheKey] = response.sections;
+            renderSections(response.sections);
         }
     } catch (error) {
         console.error("Failed to load sections:", error);
     } finally {
         hideLoader();
+    }
+
+    function renderSections(sections) {
+        sectionSelect.innerHTML = '<option value="">Select Section</option>';
+        sections.forEach(sec => {
+            sectionSelect.innerHTML += `<option value="${sec}">Section ${sec}</option>`;
+        });
+        
+        if (sections.length === 0) {
+            sectionSelect.innerHTML = '<option value="">No sections available</option>';
+        } else {
+            if (sections.includes("A")) {
+                sectionSelect.value = "A";
+            } else {
+                sectionSelect.value = sections[0];
+            }
+        }
     }
 };
 
@@ -198,21 +209,32 @@ const updateSubjectsDropdown = async () => {
         return;
     }
 
+    const cacheKey = `${classNum}_${stream}_${section}_${academicYear}`;
+    if (metadataCache.subjects[cacheKey]) {
+        renderSubjects(metadataCache.subjects[cacheKey]);
+        return;
+    }
+
     showLoader({ blocking: false });
     try {
         const response = await apiRequest(`subject.tag.getDropdowns?classNum=${classNum}&stream=${stream}&section=${section}&academicYear=${academicYear}`);
         if (response.success && response.subjects) {
-            dropdownSubjects = response.subjects;
-            subjectSelect.innerHTML = '<option value="">Select Subject</option>';
-            response.subjects.forEach(sub => {
-                subjectSelect.innerHTML += `<option value="${sub.subjectId}">${sub.name} (${sub.code})</option>`;
-            });
+            metadataCache.subjects[cacheKey] = response.subjects;
+            renderSubjects(response.subjects);
         }
     } catch (error) {
         console.error("Failed to load subjects:", error);
         showToast("Error loading subjects list", "error");
     } finally {
         hideLoader();
+    }
+
+    function renderSubjects(subjects) {
+        dropdownSubjects = subjects;
+        subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+        subjects.forEach(sub => {
+            subjectSelect.innerHTML += `<option value="${sub.subjectId}">${sub.name} (${sub.code})</option>`;
+        });
     }
 };
 
@@ -586,14 +608,56 @@ const bindWorkspaceInputListeners = () => {
         input.addEventListener("input", () => handleInput(input, field));
 
         // Enter key navigation
+        // Excel-like navigation (Arrow keys and Enter)
         input.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
+            const tr = input.closest("tr");
+            if (!tr) return; // Only desktop supports this grid navigation
+            
+            const tbody = tr.parentNode;
+            const rows = Array.from(tbody.querySelectorAll("tr"));
+            const currentRowIndex = rows.indexOf(tr);
+            
+            let targetRowIndex = currentRowIndex;
+            let targetClass = "";
+
+            if (input.classList.contains("input-theory")) targetClass = ".input-theory";
+            else if (input.classList.contains("input-practical")) targetClass = ".input-practical";
+            else if (input.classList.contains("input-internal")) targetClass = ".input-internal";
+
+            if (e.key === "Enter" || e.key === "ArrowDown") {
                 e.preventDefault();
-                const allInputs = Array.from(document.querySelectorAll(".workspace-card .mark-input:not([disabled])"));
-                const idx = allInputs.indexOf(input);
-                if (idx !== -1 && idx < allInputs.length - 1) {
-                    allInputs[idx + 1].focus();
-                    allInputs[idx + 1].select();
+                targetRowIndex = currentRowIndex + 1;
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                targetRowIndex = currentRowIndex - 1;
+            } else if (e.key === "ArrowRight") {
+                // Focus next input in same row
+                const nextInput = input.parentElement.parentElement.nextElementSibling?.querySelector(".mark-input:not([disabled])");
+                if (nextInput) {
+                    e.preventDefault();
+                    nextInput.focus();
+                    nextInput.select();
+                }
+                return;
+            } else if (e.key === "ArrowLeft") {
+                // Focus previous input in same row
+                const prevInput = input.parentElement.parentElement.previousElementSibling?.querySelector(".mark-input:not([disabled])");
+                if (prevInput) {
+                    e.preventDefault();
+                    prevInput.focus();
+                    prevInput.select();
+                }
+                return;
+            } else {
+                return;
+            }
+
+            if (targetRowIndex >= 0 && targetRowIndex < rows.length) {
+                const targetRow = rows[targetRowIndex];
+                const targetInput = targetRow.querySelector(targetClass);
+                if (targetInput && !targetInput.disabled) {
+                    targetInput.focus();
+                    targetInput.select();
                 }
             }
         });

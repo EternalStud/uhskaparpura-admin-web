@@ -12,6 +12,11 @@ let studentsState = [];     // Unified state tracking loaded students
 let currentFilters = {};    // Currently active filters
 let activeDropdown = null;  // Track currently open dropdown
 
+// Cache to eliminate latency on filter changes
+const metadataCache = {
+    sections: {} // Key: `${year}_${classNum}` -> Value: array of sections
+};
+
 const getDefaultAcademicYear = () => {
     const year = new Date().getFullYear();
     return `${year}-${String(year + 1).slice(-2)}`;
@@ -52,31 +57,41 @@ const updateAvailableSections = async () => {
         return;
     }
 
+    const cacheKey = `${year}_${classNum}`;
+    if (metadataCache.sections[cacheKey]) {
+        renderSections(metadataCache.sections[cacheKey]);
+        return;
+    }
+
     showLoader({ blocking: false });
     try {
         const response = await apiRequest(`subject.tag.getSections?academicYear=${year}&classNum=${classNum}`);
         if (response.success && response.sections) {
-            sectionSelect.innerHTML = '<option value="">Select Section</option>';
-            response.sections.forEach(sec => {
-                sectionSelect.innerHTML += `<option value="${sec}">Section ${sec}</option>`;
-            });
-            
-            if (response.sections.length === 0) {
-                sectionSelect.innerHTML = '<option value="">No sections available</option>';
-            } else {
-                // Default selection to "A" if present, otherwise default to first option
-                if (response.sections.includes("A")) {
-                    sectionSelect.value = "A";
-                } else {
-                    sectionSelect.value = response.sections[0];
-                }
-            }
+            metadataCache.sections[cacheKey] = response.sections;
+            renderSections(response.sections);
         }
     } catch (error) {
         console.error("Failed to load sections:", error);
         sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
     } finally {
         hideLoader();
+    }
+
+    function renderSections(sections) {
+        sectionSelect.innerHTML = '<option value="">Select Section</option>';
+        sections.forEach(sec => {
+            sectionSelect.innerHTML += `<option value="${sec}">Section ${sec}</option>`;
+        });
+        
+        if (sections.length === 0) {
+            sectionSelect.innerHTML = '<option value="">No sections available</option>';
+        } else {
+            if (sections.includes("A")) {
+                sectionSelect.value = "A";
+            } else {
+                sectionSelect.value = sections[0];
+            }
+        }
     }
 };
 
