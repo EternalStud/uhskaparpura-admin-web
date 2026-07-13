@@ -1,13 +1,13 @@
 "use strict";
 
-import { initLoginView } from "./login.js?t=17892929117";
-import { initDashboardView } from "./dashboard.js?t=17892929117";
-import { initSubjectTagView } from "./modules/subjectTag.js?t=17892929117";
-import { initMarksEntryView } from "./modules/marksEntry.js?t=17892929117";
-import { initResultGenerationView } from "./modules/resultGeneration.js?t=17892929117";
-import { initStudentMasterView } from "./modules/studentMaster.js?t=17892929117";
-import { initSyncSchoolDBView } from "./modules/syncSchoolDB.js?t=17892929117";
-import { init as initExamControlView } from "./modules/examControl.js?t=17892929117";
+import { initLoginView } from "./login.js?t=17892929125";
+import { initDashboardView } from "./dashboard.js?t=17892929125";
+import { initSubjectTagView } from "./modules/subjectTag.js?t=17892929125";
+import { initMarksEntryView } from "./modules/marksEntry.js?t=17892929125";
+import { initResultGenerationView } from "./modules/resultGeneration.js?t=17892929125";
+import { initStudentMasterView } from "./modules/studentMaster.js?t=17892929125";
+import { initSyncSchoolDBView } from "./modules/syncSchoolDB.js?t=17892929125";
+import { init as initExamControlView } from "./modules/examControl.js?t=17892929125";
 import { getSession, clearSession } from "../../services/session.js";
 import { hideLoader, showLoader } from "../../components/loader.js";
 import { showToast } from "../../components/toast.js";

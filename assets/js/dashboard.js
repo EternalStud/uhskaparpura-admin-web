@@ -1,4 +1,4 @@
-import { renderNavbar } from "../../components/navbar.js?t=17892929117";
+import { renderNavbar } from "../../components/navbar.js?t=17892929125";
 import { logout } from "../../services/auth.js";
 import { navigateTo } from "./router.js";
 import { showToast } from "../../components/toast.js";

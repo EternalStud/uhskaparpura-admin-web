@@ -3,7 +3,7 @@
 import { showToast } from "../../../components/toast.js";
 import { showLoader, hideLoader } from "../../../components/loader.js";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=17892929117";
+import { renderNavbar } from "../../../components/navbar.js?t=17892929125";
 
 let systemSettings = {};
 

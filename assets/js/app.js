@@ -1,6 +1,6 @@
 "use strict";
 
-import { initRouter, navigateTo } from "./router.js?t=17892929117";
+import { initRouter, navigateTo } from "./router.js?t=17892929125";
 import { restoreSession } from "../../services/session.js";
 import { showToast } from "../../components/toast.js";
 
