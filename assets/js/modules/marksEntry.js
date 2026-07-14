@@ -4,6 +4,7 @@ import { showToast } from "../../../components/toast.js";
 import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=17892929155";
 import { apiRequest } from "../../../services/api.js";
 import { renderNavbar } from "../../../components/navbar.js?t=17892929155";
+import { getSession } from "../../../services/session.js";
 
 // Local state variables
 let dropdownSubjects = [];  // Available subjects for selected class & stream
@@ -692,9 +693,6 @@ const bindWorkspaceInputListeners = () => {
                 allInputs[idx + 1].select();
             }
         });
-    });
-};
-
 /**
  * Query students list and saved marks from Google Apps Script.
  */
@@ -719,6 +717,14 @@ const loadStudentMarks = async () => {
         showToast("Please fill all required filters.", "error");
         return;
     }
+
+    // Show skeleton
+    document.querySelector("#subject-tag-empty-state").style.display = "none";
+    document.querySelector("#desktop-workspace").style.display = "none";
+    document.querySelector("#mobile-workspace").style.display = "none";
+    document.querySelector("#stats-progress-section").style.display = "none";
+    document.querySelector("#subject-tag-loading").style.display = "block";
+    showLoader();
 
     currentFilters = { ...filters };
     // Check if the exam is locked for teachers and load max marks config
@@ -745,28 +751,12 @@ const loadStudentMarks = async () => {
         }
     } catch (e) {
         console.warn("Could not load exam metadata:", e);
-        alert("Error loading exam metadata:\n" + e.message + "\nStack: " + e.stack);
         isExamLockedForTeacher = false;
         activeExamConfigs = [];
     }
 
     maxMarks = deriveMaxMarks(filters.classNum, filters.subjectId);
 
-    alert("Diagnostic Info:\n" + JSON.stringify({
-        filters,
-        activeConfigsLength: activeExamConfigs.length,
-        activeConfigsSample: activeExamConfigs.slice(0, 2),
-        derivedMaxMarks: maxMarks
-    }, null, 2));
-
-    // Show skeleton
-    document.querySelector("#subject-tag-empty-state").style.display = "none";
-    document.querySelector("#desktop-workspace").style.display = "none";
-    document.querySelector("#mobile-workspace").style.display = "none";
-    document.querySelector("#stats-progress-section").style.display = "none";
-    document.querySelector("#subject-tag-loading").style.display = "block";
-
-    showLoader();
     try {
         const query = new URLSearchParams(filters).toString();
         const response = await apiRequest(`exam.marks.load?${query}`);
