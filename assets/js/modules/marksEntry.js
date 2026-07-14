@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=17892929140";
+import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=17892929145";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=17892929140";
+import { renderNavbar } from "../../../components/navbar.js?t=17892929145";
 
 // Local state variables
 let dropdownSubjects = [];  // Available subjects for selected class & stream
@@ -77,6 +77,7 @@ const getDefaultAcademicYear = () => {
  * Derives maximum BSEB marks for theory/practical/internal based on class, subject code, and exam.
  */
 const deriveMaxMarks = (classNum, subjectId) => {
+    console.log("deriveMaxMarks input:", { classNum, subjectId, activeExamConfigs });
     const cNumStr = String(classNum).trim();
     const subIdStr = String(subjectId || "").trim().toUpperCase();
 
@@ -735,10 +736,13 @@ const loadStudentMarks = async () => {
         }
 
         const configRes = await apiRequest("exam.config.load?examName=" + encodeURIComponent(filters.examName));
+        console.log("exam.config.load response:", configRes);
         if (configRes.success && configRes.configs) {
             activeExamConfigs = configRes.configs;
+            console.log("Successfully set activeExamConfigs:", activeExamConfigs);
         } else {
             activeExamConfigs = [];
+            console.warn("Failed to load configs, set empty array");
         }
     } catch (e) {
         console.warn("Could not load exam metadata:", e);
