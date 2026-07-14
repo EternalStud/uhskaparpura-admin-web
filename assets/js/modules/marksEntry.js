@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=17892929130";
+import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=17892929135";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=17892929130";
+import { renderNavbar } from "../../../components/navbar.js?t=17892929135";
 
 // Local state variables
 let dropdownSubjects = [];  // Available subjects for selected class & stream
@@ -11,6 +11,7 @@ let studentsState = [];     // State tracking loaded students and their marks
 let currentFilters = {};    // Active filters
 let maxMarks = { theory: 100, practical: 0, internal: 0 }; // Maximum marks config
 let isExamLockedForTeacher = false; // Lock flag based on system settings
+let activeExamConfigs = []; // Active configurations for the loaded exam (theory/practical/internal max marks)
 
 // Cache to eliminate latency on filter changes
 const metadataCache = {
@@ -75,49 +76,41 @@ const getDefaultAcademicYear = () => {
 /**
  * Derives maximum BSEB marks for theory/practical/internal based on class, subject code, and exam.
  */
-const deriveMaxMarks = (classNum, subjectId, examName = "Annual") => {
-    const cls = Number(classNum);
-    const id = String(subjectId || "").toUpperCase();
-    const exam = String(examName || "").trim();
+const deriveMaxMarks = (classNum, subjectId) => {
+    const cNumStr = String(classNum).trim();
+    const subIdStr = String(subjectId || "").trim().toUpperCase();
 
-    // Defaults
-    let theory = 100;
-    let practical = 0;
-    let internal = 0;
-
-    if (exam === "Trimester") {
-        return { theory: 80, practical: 0, internal: 0 };
+    // 1. Search for specific subject override
+    const override = activeExamConfigs.find(c => c.classNum === cNumStr && c.subjectId === subIdStr);
+    if (override) {
+        return { theory: override.theory, practical: override.practical, internal: override.internal };
     }
 
+    // 2. Fall back to class-level defaults
+    const isPracticalSubject = [
+        "_PHY", "_CHE", "_BIO", "_GEO", "_HSC", "_PSY", "_MUS", "_AGR", "_CSC", "_MWT", "_SCI", "_SST"
+    ].some(suffix => subIdStr.endsWith(suffix));
+
+    const defaultType = isPracticalSubject ? "DEFAULT_PRACTICAL" : "DEFAULT_NON_PRACTICAL";
+    const classDefault = activeExamConfigs.find(c => c.classNum === cNumStr && c.subjectId === defaultType);
+    if (classDefault) {
+        return { theory: classDefault.theory, practical: classDefault.practical, internal: classDefault.internal };
+    }
+
+    // 3. Fall back to hardcoded defaults
+    const cls = Number(classNum);
+    let theory = 100, practical = 0, internal = 0;
     if (cls <= 10) {
-        // Classes 9 & 10
-        if (exam === "Half yearly") {
-            return { theory: 80, practical: 0, internal: 0 };
-        } else {
-            // Annual & Sent-up
-            if (id.endsWith("_SCI") || id.endsWith("_SST")) {
-                theory = 80;
-                practical = 20; // BSEB internal/practicals
-            }
+        if (isPracticalSubject) {
+            theory = 80;
+            practical = 20;
         }
     } else {
-        // Classes 11 & 12
-        if (exam === "Half yearly") {
-            return { theory: 100, practical: 0, internal: 0 };
-        } else {
-            // Annual & Sent-up
-            // Science electives with practicals
-            const hasPracticalArtsOrSci = [
-                "_PHY", "_CHE", "_BIO", "_GEO", "_HSC", "_PSY", "_MUS", "_AGR", "_CSC", "_MWT"
-            ].some(suffix => id.endsWith(suffix));
-
-            if (hasPracticalArtsOrSci) {
-                theory = 70;
-                practical = 30;
-            }
+        if (isPracticalSubject) {
+            theory = 70;
+            practical = 30;
         }
     }
-
     return { theory, practical, internal };
 };
 
@@ -728,24 +721,32 @@ const loadStudentMarks = async () => {
     }
 
     currentFilters = { ...filters };
-    maxMarks = deriveMaxMarks(filters.classNum, filters.subjectId, filters.examName);
-
-    // Check if the exam is locked for teachers
+    // Check if the exam is locked for teachers and load max marks config
     try {
-        const settingsRes = await apiRequest("settings.load");
-        if (settingsRes.success && settingsRes.settings) {
-            const key = `exam_status_${filters.examName}`;
-            const status = settingsRes.settings[key];
+        const examsRes = await apiRequest("exam.list");
+        if (examsRes.success && examsRes.exams) {
+            const foundExam = examsRes.exams.find(e => e.name.toLowerCase() === filters.examName.toLowerCase());
+            const status = foundExam ? foundExam.status : "OPEN";
             const session = getSession();
             const role = (session?.user?.role || "").toUpperCase();
             isExamLockedForTeacher = (role === "TEACHER" && status === "CLOSED");
         } else {
             isExamLockedForTeacher = false;
         }
+
+        const configRes = await apiRequest("exam.config.load?examName=" + encodeURIComponent(filters.examName));
+        if (configRes.success && configRes.configs) {
+            activeExamConfigs = configRes.configs;
+        } else {
+            activeExamConfigs = [];
+        }
     } catch (e) {
-        console.warn("Could not load settings:", e);
+        console.warn("Could not load exam metadata:", e);
         isExamLockedForTeacher = false;
+        activeExamConfigs = [];
     }
+
+    maxMarks = deriveMaxMarks(filters.classNum, filters.subjectId);
 
     // Show skeleton
     document.querySelector("#subject-tag-empty-state").style.display = "none";
@@ -877,6 +878,21 @@ export async function initMarksEntryView() {
         const yearInput = document.querySelector("#filter-academic-year");
         if (yearInput) {
             yearInput.value = getDefaultAcademicYear();
+        }
+
+        const examSelect = document.querySelector("#filter-exam");
+        if (examSelect) {
+            try {
+                const res = await apiRequest("exam.list");
+                if (res.success && res.exams) {
+                    examSelect.innerHTML = '<option value="">Select Exam</option>';
+                    res.exams.forEach(exam => {
+                        examSelect.innerHTML += `<option value="${exam.name}">${exam.name}</option>`;
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to load exams list:", err);
+            }
         }
 
         const classSelect = document.querySelector("#filter-class");

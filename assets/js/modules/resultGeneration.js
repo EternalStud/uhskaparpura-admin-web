@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader } from "../../../components/loader.js?t=17892929130";
+import { showLoader, hideLoader } from "../../../components/loader.js?t=17892929135";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=17892929130";
+import { renderNavbar } from "../../../components/navbar.js?t=17892929135";
 
 const getDefaultAcademicYear = () => {
     const year = new Date().getFullYear();
@@ -151,6 +151,21 @@ export async function initResultGenerationView() {
         const yearInput = document.querySelector("#filter-academic-year");
         if (yearInput) {
             yearInput.value = getDefaultAcademicYear();
+        }
+
+        const examSelect = document.querySelector("#filter-exam");
+        if (examSelect) {
+            try {
+                const res = await apiRequest("exam.list");
+                if (res.success && res.exams) {
+                    examSelect.innerHTML = '<option value="">Select Exam</option>';
+                    res.exams.forEach(exam => {
+                        examSelect.innerHTML += `<option value="${exam.name}">${exam.name}</option>`;
+                    });
+                }
+            } catch (err) {
+                console.error("Failed to load exams list:", err);
+            }
         }
 
         // Setup filter listeners

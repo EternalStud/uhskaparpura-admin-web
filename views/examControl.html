@@ -2,12 +2,12 @@
     <header id="navbar-exam-control"></header>
     
     <main class="dashboard-main subject-tag-main">
-        <div class="subject-tag-container" style="max-width: 800px; margin: 0 auto;">
+        <div class="subject-tag-container" style="max-width: 1000px; margin: 0 auto; padding: 0 16px;">
             <!-- Breadcrumbs -->
             <nav class="breadcrumb-nav" aria-label="Breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="#/dashboard">Dashboard</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Exam Lock Control</li>
+                    <li class="breadcrumb-item active" aria-current="page">Exam Control & Rules</li>
                 </ol>
             </nav>
 
@@ -18,76 +18,194 @@
                         <span class="material-symbols-rounded" style="font-size: 1.5rem;">arrow_back</span>
                     </a>
                     <div>
-                        <h1>Exam Lock Control</h1>
-                        <p class="subtitle">Enable or disable marks entry access for teachers.</p>
+                        <h1>Exam Control & Rules</h1>
+                        <p class="subtitle">Create BSEB exams, set class default marks, and configure subject overrides.</p>
                     </div>
                 </div>
             </header>
 
-            <!-- Settings Card -->
-            <section class="workspace-card" style="padding: 28px; margin-top: 16px;">
-                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--color-text); display: flex; align-items: center; gap: 8px;">
-                    <span class="material-symbols-rounded" style="color: var(--color-primary);">lock</span>
-                    Active Marks Entry Settings
-                </h3>
+            <!-- Main view (Exams List & Creation) -->
+            <div id="exams-list-view" style="display: block;">
+                <!-- Add Exam Card -->
+                <section class="workspace-card" style="padding: 24px; margin-top: 16px; margin-bottom: 24px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--color-text); display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-rounded" style="color: var(--color-primary);">add_circle</span>
+                        Create New Exam
+                    </h3>
+                    <form id="create-exam-form" style="display: flex; gap: 12px; align-items: center; max-width: 600px;">
+                        <div class="filter-field" style="flex: 1; margin: 0;">
+                            <input type="text" id="new-exam-name" placeholder="e.g. मासिक परीक्षा - जुलाई 2026" required style="width: 100%; padding: 10px 14px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-family: inherit;">
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="padding: 10px 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-rounded" style="font-size: 1.2rem;">save</span>
+                            Create Exam
+                        </button>
+                    </form>
+                </section>
 
-                <!-- Loading Spinner -->
-                <div id="settings-loading" style="text-align: center; padding: 40px 0;">
-                    <div class="spinner animate-spin" style="width: 32px; height: 32px; border: 4px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; display: inline-block;"></div>
-                    <p style="color: var(--color-muted); font-size: 0.9rem; margin-top: 12px;">Loading system settings...</p>
-                </div>
+                <!-- Active Exams List -->
+                <section class="workspace-card" style="padding: 24px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--color-text); display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-rounded" style="color: var(--color-primary);">lock</span>
+                        Manage Exams & Status
+                    </h3>
 
-                <!-- Settings Controls (Hidden initially) -->
-                <div id="settings-controls-container" style="display: none; flex-direction: column; gap: 20px;">
-                    
-                    <div style="background: rgba(79, 70, 229, 0.03); border: 1px solid rgba(79, 70, 229, 0.1); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px;">
-                        <p style="margin: 0; font-size: 0.88rem; line-height: 1.5; color: var(--color-muted);">
-                            <strong>💡 Admin Guide:</strong> Toggle an exam to <strong>OPEN</strong> to allow teachers to enter and save student marks. If an exam is set to <strong>CLOSED</strong>, teachers will only have read-only access and cannot save any modifications.
-                        </p>
+                    <!-- Local Loader -->
+                    <div id="exams-loading" style="text-align: center; padding: 40px 0;">
+                        <div class="spinner animate-spin" style="width: 32px; height: 32px; border: 4px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; display: inline-block;"></div>
+                        <p style="color: var(--color-muted); font-size: 0.9rem; margin-top: 12px;">Loading exams list...</p>
                     </div>
 
-                    <!-- Exam List Grid -->
-                    <div class="exam-settings-list" style="display: flex; flex-direction: column; gap: 16px;">
-                        <!-- Dynamically generated rows -->
+                    <!-- Exams List Table -->
+                    <div id="exams-table-container" style="display: none; overflow-x: auto;">
+                        <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--color-border); background: var(--color-background);">
+                                    <th style="padding: 14px 16px; font-weight: 700; color: var(--color-text);">Exam Name</th>
+                                    <th style="padding: 14px 16px; font-weight: 700; color: var(--color-text); text-align: center;">Entry Lock Status</th>
+                                    <th style="padding: 14px 16px; font-weight: 700; color: var(--color-text); text-align: right;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="exams-list-tbody">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Rules Configuration View (Hidden by default) -->
+            <div id="rules-config-view" style="display: none;">
+                <section class="workspace-card" style="padding: 24px; margin-top: 16px;">
+                    <!-- Configuration Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-border); padding-bottom: 16px; margin-bottom: 20px;">
+                        <div>
+                            <h2 id="config-exam-title" style="font-size: 1.3rem; font-weight: 800; margin: 0; color: var(--color-text);">Configure Max Marks</h2>
+                            <p style="font-size: 0.88rem; color: var(--color-muted); margin: 2px 0 0 0;">Define maximum marks for theory, practicals, and internals.</p>
+                        </div>
+                        <button id="close-config-btn" class="btn btn-ghost" style="border: 1px solid var(--color-border); display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                            <span class="material-symbols-rounded" style="font-size: 1.2rem;">arrow_back</span>
+                            Back to Exams
+                        </button>
                     </div>
 
-                    <div style="margin-top: 24px; border-top: 1px solid var(--color-border); padding-top: 20px; display: flex; justify-content: flex-end;">
-                        <button id="save-settings-btn" class="btn btn-primary" style="font-weight: 600;">Save Settings</button>
+                    <!-- Config Body -->
+                    <div style="display: flex; gap: 24px; flex-direction: column;">
+                        
+                        <!-- Class Tabs Selector -->
+                        <div class="class-tabs-container" style="display: flex; border-bottom: 1px solid var(--color-border); gap: 8px; overflow-x: auto; padding-bottom: 1px;">
+                            <button class="class-tab active" data-class="9" style="padding: 12px 24px; border: none; border-bottom: 3px solid var(--color-primary); background: none; font-weight: 700; color: var(--color-primary); cursor: pointer;">Class 9</button>
+                            <button class="class-tab" data-class="10" style="padding: 12px 24px; border: none; border-bottom: 3px solid transparent; background: none; font-weight: 600; color: var(--color-muted); cursor: pointer;">Class 10</button>
+                            <button class="class-tab" data-class="11" style="padding: 12px 24px; border: none; border-bottom: 3px solid transparent; background: none; font-weight: 600; color: var(--color-muted); cursor: pointer;">Class 11</button>
+                            <button class="class-tab" data-class="12" style="padding: 12px 24px; border: none; border-bottom: 3px solid transparent; background: none; font-weight: 600; color: var(--color-muted); cursor: pointer;">Class 12</button>
+                        </div>
+
+                        <!-- Class default configurations -->
+                        <div style="background: var(--color-background); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 20px;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--color-text); margin: 0 0 16px 0; display: flex; align-items: center; gap: 6px;">
+                                <span class="material-symbols-rounded" style="color: var(--color-primary);">tune</span>
+                                Class-wise Default Max Marks
+                            </h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                                <!-- Non-Practical Defaults -->
+                                <div style="background: #ffffff; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px;">
+                                    <h5 style="font-size: 0.88rem; font-weight: 700; margin: 0 0 12px 0; color: var(--color-text);">Non-Practical Subjects Default</h5>
+                                    <div style="display: flex; gap: 10px;">
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 0.75rem; font-weight: 600; color: var(--color-muted); display: block; margin-bottom: 4px;">Theory Max</label>
+                                            <input type="number" id="default-np-theory" min="0" max="100" style="width: 100%; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 0.75rem; font-weight: 600; color: var(--color-muted); display: block; margin-bottom: 4px;">Practical Max</label>
+                                            <input type="number" id="default-np-practical" min="0" max="100" style="width: 100%; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 0.75rem; font-weight: 600; color: var(--color-muted); display: block; margin-bottom: 4px;">Internal Max</label>
+                                            <input type="number" id="default-np-internal" min="0" max="100" style="width: 100%; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Practical Defaults -->
+                                <div style="background: #ffffff; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px;">
+                                    <h5 style="font-size: 0.88rem; font-weight: 700; margin: 0 0 12px 0; color: var(--color-text);">Practical Subjects Default</h5>
+                                    <div style="display: flex; gap: 10px;">
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 0.75rem; font-weight: 600; color: var(--color-muted); display: block; margin-bottom: 4px;">Theory Max</label>
+                                            <input type="number" id="default-p-theory" min="0" max="100" style="width: 100%; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 0.75rem; font-weight: 600; color: var(--color-muted); display: block; margin-bottom: 4px;">Practical Max</label>
+                                            <input type="number" id="default-p-practical" min="0" max="100" style="width: 100%; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 0.75rem; font-weight: 600; color: var(--color-muted); display: block; margin-bottom: 4px;">Internal Max</label>
+                                            <input type="number" id="default-p-internal" min="0" max="100" style="width: 100%; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Subject Specific Overrides -->
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                                <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--color-text); margin: 0; display: flex; align-items: center; gap: 6px;">
+                                    <span class="material-symbols-rounded" style="color: var(--color-primary);">layers</span>
+                                    Subject-Specific Max Marks Overrides
+                                </h4>
+                                <input type="text" id="subject-search-input" placeholder="Search subjects..." style="padding: 6px 12px; font-size: 0.85rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); width: 220px;">
+                            </div>
+
+                            <div style="border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; background: #ffffff;">
+                                <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                                    <thead>
+                                        <tr style="border-bottom: 2px solid var(--color-border); background: var(--color-background);">
+                                            <th style="padding: 12px 16px; font-weight: 700; font-size: 0.85rem; color: var(--color-text);">Subject Code / Name</th>
+                                            <th style="padding: 12px 16px; font-weight: 700; font-size: 0.85rem; color: var(--color-text); width: 140px;">Theory Max</th>
+                                            <th style="padding: 12px 16px; font-weight: 700; font-size: 0.85rem; color: var(--color-text); width: 140px;">Practical Max</th>
+                                            <th style="padding: 12px 16px; font-weight: 700; font-size: 0.85rem; color: var(--color-text); width: 140px;">Internal Max</th>
+                                            <th style="padding: 12px 16px; font-weight: 700; font-size: 0.85rem; color: var(--color-text); text-align: right; width: 120px;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="subject-overrides-tbody">
+                                        <!-- Dynamic overrides rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </section>
+
+                    <!-- Config Footer Actions -->
+                    <div style="margin-top: 32px; border-top: 1px solid var(--color-border); padding-top: 20px; display: flex; justify-content: flex-end; gap: 12px;">
+                        <button id="cancel-config-btn" class="btn btn-ghost" style="border: 1px solid var(--color-border); font-weight: 600;">Cancel</button>
+                        <button id="save-config-btn" class="btn btn-primary" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-rounded" style="font-size: 1.2rem;">check_circle</span>
+                            Save Configuration
+                        </button>
+                    </div>
+                </section>
+            </div>
         </div>
     </main>
 </div>
 
 <style>
-.exam-setting-row {
+.class-tab {
+    transition: all 0.2s;
+}
+.class-tab:hover {
+    color: var(--color-primary) !important;
+}
+.class-tab.active {
+    border-bottom-color: var(--color-primary) !important;
+    color: var(--color-primary) !important;
+}
+
+.exam-action-cell {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: #ffffff;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-.exam-setting-row:hover {
-    border-color: var(--color-primary);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
-}
-.exam-setting-info {
-    text-align: left;
-}
-.exam-setting-name {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--color-text);
-}
-.exam-setting-desc {
-    margin: 2px 0 0 0;
-    font-size: 0.82rem;
-    color: var(--color-muted);
+    justify-content: flex-end;
+    gap: 8px;
 }
 
 /* Switch Styles */
