@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=17892929145";
+import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=17892929155";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=17892929145";
+import { renderNavbar } from "../../../components/navbar.js?t=17892929155";
 
 // Local state variables
 let dropdownSubjects = [];  // Available subjects for selected class & stream
@@ -77,7 +77,6 @@ const getDefaultAcademicYear = () => {
  * Derives maximum BSEB marks for theory/practical/internal based on class, subject code, and exam.
  */
 const deriveMaxMarks = (classNum, subjectId) => {
-    console.log("deriveMaxMarks input:", { classNum, subjectId, activeExamConfigs });
     const cNumStr = String(classNum).trim();
     const subIdStr = String(subjectId || "").trim().toUpperCase();
 
@@ -709,7 +708,7 @@ const loadStudentMarks = async () => {
 
     const filters = {
         academicYear: yearSelect.value,
-        examName: examSelect.value,
+        examName: (examSelect.value || "").normalize("NFC"),
         classNum: classSelect.value,
         section: sectionSelect.value,
         stream: streamSelect ? streamSelect.value : "",
@@ -726,7 +725,7 @@ const loadStudentMarks = async () => {
     try {
         const examsRes = await apiRequest("exam.list");
         if (examsRes.success && examsRes.exams) {
-            const foundExam = examsRes.exams.find(e => e.name.toLowerCase() === filters.examName.toLowerCase());
+            const foundExam = examsRes.exams.find(e => e.name.normalize("NFC").toLowerCase() === filters.examName.toLowerCase());
             const status = foundExam ? foundExam.status : "OPEN";
             const session = getSession();
             const role = (session?.user?.role || "").toUpperCase();
@@ -751,13 +750,6 @@ const loadStudentMarks = async () => {
     }
 
     maxMarks = deriveMaxMarks(filters.classNum, filters.subjectId);
-
-    alert("Diagnostic Info:\n" + JSON.stringify({
-        filters,
-        activeConfigsLength: activeExamConfigs.length,
-        activeConfigsSample: activeExamConfigs.slice(0, 2),
-        derivedMaxMarks: maxMarks
-    }, null, 2));
 
     // Show skeleton
     document.querySelector("#subject-tag-empty-state").style.display = "none";
