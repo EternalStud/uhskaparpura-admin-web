@@ -36,7 +36,8 @@ export async function apiRequest(path, options = {}) {
             url.searchParams.set("token", session.token);
         }
 
-        const response = await fetch(url.toString(), {
+        const finalUrl = url.toString().replace(/\+/g, "%20");
+        const response = await fetch(finalUrl, {
             ...options,
             headers: {
                 "Content-Type": "text/plain",

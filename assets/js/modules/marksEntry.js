@@ -751,6 +751,13 @@ const loadStudentMarks = async () => {
 
     maxMarks = deriveMaxMarks(filters.classNum, filters.subjectId);
 
+    alert("Diagnostic Info:\n" + JSON.stringify({
+        filters,
+        activeConfigsLength: activeExamConfigs.length,
+        activeConfigsSample: activeExamConfigs.slice(0, 2),
+        derivedMaxMarks: maxMarks
+    }, null, 2));
+
     // Show skeleton
     document.querySelector("#subject-tag-empty-state").style.display = "none";
     document.querySelector("#desktop-workspace").style.display = "none";
