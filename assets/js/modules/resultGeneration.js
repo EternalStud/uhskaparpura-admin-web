@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader } from "../../../components/loader.js?t=17892929135";
+import { showLoader, hideLoader } from "../../../components/loader.js?t=17892929140";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=17892929135";
+import { renderNavbar } from "../../../components/navbar.js?t=17892929140";
 
 const getDefaultAcademicYear = () => {
     const year = new Date().getFullYear();

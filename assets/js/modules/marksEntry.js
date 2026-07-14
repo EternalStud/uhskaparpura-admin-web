@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=17892929135";
+import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=17892929140";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=17892929135";
+import { renderNavbar } from "../../../components/navbar.js?t=17892929140";
 
 // Local state variables
 let dropdownSubjects = [];  // Available subjects for selected class & stream
@@ -886,7 +886,8 @@ export async function initMarksEntryView() {
                 const res = await apiRequest("exam.list");
                 if (res.success && res.exams) {
                     examSelect.innerHTML = '<option value="">Select Exam</option>';
-                    res.exams.forEach(exam => {
+                    const openExams = res.exams.filter(exam => exam.status === "OPEN");
+                    openExams.forEach(exam => {
                         examSelect.innerHTML += `<option value="${exam.name}">${exam.name}</option>`;
                     });
                 }
