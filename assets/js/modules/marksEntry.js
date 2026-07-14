@@ -745,6 +745,7 @@ const loadStudentMarks = async () => {
         }
     } catch (e) {
         console.warn("Could not load exam metadata:", e);
+        alert("Error loading exam metadata:\n" + e.message + "\nStack: " + e.stack);
         isExamLockedForTeacher = false;
         activeExamConfigs = [];
     }
