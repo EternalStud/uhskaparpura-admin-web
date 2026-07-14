@@ -693,6 +693,9 @@ const bindWorkspaceInputListeners = () => {
                 allInputs[idx + 1].select();
             }
         });
+    });
+};
+
 /**
  * Query students list and saved marks from Google Apps Script.
  */
