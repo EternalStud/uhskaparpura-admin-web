@@ -79,7 +79,8 @@ const getDefaultAcademicYear = () => {
  */
 const deriveMaxMarks = (classNum, subjectId) => {
     const cNumStr = String(classNum).trim();
-    const subIdStr = String(subjectId || "").trim().toUpperCase();
+    const fullSubId = String(subjectId || "").trim().toUpperCase();
+    const subIdStr = fullSubId.includes(",") ? fullSubId.split(",")[0].trim() : fullSubId;
 
     // 1. Search for specific subject override
     const override = activeExamConfigs.find(c => c.classNum === cNumStr && c.subjectId === subIdStr);
@@ -232,8 +233,25 @@ const updateSubjectsDropdown = async () => {
     function renderSubjects(subjects) {
         dropdownSubjects = subjects;
         subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+        
+        // Group subjects by normalized name + code
+        const groups = {};
         subjects.forEach(sub => {
-            subjectSelect.innerHTML += `<option value="${sub.subjectId}">${sub.name} (${sub.code})</option>`;
+            const key = `${sub.name.trim().toLowerCase()}_${String(sub.code).trim()}`;
+            if (!groups[key]) {
+                groups[key] = {
+                    name: sub.name,
+                    code: sub.code,
+                    ids: []
+                };
+            }
+            groups[key].ids.push(sub.subjectId);
+        });
+
+        // Render grouped options
+        Object.values(groups).forEach(g => {
+            const compositeValue = g.ids.join(",");
+            subjectSelect.innerHTML += `<option value="${compositeValue}">${g.name} (${g.code})</option>`;
         });
     }
 };
@@ -903,6 +921,7 @@ export async function initMarksEntryView() {
         const classSelect = document.querySelector("#filter-class");
         const streamSelect = document.querySelector("#filter-stream");
         const sectionSelect = document.querySelector("#filter-section");
+        const subjectSelect = document.querySelector("#filter-subject");
         const loadBtn = document.querySelector("#load-students-btn");
         const saveBtn = document.querySelector("#save-all-btn");
 
@@ -910,14 +929,30 @@ export async function initMarksEntryView() {
             classSelect.addEventListener("change", async () => {
                 const val = classSelect.value;
                 updateStreamFilterVisibility(val);
-                await updateAvailableSections();
-                await updateSubjectsDropdown();
+                if (val === "11" || val === "12") {
+                    if (streamSelect) streamSelect.value = "";
+                    if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                    if (subjectSelect) subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                } else {
+                    await updateAvailableSections();
+                    await updateSubjectsDropdown();
+                }
             });
         }
 
         if (streamSelect) {
             streamSelect.addEventListener("change", async () => {
-                await updateSubjectsDropdown();
+                const classVal = classSelect ? classSelect.value : "";
+                if (classVal === "11" || classVal === "12") {
+                    if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                    if (subjectSelect) subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                    if (streamSelect.value) {
+                        await updateAvailableSections();
+                        await updateSubjectsDropdown();
+                    }
+                } else {
+                    await updateSubjectsDropdown();
+                }
             });
         }
 
@@ -930,8 +965,15 @@ export async function initMarksEntryView() {
         // Section dropdown updates on year input change
         if (yearInput) {
             yearInput.addEventListener("input", async () => {
-                await updateAvailableSections();
-                await updateSubjectsDropdown();
+                const classVal = classSelect ? classSelect.value : "";
+                if (classVal === "11" || classVal === "12") {
+                    if (streamSelect) streamSelect.value = "";
+                    if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                    if (subjectSelect) subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                } else {
+                    await updateAvailableSections();
+                    await updateSubjectsDropdown();
+                }
             });
         }
 
