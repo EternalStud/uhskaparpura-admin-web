@@ -192,10 +192,17 @@ const renderTable = () => {
         }
 
         filteredStudents.forEach((res, index) => {
-            const l1 = res.subjectDetails.find(s => String(s.group).toLowerCase() === 'language1') || null;
-            const l2 = res.subjectDetails.find(s => String(s.group).toLowerCase() === 'language2') || null;
-            const electives = res.subjectDetails.filter(s => String(s.group).toLowerCase().startsWith('elective'));
-            const add = res.subjectDetails.find(s => String(s.group).toLowerCase() === 'additional') || null;
+            const getSubDetails = (subId) => {
+                if (!subId) return null;
+                return res.subjectDetails.find(s => String(s.subjectId) === String(subId)) || null;
+            };
+
+            const l1 = getSubDetails(res.language1);
+            const l2 = getSubDetails(res.language2);
+            const e1 = getSubDetails(res.elective1);
+            const e2 = getSubDetails(res.elective2);
+            const e3 = getSubDetails(res.elective3);
+            const add = getSubDetails(res.additional);
 
             const getSubData = (subObj) => {
                 if (!subObj) return { name: "", score: "" };
@@ -207,14 +214,18 @@ const renderTable = () => {
 
             const sdL1 = getSubData(l1);
             const sdL2 = getSubData(l2);
-            const sdE1 = getSubData(electives[0]);
-            const sdE2 = getSubData(electives[1]);
-            const sdE3 = getSubData(electives[2]);
+            const sdE1 = getSubData(e1);
+            const sdE2 = getSubData(e2);
+            const sdE3 = getSubData(e3);
             const sdAdd = getSubData(add);
 
-            const combinedName = `<div style="text-align:left; font-weight:600;">${res.studentName}</div>
-                                  <div style="text-align:left; font-size: 0.85em; color: var(--color-muted);">${res.motherName || ""}</div>
-                                  <div style="text-align:left; font-size: 0.85em; color: var(--color-muted);">${res.fatherName || ""}</div>`;
+            let combinedName = `<div style="text-align:left; font-weight:600;">${res.studentName}</div>`;
+            if (res.motherName && res.motherName !== "-") {
+                combinedName += `<div style="text-align:left; font-size: 0.85em; color: var(--color-muted);">${res.motherName}</div>`;
+            }
+            if (res.fatherName && res.fatherName !== "-") {
+                combinedName += `<div style="text-align:left; font-size: 0.85em; color: var(--color-muted);">${res.fatherName}</div>`;
+            }
             const genderRaw = String(res.gender || "").toLowerCase().trim();
             const genderText = (genderRaw === "female" || genderRaw === "f") ? "F" : ((genderRaw === "male" || genderRaw === "m") ? "M" : "");
 
