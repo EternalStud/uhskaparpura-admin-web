@@ -5,6 +5,10 @@ import { showLoader, hideLoader } from "../../../components/loader.js?t=17892929
 import { apiRequest } from "../../../services/api.js";
 import { renderNavbar } from "../../../components/navbar.js?t=17892929155";
 
+let currentResults = [];
+let activeClassVal = null;
+let searchQuery = "";
+
 const getDefaultAcademicYear = () => {
     const year = new Date().getFullYear();
     return `${year}-${String(year + 1).slice(-2)}`;
@@ -82,7 +86,131 @@ const updateAvailableSections = async () => {
 };
 
 /**
- * Calls backend to compile results and generate Excel & PDF downloads.
+ * Renders the tabs list of generated class results.
+ */
+const renderTabs = () => {
+    const tabsContainer = document.querySelector("#results-tabs-container");
+    if (!tabsContainer) return;
+
+    tabsContainer.innerHTML = "";
+
+    currentResults.forEach(classRes => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `class-tab${activeClassVal === classRes.classVal ? " active" : ""}`;
+        btn.style.padding = "10px 20px";
+        btn.style.border = "none";
+        btn.style.background = "none";
+        btn.style.fontWeight = activeClassVal === classRes.classVal ? "700" : "600";
+        btn.style.color = activeClassVal === classRes.classVal ? "var(--color-primary)" : "var(--color-muted)";
+        btn.style.borderBottom = activeClassVal === classRes.classVal ? "3px solid var(--color-primary)" : "3px solid transparent";
+        btn.style.cursor = "pointer";
+        btn.style.transition = "all 0.2s";
+        btn.textContent = `Class ${classRes.classVal}`;
+
+        btn.addEventListener("click", () => {
+            activeClassVal = classRes.classVal;
+            renderTabs();
+            renderTable();
+        });
+        tabsContainer.appendChild(btn);
+    });
+};
+
+/**
+ * Renders the results grid table for the active class tab.
+ */
+const renderTable = () => {
+    const thead = document.querySelector("#results-table-thead");
+    const tbody = document.querySelector("#results-table-tbody");
+    const statsSummary = document.querySelector("#result-stats-summary");
+
+    if (!thead || !tbody) return;
+
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    const activeData = currentResults.find(r => r.classVal === activeClassVal);
+    if (!activeData) {
+        tbody.innerHTML = '<tr><td colspan="100%" style="text-align: center; padding: 20px; color: var(--color-muted);">No results data found.</td></tr>';
+        if (statsSummary) statsSummary.textContent = "0 Students Listed";
+        return;
+    }
+
+    const { activeSubjects, studentResults } = activeData;
+
+    // Filter students by search query
+    const filteredStudents = studentResults.filter(stud => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return true;
+        return (
+            String(stud.studentName || "").toLowerCase().includes(query) ||
+            String(stud.rollNo || "").toLowerCase().includes(query) ||
+            String(stud.fatherName || "").toLowerCase().includes(query)
+        );
+    });
+
+    if (statsSummary) {
+        statsSummary.textContent = `${filteredStudents.length} Students Listed`;
+    }
+
+    // Build Headers
+    let headerRow = `<tr style="border-bottom: 2px solid var(--color-border);">
+        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 80px;">Roll No</th>
+        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text);">Student Name</th>
+        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text);">Father Name</th>`;
+    
+    activeSubjects.forEach(sub => {
+        headerRow += `<th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center;">${sub.name}</th>`;
+    });
+
+    headerRow += `
+        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 120px;">Grand Total</th>
+        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 90px;">Percentage</th>
+        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 180px;">Result / Division</th>
+        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 70px;">Rank</th>
+    </tr>`;
+
+    thead.innerHTML = headerRow;
+
+    // Build Rows
+    if (filteredStudents.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="100%" style="text-align: center; padding: 30px; color: var(--color-muted);">No matching student results found.</td></tr>`;
+        return;
+    }
+
+    filteredStudents.forEach((res, index) => {
+        let rowHtml = `<tr style="border-bottom: 1px solid var(--color-border); ${index % 2 === 0 ? 'background: #FFFFFF;' : 'background: #F9FAFB;'}">
+            <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: var(--color-primary);">${res.rollNo}</td>
+            <td style="padding: 12px 16px; font-weight: 600; color: var(--color-text);">${res.studentName}</td>
+            <td style="padding: 12px 16px; color: var(--color-muted);">${res.fatherName}</td>`;
+
+        activeSubjects.forEach(sub => {
+            const score = res.subjectScores[sub.subjectId] || "-";
+            rowHtml += `<td style="padding: 12px 16px; text-align: center; font-weight: 600;">${score}</td>`;
+        });
+
+        // Pass/Fail badge style for Result / Division
+        let resultBadgeStyle = "color: var(--color-success); font-weight: bold;";
+        if (res.result === "Fail") {
+            resultBadgeStyle = "color: var(--color-danger); font-weight: bold;";
+        } else if (res.result === "Compartmental") {
+            resultBadgeStyle = "color: #e67e22; font-weight: bold;";
+        }
+
+        rowHtml += `
+            <td style="padding: 12px 16px; text-align: center; font-weight: 700; color: var(--color-text);">${res.grandTotal} / ${res.totalMaxMarks}</td>
+            <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: var(--color-muted);">${res.percentage}</td>
+            <td style="padding: 12px 16px; text-align: center; ${resultBadgeStyle}">${res.division}</td>
+            <td style="padding: 12px 16px; text-align: center; font-weight: 700; color: var(--color-primary);">${res.rank}</td>
+        </tr>`;
+
+        tbody.innerHTML += rowHtml;
+    });
+};
+
+/**
+ * Calls backend to compile results and displays them in-page.
  */
 const handleGenerateResults = async () => {
     const yearSelect = document.querySelector("#filter-academic-year");
@@ -113,24 +241,24 @@ const handleGenerateResults = async () => {
         const query = new URLSearchParams(filters).toString();
         const response = await apiRequest(`exam.results.generate?${query}`);
 
-        if (response.success) {
-            // Populate links
-            document.querySelector("#excel-file-name").textContent = response.excelName || "Result Excel Sheet";
-            const excelLink = document.querySelector("#excel-download-link");
-            excelLink.href = response.excelUrl;
+        if (response.success && response.classesResults) {
+            currentResults = response.classesResults;
 
-            document.querySelector("#pdf-file-name").textContent = response.pdfName || "Result PDF Report";
-            const pdfLink = document.querySelector("#pdf-download-link");
-            pdfLink.href = response.pdfUrl;
+            if (currentResults.length > 0) {
+                activeClassVal = currentResults[0].classVal;
+                renderTabs();
+                renderTable();
 
-            if (outputCard) {
-                outputCard.style.display = "block";
-                setTimeout(() => {
-                    outputCard.scrollIntoView({ behavior: "smooth", block: "start" });
-                }, 100);
+                if (outputCard) {
+                    outputCard.style.display = "block";
+                    setTimeout(() => {
+                        outputCard.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 100);
+                }
+                showToast("Results compiled successfully!", "success");
+            } else {
+                showToast("No results compiled. Please verify filters.", "warning");
             }
-
-            showToast("Results compiled successfully!", "success");
         }
     } catch (error) {
         console.error(error);
@@ -170,6 +298,7 @@ export async function initResultGenerationView() {
 
         // Setup filter listeners
         const generateBtn = document.querySelector("#generate-results-btn");
+        const searchInput = document.querySelector("#result-search-input");
 
         document.querySelectorAll('input[name="classes"]').forEach(el => {
             el.addEventListener("change", async () => {
@@ -186,6 +315,13 @@ export async function initResultGenerationView() {
 
         if (generateBtn) {
             generateBtn.addEventListener("click", handleGenerateResults);
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener("input", (e) => {
+                searchQuery = e.target.value;
+                renderTable();
+            });
         }
 
         // Initial setup

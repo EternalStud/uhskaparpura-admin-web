@@ -81,37 +81,40 @@
             </section>
 
             <!-- Results Output Area -->
-            <section class="workspace-card" id="results-output-card" style="display: none; padding: 32px 24px;">
-                <div style="text-align: center; max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 16px;">
-                    <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(34, 197, 94, 0.1); color: var(--color-success); display: inline-flex; align-items: center; justify-content: center;">
-                        <span class="material-symbols-rounded" style="font-size: 2.5rem;">check_circle</span>
+            <section class="workspace-card" id="results-output-card" style="display: none; padding: 24px; margin-top: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 16px;">
+                    <div>
+                        <h2 style="font-size: 1.3rem; font-weight: 800; margin: 0; color: var(--color-text);">Compiled Examination Results</h2>
+                        <p style="font-size: 0.88rem; color: var(--color-muted); margin: 2px 0 0 0;">View student grades, totals, divisions, and ranks directly.</p>
                     </div>
-                    <h3 style="margin: 0; color: var(--color-text); font-size: 1.4rem; font-weight: 700;">Results Compiled Successfully!</h3>
-                    <p style="margin: 0; color: var(--color-muted); line-height: 1.5;">You can now view and download the generated mark lists and division summaries below.</p>
-                    
-                    <!-- File Links List -->
-                    <div style="width: 100%; margin-top: 16px; display: flex; flex-direction: column; gap: 12px; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface);">
-                            <span class="material-symbols-rounded" style="font-size: 2rem; color: #107C41;">description</span>
-                            <div style="flex: 1;">
-                                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600;" id="excel-file-name">Result Excel Sheet</h4>
-                                <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--color-muted);">Formatted student result table</p>
-                            </div>
-                            <a id="excel-download-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="min-height: 36px; height: 36px; padding: 0 14px; font-size: 0.85rem; font-weight: 600;">
-                                Open Excel
-                            </a>
-                        </div>
+                </div>
 
-                        <div style="display: flex; align-items: center; gap: 16px; padding: 14px 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface);">
-                            <span class="material-symbols-rounded" style="font-size: 2rem; color: #E01A22;">picture_as_pdf</span>
-                            <div style="flex: 1;">
-                                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600;" id="pdf-file-name">Result PDF Report</h4>
-                                <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--color-muted);">Print-ready landscape PDF report</p>
-                            </div>
-                            <a id="pdf-download-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="min-height: 36px; height: 36px; padding: 0 14px; font-size: 0.85rem; font-weight: 600;">
-                                Open PDF
-                            </a>
-                        </div>
+                <!-- Class Tabs Selector -->
+                <div id="results-tabs-container" style="display: flex; border-bottom: 1px solid var(--color-border); gap: 8px; overflow-x: auto; padding-bottom: 1px; margin-bottom: 20px;">
+                    <!-- Dynamically populated -->
+                </div>
+
+                <!-- Toolbar (Search & info) -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 16px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="text" id="result-search-input" placeholder="Search student by name or roll..." style="padding: 8px 12px; font-size: 0.88rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); width: 260px;">
+                    </div>
+                    <span class="status-pill" style="font-weight: 600;" id="result-stats-summary">
+                        0 Students Listed
+                    </span>
+                </div>
+
+                <!-- Live Results Table Container -->
+                <div style="border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; background: #ffffff;">
+                    <div style="overflow-x: auto;">
+                        <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                            <thead id="results-table-thead" style="background: var(--color-background); border-bottom: 2px solid var(--color-border);">
+                                <!-- Dynamic Headers -->
+                            </thead>
+                            <tbody id="results-table-tbody">
+                                <!-- Dynamic Rows -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
