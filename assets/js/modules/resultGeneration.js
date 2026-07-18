@@ -154,75 +154,173 @@ const renderTable = () => {
         statsSummary.textContent = `${filteredStudents.length} Students Listed`;
     }
 
-    // Build Headers
-    let headerRow = `<tr style="border-bottom: 2px solid var(--color-border);">
-        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 80px;">Roll No</th>
-        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text);">Student Name</th>
-        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text);">Father Name</th>`;
-    
-    activeSubjects.forEach(sub => {
-        let label = sub.name;
-        if (sub.code) {
-            label += ` (${sub.code})`;
+    const isSenior = (activeClassVal === 11 || activeClassVal === 12);
+
+    if (isSenior) {
+        let headerRow = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
+            <th rowspan="2" style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center;">Sl No</th>
+            <th rowspan="2" style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center;">Roll No</th>
+            <th rowspan="2" style="padding: 12px 16px; font-weight: 700; color: var(--color-text);">Student Name<br>Mother's Name<br>Father's Name</th>
+            <th rowspan="2" style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center;">M/F</th>
+            <th colspan="4" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; border-left: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border);">Compulsory Language Subjects</th>
+            <th colspan="6" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; border-left: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border);">Elective Subjects</th>
+            <th colspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; border-left: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border);">Additional Subject</th>
+            <th rowspan="2" style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; border-left: 1px solid var(--color-border);">Aggregate & Result</th>
+            <th rowspan="2" style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center;">Result</th>
+        </tr>
+        <tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
+            <th style="padding: 8px; font-weight: 600; text-align: center; border-left: 1px solid var(--color-border);">Subject - 1</th>
+            <th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>
+            <th style="padding: 8px; font-weight: 600; text-align: center;">Subject - 2</th>
+            <th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>
+            
+            <th style="padding: 8px; font-weight: 600; text-align: center; border-left: 1px solid var(--color-border);">Subject - 1</th>
+            <th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>
+            <th style="padding: 8px; font-weight: 600; text-align: center;">Subject - 2</th>
+            <th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>
+            <th style="padding: 8px; font-weight: 600; text-align: center;">Subject - 3</th>
+            <th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>
+            
+            <th style="padding: 8px; font-weight: 600; text-align: center; border-left: 1px solid var(--color-border);">Subject</th>
+            <th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>
+        </tr>`;
+        thead.innerHTML = headerRow;
+
+        if (filteredStudents.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="100%" style="text-align: center; padding: 30px; color: var(--color-muted);">No matching student results found.</td></tr>`;
+            return;
         }
-        if (sub.group) {
-            const g = String(sub.group).toLowerCase();
-            if (g === "language1") {
-                label += " [L1]";
-            } else if (g === "language2") {
-                label += " [L2]";
-            } else if (g === "additional") {
-                label += " [Add]";
-            } else if (g.startsWith("elective")) {
-                label += " [Ele]";
+
+        filteredStudents.forEach((res, index) => {
+            const l1 = res.subjectDetails.find(s => String(s.group).toLowerCase() === 'language1') || null;
+            const l2 = res.subjectDetails.find(s => String(s.group).toLowerCase() === 'language2') || null;
+            const electives = res.subjectDetails.filter(s => String(s.group).toLowerCase().startsWith('elective'));
+            const add = res.subjectDetails.find(s => String(s.group).toLowerCase() === 'additional') || null;
+
+            const getSubData = (subObj) => {
+                if (!subObj) return { name: "", score: "" };
+                return {
+                    name: subObj.name,
+                    score: res.subjectScores[subObj.subjectId] !== undefined ? res.subjectScores[subObj.subjectId] : ""
+                };
+            };
+
+            const sdL1 = getSubData(l1);
+            const sdL2 = getSubData(l2);
+            const sdE1 = getSubData(electives[0]);
+            const sdE2 = getSubData(electives[1]);
+            const sdE3 = getSubData(electives[2]);
+            const sdAdd = getSubData(add);
+
+            const combinedName = `<div style="text-align:left; font-weight:600;">${res.studentName}</div>
+                                  <div style="text-align:left; font-size: 0.85em; color: var(--color-muted);">${res.motherName || ""}</div>
+                                  <div style="text-align:left; font-size: 0.85em; color: var(--color-muted);">${res.fatherName || ""}</div>`;
+            const genderRaw = String(res.gender || "").toLowerCase().trim();
+            const genderText = (genderRaw === "female" || genderRaw === "f") ? "F" : ((genderRaw === "male" || genderRaw === "m") ? "M" : "");
+
+            let resultBadgeStyle = "color: var(--color-success); font-weight: bold;";
+            if (res.result === "Fail") {
+                resultBadgeStyle = "color: var(--color-danger); font-weight: bold;";
+            } else if (res.result === "Compartmental") {
+                resultBadgeStyle = "color: #e67e22; font-weight: bold;";
             }
-        }
-        headerRow += `<th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; white-space: nowrap;">${label}</th>`;
-    });
 
-    headerRow += `
-        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 120px;">Grand Total</th>
-        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 90px;">Percentage</th>
-        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 180px;">Result / Division</th>
-        <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 70px;">Rank</th>
-    </tr>`;
+            let rowHtml = `<tr style="border-bottom: 1px solid var(--color-border); ${index % 2 === 0 ? 'background: #FFFFFF;' : 'background: #F9FAFB;'}">
+                <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: var(--color-primary);">${index + 1}</td>
+                <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: var(--color-primary);">${res.rollNo}</td>
+                <td style="padding: 8px 16px; line-height: 1.4;">${combinedName}</td>
+                <td style="padding: 12px 16px; text-align: center; font-weight: 600;">${genderText}</td>
+                
+                <td style="padding: 12px 8px; text-align: center; border-left: 1px solid var(--color-border); font-size: 0.9em;">${sdL1.name}</td>
+                <td style="padding: 12px 8px; text-align: center; font-weight: 600;">${sdL1.score}</td>
+                <td style="padding: 12px 8px; text-align: center; font-size: 0.9em;">${sdL2.name}</td>
+                <td style="padding: 12px 8px; text-align: center; font-weight: 600;">${sdL2.score}</td>
 
-    thead.innerHTML = headerRow;
+                <td style="padding: 12px 8px; text-align: center; border-left: 1px solid var(--color-border); font-size: 0.9em;">${sdE1.name}</td>
+                <td style="padding: 12px 8px; text-align: center; font-weight: 600;">${sdE1.score}</td>
+                <td style="padding: 12px 8px; text-align: center; font-size: 0.9em;">${sdE2.name}</td>
+                <td style="padding: 12px 8px; text-align: center; font-weight: 600;">${sdE2.score}</td>
+                <td style="padding: 12px 8px; text-align: center; font-size: 0.9em;">${sdE3.name}</td>
+                <td style="padding: 12px 8px; text-align: center; font-weight: 600;">${sdE3.score}</td>
 
-    // Build Rows
-    if (filteredStudents.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="100%" style="text-align: center; padding: 30px; color: var(--color-muted);">No matching student results found.</td></tr>`;
-        return;
-    }
+                <td style="padding: 12px 8px; text-align: center; border-left: 1px solid var(--color-border); font-size: 0.9em;">${sdAdd.name}</td>
+                <td style="padding: 12px 8px; text-align: center; font-weight: 600;">${sdAdd.score}</td>
 
-    filteredStudents.forEach((res, index) => {
-        let rowHtml = `<tr style="border-bottom: 1px solid var(--color-border); ${index % 2 === 0 ? 'background: #FFFFFF;' : 'background: #F9FAFB;'}">
-            <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: var(--color-primary);">${res.rollNo}</td>
-            <td style="padding: 12px 16px; font-weight: 600; color: var(--color-text);">${res.studentName}</td>
-            <td style="padding: 12px 16px; color: var(--color-muted);">${res.fatherName}</td>`;
-
-        activeSubjects.forEach(sub => {
-            const score = res.subjectScores[sub.subjectId] !== undefined ? res.subjectScores[sub.subjectId] : "-";
-            rowHtml += `<td style="padding: 12px 16px; text-align: center; font-weight: 600;">${score}</td>`;
+                <td style="padding: 12px 16px; text-align: center; font-weight: 700; border-left: 1px solid var(--color-border);">${res.grandTotal}</td>
+                <td style="padding: 12px 16px; text-align: center; ${resultBadgeStyle}">${res.division || res.result}</td>
+            </tr>`;
+            tbody.innerHTML += rowHtml;
         });
 
-        // Pass/Fail badge style for Result / Division
-        let resultBadgeStyle = "color: var(--color-success); font-weight: bold;";
-        if (res.result === "Fail") {
-            resultBadgeStyle = "color: var(--color-danger); font-weight: bold;";
-        } else if (res.result === "Compartmental") {
-            resultBadgeStyle = "color: #e67e22; font-weight: bold;";
-        }
+    } else {
+        // Standard layout for lower classes
+        let headerRow = `<tr style="border-bottom: 2px solid var(--color-border);">
+            <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 80px;">Roll No</th>
+            <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text);">Student Name</th>
+            <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text);">Father Name</th>`;
+        
+        activeSubjects.forEach(sub => {
+            let label = sub.name;
+            if (sub.code) {
+                label += ` (${sub.code})`;
+            }
+            if (sub.group) {
+                const g = String(sub.group).toLowerCase();
+                if (g === "language1") {
+                    label += " [L1]";
+                } else if (g === "language2") {
+                    label += " [L2]";
+                } else if (g === "additional") {
+                    label += " [Add]";
+                } else if (g.startsWith("elective")) {
+                    label += " [Ele]";
+                }
+            }
+            headerRow += `<th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; white-space: nowrap;">${label}</th>`;
+        });
 
-        rowHtml += `
-            <td style="padding: 12px 16px; text-align: center; font-weight: 700; color: var(--color-text);">${res.grandTotal} / ${res.totalMaxMarks}</td>
-            <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: var(--color-muted);">${res.percentage}</td>
-            <td style="padding: 12px 16px; text-align: center; ${resultBadgeStyle}">${res.division}</td>
-            <td style="padding: 12px 16px; text-align: center; font-weight: 700; color: var(--color-primary);">${res.rank}</td>
+        headerRow += `
+            <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 120px;">Grand Total</th>
+            <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 90px;">Percentage</th>
+            <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 180px;">Result / Division</th>
+            <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; width: 70px;">Rank</th>
         </tr>`;
 
-        tbody.innerHTML += rowHtml;
-    });
+        thead.innerHTML = headerRow;
+
+        if (filteredStudents.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="100%" style="text-align: center; padding: 30px; color: var(--color-muted);">No matching student results found.</td></tr>`;
+            return;
+        }
+
+        filteredStudents.forEach((res, index) => {
+            let rowHtml = `<tr style="border-bottom: 1px solid var(--color-border); ${index % 2 === 0 ? 'background: #FFFFFF;' : 'background: #F9FAFB;'}">
+                <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: var(--color-primary);">${res.rollNo}</td>
+                <td style="padding: 12px 16px; font-weight: 600; color: var(--color-text);">${res.studentName}</td>
+                <td style="padding: 12px 16px; color: var(--color-muted);">${res.fatherName}</td>`;
+
+            activeSubjects.forEach(sub => {
+                const score = res.subjectScores[sub.subjectId] !== undefined ? res.subjectScores[sub.subjectId] : "-";
+                rowHtml += `<td style="padding: 12px 16px; text-align: center; font-weight: 600;">${score}</td>`;
+            });
+
+            let resultBadgeStyle = "color: var(--color-success); font-weight: bold;";
+            if (res.result === "Fail") {
+                resultBadgeStyle = "color: var(--color-danger); font-weight: bold;";
+            } else if (res.result === "Compartmental") {
+                resultBadgeStyle = "color: #e67e22; font-weight: bold;";
+            }
+
+            rowHtml += `
+                <td style="padding: 12px 16px; text-align: center; font-weight: 700; color: var(--color-text);">${res.grandTotal} / ${res.totalMaxMarks}</td>
+                <td style="padding: 12px 16px; text-align: center; font-weight: 600; color: var(--color-muted);">${res.percentage}</td>
+                <td style="padding: 12px 16px; text-align: center; ${resultBadgeStyle}">${res.division}</td>
+                <td style="padding: 12px 16px; text-align: center; font-weight: 700; color: var(--color-primary);">${res.rank}</td>
+            </tr>`;
+
+            tbody.innerHTML += rowHtml;
+        });
+    }
 };
 
 /**
