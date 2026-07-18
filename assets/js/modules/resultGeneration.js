@@ -166,7 +166,7 @@ const renderTable = () => {
             label += ` (${sub.code})`;
         }
         if (sub.group) {
-            const g = sub.group.toLowerCase();
+            const g = String(sub.group).toLowerCase();
             if (g === "language1") {
                 label += " [L1]";
             } else if (g === "language2") {
@@ -202,7 +202,7 @@ const renderTable = () => {
             <td style="padding: 12px 16px; color: var(--color-muted);">${res.fatherName}</td>`;
 
         activeSubjects.forEach(sub => {
-            const score = res.subjectScores[sub.subjectId] || "-";
+            const score = res.subjectScores[sub.subjectId] !== undefined ? res.subjectScores[sub.subjectId] : "-";
             rowHtml += `<td style="padding: 12px 16px; text-align: center; font-weight: 600;">${score}</td>`;
         });
 
