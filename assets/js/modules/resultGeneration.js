@@ -161,7 +161,23 @@ const renderTable = () => {
         <th style="padding: 12px 16px; font-weight: 700; color: var(--color-text);">Father Name</th>`;
     
     activeSubjects.forEach(sub => {
-        headerRow += `<th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center;">${sub.name}</th>`;
+        let label = sub.name;
+        if (sub.code) {
+            label += ` (${sub.code})`;
+        }
+        if (sub.group) {
+            const g = sub.group.toLowerCase();
+            if (g === "language1") {
+                label += " [L1]";
+            } else if (g === "language2") {
+                label += " [L2]";
+            } else if (g === "additional") {
+                label += " [Add]";
+            } else if (g.startsWith("elective")) {
+                label += " [Ele]";
+            }
+        }
+        headerRow += `<th style="padding: 12px 16px; font-weight: 700; color: var(--color-text); text-align: center; white-space: nowrap;">${label}</th>`;
     });
 
     headerRow += `
