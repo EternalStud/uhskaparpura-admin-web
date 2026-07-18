@@ -62,6 +62,12 @@ const modules = [
         description: "Control teacher marks entry access.",
         icon: "lock_open",
         action: "exam-control"
+    },
+    {
+        title: "School Web Portal",
+        description: "Manage public website settings and quick links.",
+        icon: "language",
+        action: "portal-control"
     }
 ];
 
@@ -126,6 +132,11 @@ const handleAction = async (action) => {
             return;
         }
 
+        if (action === "portal-control") {
+            await navigateTo("/portal-control");
+            return;
+        }
+
         showToast("This module will be implemented next.", "success");
     } catch (error) {
         console.error(error);
@@ -164,7 +175,7 @@ export async function initDashboardView() {
             if (module.hidden) return false;
             // Hide result generation and prepare exam cards for TEACHERs
             if (userRole === "TEACHER") {
-                if (module.action === "result-generation" || module.action === "prepare-exam" || module.action === "sync-schooldb" || module.action === "exam-control") {
+                if (module.action === "result-generation" || module.action === "prepare-exam" || module.action === "sync-schooldb" || module.action === "exam-control" || module.action === "portal-control") {
                     return false;
                 }
             }
@@ -172,8 +183,8 @@ export async function initDashboardView() {
             if (module.action === "sync-schooldb" && userRole !== "ADMIN") {
                 return false;
             }
-            // Exam Lock Control is ADMIN and HM only
-            if (module.action === "exam-control" && userRole !== "ADMIN" && userRole !== "HM") {
+            // Exam Lock and Portal Control is ADMIN and HM only
+            if ((module.action === "exam-control" || module.action === "portal-control") && userRole !== "ADMIN" && userRole !== "HM") {
                 return false;
             }
             return true;

@@ -1,0 +1,209 @@
+<div class="dashboard-layout">
+    <header id="navbar-portal-control"></header>
+    
+    <main class="dashboard-main subject-tag-main">
+        <div class="subject-tag-container" style="max-width: 800px; margin: 0 auto; padding: 0 16px;">
+            <!-- Breadcrumbs -->
+            <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#/dashboard">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">विद्यालय वेबसाइट प्रबंधन</li>
+                </ol>
+            </nav>
+
+            <!-- Page Header -->
+            <header class="subject-tag-header" style="margin-bottom: 24px;">
+                <div class="subject-tag-title-area">
+                    <a href="#/dashboard" class="btn btn-icon btn-ghost" aria-label="Go back to Dashboard" style="border: 1px solid var(--color-border); border-radius: 50%; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: var(--color-text);">
+                        <span class="material-symbols-rounded" style="font-size: 1.5rem;">arrow_back</span>
+                    </a>
+                    <div>
+                        <h1>विद्यालय वेबसाइट प्रबंधन (School Web Portal)</h1>
+                        <p class="subtitle">सार्वजनिक वेबसाइट की सेटिंग्स, नामांकन सूचना एवं महत्वपूर्ण लिंक्स का प्रबंधन करें।</p>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Controls Cards -->
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                
+                <!-- Toggle Controls Card -->
+                <section class="workspace-card" style="padding: 24px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--color-text); display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-rounded" style="color: var(--color-primary);">tune</span>
+                        पोर्टल सेटिंग्स (Portal Controls)
+                    </h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- Admission Open Toggle -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-background);">
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--color-text);">नामांकन प्रारंभ (Admission Open)</h4>
+                                <p style="font-size: 0.85rem; color: var(--color-muted); margin: 4px 0 0 0;">चालू होने पर मुख्य वेबसाइट पर "Admission Open" का बैनर और फॉर्म लिंक दिखाई देगा।</p>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <span id="admission-status-text" class="status-indicator-text status-closed">OFF</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-admission-open">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Result Published Toggle -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-background);">
+                            <div>
+                                <h4 style="font-size: 1rem; font-weight: 700; margin: 0; color: var(--color-text);">परीक्षा परिणाम प्रकाशन (Publish Result)</h4>
+                                <p style="font-size: 0.85rem; color: var(--color-muted); margin: 4px 0 0 0;">चालू होने पर विद्यार्थी सार्वजनिक पोर्टल पर अपने परिणाम (Scorecard) रोल नंबर से देख सकेंगे।</p>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <span id="result-status-text" class="status-indicator-text status-closed">OFF</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-result-published">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Helpful Links Card -->
+                <section class="workspace-card" style="padding: 24px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--color-text); display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-rounded" style="color: var(--color-primary);">link</span>
+                        विद्यालय वेबसाइट प्रबंधन हेतु महत्वपूर्ण लिंक (Important Links)
+                    </h3>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
+                        <!-- Link 1 -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface);">
+                            <span style="font-size: 0.95rem; font-weight: 600; color: var(--color-text);">1️⃣ प्रधानाध्यापक संदेश, HM फोटो एवं स्टाफ ग्रुप फोटो अपडेट</span>
+                            <a href="https://forms.gle/36LwsLtGWNmENE27A" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 0.88rem; text-decoration: none;">
+                                <span class="material-symbols-rounded" style="font-size: 1.1rem;">open_in_new</span>
+                                फॉर्म खोलें
+                            </a>
+                        </div>
+                        
+                        <!-- Link 2 -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface);">
+                            <span style="font-size: 0.95rem; font-weight: 600; color: var(--color-text);">2️⃣ विद्यालय आँकड़े एवं उपलब्धियाँ (View Only Sheet)</span>
+                            <a href="https://docs.google.com/spreadsheets/d/1spBWojwka7TYxJcfMFijrRzREyjkRbez0DYpjLY10Dk/edit?usp=sharing" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 0.88rem; text-decoration: none;">
+                                <span class="material-symbols-rounded" style="font-size: 1.1rem;">table_view</span>
+                                शीट देखें
+                            </a>
+                        </div>
+                        
+                        <!-- Link 3 -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface);">
+                            <span style="font-size: 0.95rem; font-weight: 600; color: var(--color-text);">3️⃣ विद्यालय फोटो गैलरी (Google Drive Folder)</span>
+                            <a href="https://drive.google.com/drive/folders/1fYqzZA8aM9VlTtkM7Z92DWV1Ck6M9eXn?usp=sharing" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 0.88rem; text-decoration: none;">
+                                <span class="material-symbols-rounded" style="font-size: 1.1rem;">folder_open</span>
+                                फोल्डर खोलें
+                            </a>
+                        </div>
+                        
+                        <!-- Link 4 -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface);">
+                            <span style="font-size: 0.95rem; font-weight: 600; color: var(--color-text);">4️⃣ NOTICE BOARD अपडेट फॉर्म</span>
+                            <a href="https://forms.gle/D4jpY45ykxxuPjow8" target="_blank" rel="noopener" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 0.88rem; text-decoration: none;">
+                                <span class="material-symbols-rounded" style="font-size: 1.1rem;">edit_document</span>
+                                फॉर्म खोलें
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Instructions Card -->
+                <section class="workspace-card" style="padding: 24px; margin-bottom: 24px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--color-text); display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-rounded" style="color: var(--color-primary);">help_clinic</span>
+                        📌 वेबसाइट पर अपडेट होने का तरीका (How to Update Website)
+                    </h3>
+                    
+                    <div style="font-size: 0.95rem; line-height: 1.8; color: var(--color-text);">
+                        <ul style="list-style-type: none; padding-left: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                            <li style="display: flex; align-items: flex-start; gap: 8px;">
+                                <span style="color: var(--color-primary);">•</span>
+                                <span><strong>HM संदेश / HM फोटो / स्टाफ फोटो:</strong> Google Form भरें → वेबसाइट Refresh करें।</span>
+                            </li>
+                            <li style="display: flex; align-items: flex-start; gap: 8px;">
+                                <span style="color: var(--color-primary);">•</span>
+                                <span><strong>Notice Board:</strong> Form भरें → वेबसाइट Refresh करें।</span>
+                            </li>
+                            <li style="display: flex; align-items: flex-start; gap: 8px;">
+                                <span style="color: var(--color-primary);">•</span>
+                                <span><strong>Gallery:</strong> संबंधित Folder में फोटो Upload करें → 2–3 मिनट बाद वेबसाइट Refresh करें।</span>
+                            </li>
+                            <li style="display: flex; align-items: flex-start; gap: 8px;">
+                                <span style="color: var(--color-primary);">•</span>
+                                <span><strong>School Statistics and Achievement:</strong> वेबसाइट Refresh करें।</span>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+                
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+/* Switch Styles */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-border);
+  transition: .3s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .3s;
+}
+input:checked + .slider {
+  background-color: var(--color-primary);
+}
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--color-primary);
+}
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+.slider.round {
+  border-radius: 34px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
+.status-indicator-text {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-right: 12px;
+}
+.status-open {
+    color: var(--color-success);
+}
+.status-closed {
+    color: var(--color-error);
+}
+</style>

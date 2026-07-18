@@ -8,6 +8,7 @@ import { initResultGenerationView } from "./modules/resultGeneration.js?t=178929
 import { initStudentMasterView } from "./modules/studentMaster.js?t=17892929190";
 import { initSyncSchoolDBView } from "./modules/syncSchoolDB.js?t=17892929190";
 import { init as initExamControlView } from "./modules/examControl.js?t=17892929190";
+import { initPortalControlView } from "./modules/portalControl.js?t=17892929190";
 import { getSession, clearSession } from "../../services/session.js";
 import { hideLoader, showLoader } from "../../components/loader.js?t=17892929190";
 import { showToast } from "../../components/toast.js";
@@ -21,7 +22,8 @@ const routes = new Map([
     ["/result-generation", { view: "views/resultGeneration.html", init: initResultGenerationView, public: false }],
     ["/student-master", { view: "views/studentMaster.html", init: initStudentMasterView, public: false }],
     ["/sync-schooldb", { view: "views/syncSchoolDB.html", init: initSyncSchoolDBView, public: false }],
-    ["/exam-control", { view: "views/examControl.html", init: initExamControlView, public: false }]
+    ["/exam-control", { view: "views/examControl.html", init: initExamControlView, public: false }],
+    ["/portal-control", { view: "views/portalControl.html", init: initPortalControlView, public: false }]
 ]);
 
 const getCurrentPath = () => {
@@ -111,6 +113,12 @@ export async function renderRoute(path) {
 
         if (session && userRole !== "ADMIN" && userRole !== "HM" && path === "/exam-control") {
             showToast("You do not have permission to access Exam Lock Control.", "error");
+            await navigateTo("/dashboard", { replace: true });
+            return;
+        }
+
+        if (session && userRole !== "ADMIN" && userRole !== "HM" && path === "/portal-control") {
+            showToast("You do not have permission to access School Web Portal Control.", "error");
             await navigateTo("/dashboard", { replace: true });
             return;
         }
