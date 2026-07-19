@@ -82,10 +82,21 @@ const deriveMaxMarks = (classNum, subjectId) => {
     const fullSubId = String(subjectId || "").trim().toUpperCase();
     const subIdStr = fullSubId.includes(",") ? fullSubId.split(",")[0].trim() : fullSubId;
 
+    const adjustSST = (res) => {
+        if ((cNumStr === "9" || cNumStr === "10") && subIdStr.endsWith("_SST")) {
+            const totalPrac = (res.practical || 0) + (res.internal || 0);
+            if (totalPrac === 20 || res.practical === 20) {
+                res.practical = 10;
+                res.internal = 10;
+            }
+        }
+        return res;
+    };
+
     // 1. Search for specific subject override
     const override = activeExamConfigs.find(c => c.classNum === cNumStr && c.subjectId === subIdStr);
     if (override) {
-        return { theory: override.theory, practical: override.practical, internal: override.internal };
+        return adjustSST({ theory: override.theory, practical: override.practical, internal: override.internal });
     }
 
     // 2. Fall back to class-level defaults
@@ -96,7 +107,7 @@ const deriveMaxMarks = (classNum, subjectId) => {
     const defaultType = isPracticalSubject ? "DEFAULT_PRACTICAL" : "DEFAULT_NON_PRACTICAL";
     const classDefault = activeExamConfigs.find(c => c.classNum === cNumStr && c.subjectId === defaultType);
     if (classDefault) {
-        return { theory: classDefault.theory, practical: classDefault.practical, internal: classDefault.internal };
+        return adjustSST({ theory: classDefault.theory, practical: classDefault.practical, internal: classDefault.internal });
     }
 
     // 3. Fall back to hardcoded defaults
@@ -105,7 +116,12 @@ const deriveMaxMarks = (classNum, subjectId) => {
     if (cls <= 10) {
         if (isPracticalSubject) {
             theory = 80;
-            practical = 20;
+            if (subIdStr.endsWith("_SST")) {
+                practical = 10;
+                internal = 10;
+            } else {
+                practical = 20;
+            }
         }
     } else {
         if (isPracticalSubject) {
@@ -408,10 +424,20 @@ const renderWorkspace = () => {
 
     emptyState.style.display = "none";
 
+    // Check if the current subject is Class 9/10 Social Science
+    const classSelect = document.querySelector("#filter-class");
+    const classNum = classSelect ? classSelect.value : "";
+    const subjectSelect = document.querySelector("#filter-subject");
+    const selectedSubjectId = subjectSelect ? subjectSelect.value : "";
+    const isSST910 = (classNum === "9" || classNum === "10") && (selectedSubjectId && String(selectedSubjectId).toUpperCase().endsWith("_SST"));
+
+    const practicalLabel = isSST910 ? "LIT.ACT" : "Practical";
+    const internalLabel = isSST910 ? "Project Wrok" : "Internal";
+
     // Set columns headers max limits
     document.querySelector("#hdr-theory").textContent = `Theory (${maxMarks.theory})`;
-    document.querySelector("#hdr-practical").textContent = `Practical (${maxMarks.practical})`;
-    document.querySelector("#hdr-internal").textContent = `Internal (${maxMarks.internal})`;
+    document.querySelector("#hdr-practical").textContent = `${practicalLabel} (${maxMarks.practical})`;
+    document.querySelector("#hdr-internal").textContent = `${internalLabel} (${maxMarks.internal})`;
 
     // Hide inactive columns header
     document.querySelector("#hdr-practical").style.display = maxMarks.practical > 0 ? "table-cell" : "none";
@@ -508,7 +534,7 @@ const renderWorkspace = () => {
                     
                     ${maxMarks.practical > 0 ? `
                     <div class="field-item">
-                        <span class="field-label">Practical (Max ${maxMarks.practical}):</span>
+                        <span class="field-label">${practicalLabel} (Max ${maxMarks.practical}):</span>
                         <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
                             <input type="text" class="mark-input input-practical" value="${student.current.practical}" 
                                    inputmode="numeric" placeholder="0-${maxMarks.practical}" ${isExamLockedForTeacher ? "disabled" : ""}
@@ -520,7 +546,7 @@ const renderWorkspace = () => {
 
                     ${maxMarks.internal > 0 ? `
                     <div class="field-item">
-                        <span class="field-label">Internal (Max ${maxMarks.internal}):</span>
+                        <span class="field-label">${internalLabel} (Max ${maxMarks.internal}):</span>
                         <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
                             <input type="text" class="mark-input input-internal" value="${student.current.internal}" 
                                    inputmode="numeric" placeholder="0-${maxMarks.internal}" ${isExamLockedForTeacher ? "disabled" : ""}

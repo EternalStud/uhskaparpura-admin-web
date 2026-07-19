@@ -214,16 +214,14 @@ const renderTable = () => {
 //  CLASS 9-10 (Junior) BSEB Layout
 // ═══════════════════════════════════════════
 const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
-    // 8 fixed standard BSEB Class 9-10 slots
+    // 6 fixed standard BSEB Class 9-10 slots (OPT SUB and OPT.SUB(VOC.) removed as requested)
     const juniorSlots = [
         { label: "MIL", slotId: "language1", defaultSubId: "" },
         { label: "SIL", slotId: "language2", defaultSubId: "" },
-        { label: "MAT", slotId: "compulsory", defaultSubId: `${activeClassVal}_MAT`, defaultName: "Mathematics" },
-        { label: "SCI", slotId: "compulsory", defaultSubId: `${activeClassVal}_SCI`, defaultName: "Science" },
-        { label: "SSC", slotId: "compulsory", defaultSubId: `${activeClassVal}_SST`, defaultName: "Social Science" },
-        { label: "ENG", slotId: "compulsory", defaultSubId: `${activeClassVal}_ENG`, defaultName: "English" },
-        { label: "OPT SUB", slotId: "elective1", defaultSubId: "" },
-        { label: "OPT.SUB(VOC.)", slotId: "elective2", defaultSubId: "" }
+        { label: "MAT", slotId: "compulsory", defaultSubId: `${activeClassVal}_MAT` },
+        { label: "SCI", slotId: "compulsory", defaultSubId: `${activeClassVal}_SCI` },
+        { label: "SSC", slotId: "compulsory", defaultSubId: `${activeClassVal}_SST` },
+        { label: "ENG", slotId: "compulsory", defaultSubId: `${activeClassVal}_ENG` }
     ];
 
     // Helper to check if a junior slot has practical marks configured
@@ -241,59 +239,70 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
         });
     };
 
-    // Compute total subject column span dynamically based on config
-    let subColSpan = 0;
-    juniorSlots.forEach(slot => {
-        subColSpan += 1;
-        if (slotHasPractical(slot)) {
-            subColSpan += 1;
-        }
-    });
+    const hasPrac = juniorSlots.some(slotHasPractical);
 
-    const anyPrac = juniorSlots.some(slotHasPractical);
-    const marksHeader = anyPrac ? "MARKS OBTAINED" : "MARKS OBTAINED(THEORY)";
-
-    // ── Row 1: Top headers ──
-    let row1 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
-        <th rowspan="2" style="${TH_C} width: 50px;">SL NO</th>
-        <th rowspan="2" style="${TH_C} width: 80px;">ROLL NO.</th>
-        <th rowspan="2" style="${TH_C} width: 60px;">CLASS</th>
-        <th rowspan="2" style="${TH}">STUDENT NAME</th>
-        <th rowspan="2" style="${TH}">MOTHER'S NAME</th>
-        <th rowspan="2" style="${TH}">FATHER'S NAME</th>
-        <th rowspan="2" style="${TH_C} width: 50px;">GENDER</th>
-        <th colspan="${subColSpan}" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB}">${marksHeader}</th>
-        <th rowspan="2" style="${TH_C} width: 100px; ${BL}">AGGREGATE</th>
-        <th rowspan="2" style="${TH_C} width: 100px;">RESULT</th>
-    </tr>`;
-
-    // ── Row 2: Subject abbreviation sub-headers ──
-    let row2 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">`;
-    juniorSlots.forEach((slot, i) => {
-        const hasPrac = slotHasPractical(slot);
-        if (hasPrac) {
-            row2 += `<th colspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${i === 0 ? BL : ''} ${BB}">${slot.label}</th>`;
-        } else {
-            row2 += `<th rowspan="1" style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center; white-space: nowrap; ${i === 0 ? BL : ''}">${slot.label}</th>`;
-        }
-    });
-    row2 += `</tr>`;
-
-    // ── Row 3: Th/Pr headers (rendered only if practicals exist) ──
+    let row1 = "";
+    let row2 = "";
     let row3 = "";
-    if (anyPrac) {
-        row3 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">`;
-        juniorSlots.forEach((slot, i) => {
-            const hasPrac = slotHasPractical(slot);
-            if (hasPrac) {
-                row3 += `<th style="padding: 6px; font-weight: 600; text-align: center; font-size: 0.8em; ${i === 0 ? BL : ''}">Th</th>`;
-                row3 += `<th style="padding: 6px; font-weight: 600; text-align: center; font-size: 0.8em;">Pr</th>`;
-            } else {
-                row3 += `<th style="padding: 6px; font-weight: 600; text-align: center; font-size: 0.8em; ${i === 0 ? BL : ''}">Marks</th>`;
-            }
-        });
-        row3 += `</tr>`;
-        row1 = row1.replace(/rowspan="2"/g, 'rowspan="3"');
+
+    if (hasPrac) {
+        // ── Three-row header (for Practical/Internal exams) ──
+        row1 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
+            <th rowspan="3" style="${TH_C} width: 50px;">SL NO</th>
+            <th rowspan="3" style="${TH_C} width: 80px;">ROLL NO.</th>
+            <th rowspan="3" style="${TH_C} width: 60px;">CLASS</th>
+            <th rowspan="3" style="${TH} min-width: 150px; max-width: 200px;">STUDENT NAME</th>
+            <th rowspan="3" style="${TH} min-width: 150px; max-width: 200px;">MOTHER'S NAME</th>
+            <th rowspan="3" style="${TH} min-width: 150px; max-width: 200px;">FATHER'S NAME</th>
+            <th rowspan="3" style="${TH_C} width: 50px;">GENDER</th>
+            <th colspan="6" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB}">MARKS OBTAINED(THEORY)</th>
+            <th colspan="3" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB}">MARKS OBTAINED (INTERNAL ASSEMENT & PRACTICAL)</th>
+            <th rowspan="3" style="${TH_C} width: 100px; ${BL}">AGGREGATE</th>
+            <th rowspan="3" style="${TH_C} width: 100px;">RESULT</th>
+        </tr>`;
+
+        // Row 2: theory labels and practical category labels
+        row2 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
+            <th rowspan="2" style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL}">MIL</th>
+            <th rowspan="2" style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center;">SIL</th>
+            <th rowspan="2" style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center;">MAT</th>
+            <th rowspan="2" style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center;">SCI</th>
+            <th rowspan="2" style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center;">SSC</th>
+            <th rowspan="2" style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center;">ENG</th>
+            
+            <th rowspan="2" style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL}">SCI</th>
+            <th colspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BB}">SSC</th>
+        </tr>`;
+
+        // Row 3: sub-columns for SSC practicals (LIT.ACT and Project Wrok)
+        row3 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
+            <th style="padding: 6px; font-weight: 600; text-align: center; font-size: 0.8em; ${BL}">LIT.ACT</th>
+            <th style="padding: 6px; font-weight: 600; text-align: center; font-size: 0.8em;">Project Wrok</th>
+        </tr>`;
+
+    } else {
+        // ── Two-row header (for Theory-only exams) ──
+        row1 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
+            <th rowspan="2" style="${TH_C} width: 50px;">SL NO</th>
+            <th rowspan="2" style="${TH_C} width: 80px;">ROLL NO.</th>
+            <th rowspan="2" style="${TH_C} width: 60px;">CLASS</th>
+            <th rowspan="2" style="${TH} min-width: 150px; max-width: 200px;">STUDENT NAME</th>
+            <th rowspan="2" style="${TH} min-width: 150px; max-width: 200px;">MOTHER'S NAME</th>
+            <th rowspan="2" style="${TH} min-width: 150px; max-width: 200px;">FATHER'S NAME</th>
+            <th rowspan="2" style="${TH_C} width: 50px;">GENDER</th>
+            <th colspan="6" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB}">MARKS OBTAINED(THEORY)</th>
+            <th rowspan="2" style="${TH_C} width: 100px; ${BL}">AGGREGATE</th>
+            <th rowspan="2" style="${TH_C} width: 100px;">RESULT</th>
+        </tr>`;
+
+        row2 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
+            <th style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL}">MIL</th>
+            <th style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center;">SIL</th>
+            <th style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center;">MAT</th>
+            <th style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center;">SCI</th>
+            <th style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center;">SSC</th>
+            <th style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center;">ENG</th>
+        </tr>`;
     }
 
     thead.innerHTML = row1 + row2 + row3;
@@ -316,34 +325,50 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
 
         const classNumeral = activeClassVal === 10 ? 'X' : 'IX';
 
+        // Get subject IDs
+        const milId = res.language1;
+        const silId = res.language2;
+        const matId = `${activeClassVal}_MAT`;
+        const sciId = `${activeClassVal}_SCI`;
+        const sscId = `${activeClassVal}_SST`;
+        const engId = `${activeClassVal}_ENG`;
+
+        // Get theory obt marks
+        const milTheory = milId ? getScore(res.subjectScores, milId, "theoryObt") : "";
+        const silTheory = silId ? getScore(res.subjectScores, silId, "theoryObt") : "";
+        const matTheory = getScore(res.subjectScores, matId, "theoryObt");
+        const sciTheory = getScore(res.subjectScores, sciId, "theoryObt");
+        const sscTheory = getScore(res.subjectScores, sscId, "theoryObt");
+        const engTheory = getScore(res.subjectScores, engId, "theoryObt");
+
         let rowHtml = `<tr style="border-bottom: 1px solid var(--color-border); ${index % 2 === 0 ? 'background: #FFFFFF;' : 'background: #F9FAFB;'}">
             <td style="${TD_C} font-weight: 600;">${index + 1}</td>
             <td style="${TD_C} font-weight: 600;">${res.rollNo}</td>
             <td style="${TD_C} font-weight: 600;">${classNumeral}</td>
-            <td style="${TD} font-weight: 600;">${res.studentName}</td>
-            <td style="${TD} font-size: 0.9em; color: var(--color-muted);">${res.motherName || ""}</td>
-            <td style="${TD} font-size: 0.9em; color: var(--color-muted);">${res.fatherName || ""}</td>
-            <td style="${TD_C} font-weight: 600;">${genderText}</td>`;
+            <td style="${TD} font-weight: 600; min-width: 150px; max-width: 200px;">${res.studentName}</td>
+            <td style="${TD} font-size: 0.9em; color: var(--color-muted); min-width: 150px; max-width: 200px;">${res.motherName || ""}</td>
+            <td style="${TD} font-size: 0.9em; color: var(--color-muted); min-width: 150px; max-width: 200px;">${res.fatherName || ""}</td>
+            <td style="${TD_C} font-weight: 600;">${genderText}</td>
+            
+            <td style="${TD_C} font-weight: 600; ${BL}">${milTheory}</td>
+            <td style="${TD_C} font-weight: 600;">${silTheory}</td>
+            <td style="${TD_C} font-weight: 600;">${matTheory}</td>
+            <td style="${TD_C} font-weight: 600;">${sciTheory}</td>
+            <td style="${TD_C} font-weight: 600;">${sscTheory}</td>
+            <td style="${TD_C} font-weight: 600;">${engTheory}</td>`;
 
-        juniorSlots.forEach((slot, i) => {
-            let subId = "";
-            if (slot.slotId === "compulsory") {
-                subId = slot.defaultSubId;
-            } else {
-                subId = res[slot.slotId];
-            }
+        if (hasPrac) {
+            // SCI Practical (from practicalObt)
+            const sciPrac = getScore(res.subjectScores, sciId, "practicalObt");
+            // SSC LIT.ACT (from practicalObt) and SSC Project Wrok (from internalObt)
+            const sscLitAct = getScore(res.subjectScores, sscId, "practicalObt");
+            const sscProjectWork = getScore(res.subjectScores, sscId, "internalObt");
 
-            const hasPrac = slotHasPractical(slot);
-            if (hasPrac) {
-                const th = subId ? getScore(res.subjectScores, subId, "theoryObt") : "";
-                const pr = subId ? getScore(res.subjectScores, subId, "practicalObt") : "";
-                rowHtml += `<td style="${TD_C} font-weight: 600; ${i === 0 ? BL : ''}">${th}</td>`;
-                rowHtml += `<td style="${TD_C} font-weight: 600;">${pr}</td>`;
-            } else {
-                const totalOrTheory = subId ? getScore(res.subjectScores, subId, "totalObt") : "";
-                rowHtml += `<td style="${TD_C} font-weight: 600; ${i === 0 ? BL : ''}">${totalOrTheory}</td>`;
-            }
-        });
+            rowHtml += `
+                <td style="${TD_C} font-weight: 600; ${BL}">${sciPrac}</td>
+                <td style="${TD_C} font-weight: 600;">${sscLitAct}</td>
+                <td style="${TD_C} font-weight: 600;">${sscProjectWork}</td>`;
+        }
 
         rowHtml += `
             <td style="${TD_C} font-weight: 700; ${BL}">${res.grandTotal}</td>
