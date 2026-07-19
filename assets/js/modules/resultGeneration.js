@@ -61,7 +61,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const totalFullMarks = l1Full + l2Full + matFull + sciFull + sscFull;
     const totalPassMarks = l1Pass + l2Pass + matPass + sciPass + sscPass;
 
-    const watermarkSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='250' viewBox='0 0 400 250'><text x='50%' y='50%' transform='rotate(-25, 200, 125)' text-anchor='middle' font-family='Arial, sans-serif' font-size='16' font-weight='800' fill='rgba(0,0,0,0.04)'>U.H.S. KAPARPURA, KANTI, MUZAFFARPUR</text></svg>`;
+    const watermarkSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MDAnIGhlaWdodD0nMjUwJyB2aWV3Qm94PScwIDAgNDAwIDI1MCc+PHRleHQgeD0nNTAlJyB5PSc1MCUnIHRyYW5zZm9ybT0ncm90YXRlKC0yNSwgMjAwLCAxMjUpJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb250LWZhbWlseT0nQXJpYWwsIHNhbnMtc2VyaWYnIGZvbnQtc2l6ZT0nMjQnIGZvbnQtd2VpZ2h0PSdib2xkJyBmaWxsPSdyZ2JhKDAsMCwwLDAuMDYpJz7gpIku4KSu4KS+LuCkteCkvy4g4KSV4KSq4KSw4KSq4KWB4KSw4KS+LCDgpJXgpL7gpIHgpJ/gpYAsIOCkruClgeCknOCkq+CljeCkq+CksOCkquClgeCksDwvdGV4dD48L3N2Zz4=`;
 
     return `
     <div class="bseb-report-card-page" style="width: 210mm; min-height: 297mm; padding: 12mm 15mm; margin: 0 auto; background: #fff url('${watermarkSvg}') repeat; background-size: 400px 250px; box-sizing: border-box; font-family: Arial, sans-serif; color: #000; page-break-after: always; position: relative; overflow: hidden;">
@@ -252,7 +252,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
         </tr>`;
     };
 
-    const watermarkSvg = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='250' viewBox='0 0 400 250'><text x='50%' y='50%' transform='rotate(-25, 200, 125)' text-anchor='middle' font-family='Arial, sans-serif' font-size='16' font-weight='800' fill='rgba(0,0,0,0.04)'>U.H.S. KAPARPURA, KANTI, MUZAFFARPUR</text></svg>`;
+    const watermarkSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc0MDAnIGhlaWdodD0nMjUwJyB2aWV3Qm94PScwIDAgNDAwIDI1MCc+PHRleHQgeD0nNTAlJyB5PSc1MCUnIHRyYW5zZm9ybT0ncm90YXRlKC0yNSwgMjAwLCAxMjUpJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb250LWZhbWlseT0nQXJpYWwsIHNhbnMtc2VyaWYnIGZvbnQtc2l6ZT0nMjQnIGZvbnQtd2VpZ2h0PSdib2xkJyBmaWxsPSdyZ2JhKDAsMCwwLDAuMDYpJz7gpIku4KSu4KS+LuCkteCkvy4g4KSV4KSq4KSw4KSq4KWB4KSw4KS+LCDgpJXgpL7gpIHgpJ/gpYAsIOCkruClgeCknOCkq+CljeCkq+CksOCkquClgeCksDwvdGV4dD48L3N2Zz4=`;
 
     return `
     <div class="bseb-report-card-page" style="width: 210mm; min-height: 297mm; padding: 12mm 15mm; margin: 0 auto; background: #fff url('${watermarkSvg}') repeat; background-size: 400px 250px; box-sizing: border-box; font-family: Arial, sans-serif; color: #000; page-break-after: always; position: relative; overflow: hidden;">
