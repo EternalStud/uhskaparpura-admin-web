@@ -566,6 +566,19 @@ const renderWorkspaceData = () => {
     const classNum = currentFilters.classNum;
     const isSrSec = Number(classNum) >= 11;
 
+    // Dynamically rename Language 1 / Language 2 headers to MIL / SIL for Class 9/10
+    const thL1 = document.querySelector("#th-l1");
+    const thL2 = document.querySelector("#th-l2");
+    if (thL1 && thL2) {
+        if (!isSrSec) {
+            thL1.textContent = "MIL";
+            thL2.textContent = "SIL";
+        } else {
+            thL1.textContent = "Language 1";
+            thL2.textContent = "Language 2";
+        }
+    }
+
     // 1. Desktop Render
     const desktopTbody = document.querySelector("#desktop-table-body");
     desktopTbody.innerHTML = "";
@@ -579,6 +592,9 @@ const renderWorkspaceData = () => {
     // 2. Mobile Render
     const mobileWorkspace = document.querySelector("#mobile-workspace");
     mobileWorkspace.innerHTML = "";
+
+    const l1Label = isSrSec ? "Language 1" : "MIL";
+    const l2Label = isSrSec ? "Language 2" : "SIL";
 
     studentsState.forEach((student) => {
         // Build Desktop Table Row
@@ -635,11 +651,11 @@ const renderWorkspaceData = () => {
 
             <div class="mobile-card-fields">
                 <div class="mobile-field-group">
-                    <span class="mobile-field-label">Language 1</span>
+                    <span class="mobile-field-label">${l1Label}</span>
                     <div class="mc-l1"><div class="custom-select-container"></div></div>
                 </div>
                 <div class="mobile-field-group">
-                    <span class="mobile-field-label">Language 2</span>
+                    <span class="mobile-field-label">${l2Label}</span>
                     <div class="mc-l2"><div class="custom-select-container"></div></div>
                 </div>
                 ${isSrSec ? `
