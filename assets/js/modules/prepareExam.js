@@ -7,8 +7,18 @@ import { apiRequest } from "../../../services/api.js";
 const VIEW_PATH = "views/prepareExam.html";
 
 const getDefaultAcademicYear = () => {
-    const year = new Date().getFullYear();
-    return `${year}-${String(year + 1).slice(-2)}`;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const startYear = (currentMonth < 3) ? currentYear - 1 : currentYear;
+    return `${startYear}-${String(startYear + 1).slice(-2)}`;
+};
+
+const getAcademicYears = () => {
+    const current = getDefaultAcademicYear();
+    const startYear = parseInt(current.split("-")[0], 10);
+    const next = `${startYear + 1}-${String(startYear + 2).slice(-2)}`;
+    return [current, next];
 };
 
 const getFormPayload = (form) => {
@@ -126,7 +136,12 @@ const initializeForm = (modal, closeModal) => {
         throw new Error("Prepare Exam form is missing.");
     }
 
-    form.elements.academicYear.value = getDefaultAcademicYear();
+    const yearSelect = form.elements.academicYear;
+    if (yearSelect) {
+        const years = getAcademicYears();
+        yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
+        yearSelect.value = getDefaultAcademicYear();
+    }
     form.querySelector("[data-modal-cancel]")?.addEventListener("click", () => closeModal());
     form.addEventListener("submit", (event) => {
         event.preventDefault();

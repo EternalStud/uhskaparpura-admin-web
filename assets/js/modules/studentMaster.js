@@ -5,8 +5,18 @@ import { apiRequest } from "../../../services/api.js";
 import { renderNavbar } from "../../../components/navbar.js?t=17892929155";
 
 const getDefaultAcademicYear = () => {
-    const year = new Date().getFullYear();
-    return `${year}-${String(year + 1).slice(-2)}`;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const startYear = (currentMonth < 3) ? currentYear - 1 : currentYear;
+    return `${startYear}-${String(startYear + 1).slice(-2)}`;
+};
+
+const getAcademicYears = () => {
+    const current = getDefaultAcademicYear();
+    const startYear = parseInt(current.split("-")[0], 10);
+    const next = `${startYear + 1}-${String(startYear + 2).slice(-2)}`;
+    return [current, next];
 };
 
 let rawStudents = [];
@@ -250,6 +260,8 @@ export async function initStudentMasterView() {
 
         // Set default academic year
         if (academicYearInput) {
+            const years = getAcademicYears();
+            academicYearInput.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
             academicYearInput.value = getDefaultAcademicYear();
         }
 

@@ -70,8 +70,18 @@ const enforceMarkInputRules = (input, max) => {
 };
 
 const getDefaultAcademicYear = () => {
-    const year = new Date().getFullYear();
-    return `${year}-${String(year + 1).slice(-2)}`;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const startYear = (currentMonth < 3) ? currentYear - 1 : currentYear;
+    return `${startYear}-${String(startYear + 1).slice(-2)}`;
+};
+
+const getAcademicYears = () => {
+    const current = getDefaultAcademicYear();
+    const startYear = parseInt(current.split("-")[0], 10);
+    const next = `${startYear + 1}-${String(startYear + 2).slice(-2)}`;
+    return [current, next];
 };
 
 /**
@@ -925,6 +935,8 @@ export async function initMarksEntryView() {
         // Setup filter defaults
         const yearInput = document.querySelector("#filter-academic-year");
         if (yearInput) {
+            const years = getAcademicYears();
+            yearInput.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
             yearInput.value = getDefaultAcademicYear();
         }
 
