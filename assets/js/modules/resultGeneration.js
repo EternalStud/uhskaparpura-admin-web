@@ -214,18 +214,44 @@ const renderTable = () => {
 //  CLASS 9-10 (Junior) BSEB Layout
 // ═══════════════════════════════════════════
 const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
-    const hasPrac = hasPracticalExam(activeSubjects);
+    // 8 fixed standard BSEB Class 9-10 slots
+    const juniorSlots = [
+        { label: "MIL", slotId: "language1", defaultSubId: "" },
+        { label: "SIL", slotId: "language2", defaultSubId: "" },
+        { label: "MAT", slotId: "compulsory", defaultSubId: `${activeClassVal}_MAT`, defaultName: "Mathematics" },
+        { label: "SCI", slotId: "compulsory", defaultSubId: `${activeClassVal}_SCI`, defaultName: "Science" },
+        { label: "SSC", slotId: "compulsory", defaultSubId: `${activeClassVal}_SST`, defaultName: "Social Science" },
+        { label: "ENG", slotId: "compulsory", defaultSubId: `${activeClassVal}_ENG`, defaultName: "English" },
+        { label: "OPT SUB", slotId: "elective1", defaultSubId: "" },
+        { label: "OPT.SUB(VOC.)", slotId: "elective2", defaultSubId: "" }
+    ];
 
-    // Compute total subject column span
+    // Helper to check if a junior slot has practical marks configured
+    const slotHasPractical = (slot) => {
+        return filteredStudents.some(res => {
+            let subId = "";
+            if (slot.slotId === "compulsory") {
+                subId = slot.defaultSubId;
+            } else {
+                subId = res[slot.slotId];
+            }
+            if (!subId) return false;
+            const details = res.subjectDetails.find(s => String(s.subjectId) === String(subId));
+            return details && (details.pMax || 0) > 0;
+        });
+    };
+
+    // Compute total subject column span dynamically based on config
     let subColSpan = 0;
-    activeSubjects.forEach(sub => {
-        subColSpan += 1; // always at least 1 marks column
-        if (hasPrac && (sub.pMax || 0) > 0) {
-            subColSpan += 1; // extra practical column for subjects that have it
+    juniorSlots.forEach(slot => {
+        subColSpan += 1;
+        if (slotHasPractical(slot)) {
+            subColSpan += 1;
         }
     });
 
-    const marksHeader = hasPrac ? "MARKS OBTAINED" : "MARKS OBTAINED(THEORY)";
+    const anyPrac = juniorSlots.some(slotHasPractical);
+    const marksHeader = anyPrac ? "MARKS OBTAINED" : "MARKS OBTAINED(THEORY)";
 
     // ── Row 1: Top headers ──
     let row1 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
@@ -243,25 +269,23 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
 
     // ── Row 2: Subject abbreviation sub-headers ──
     let row2 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">`;
-    activeSubjects.forEach((sub, i) => {
-        const label = getSubjectAbbrev910(sub);
-        const subHasPrac = hasPrac && (sub.pMax || 0) > 0;
-        if (subHasPrac) {
-            // Two sub-columns for this subject: Theory and Practical (under one subject header)
-            row2 += `<th colspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${i === 0 ? BL : ''} ${BB}">${label}</th>`;
+    juniorSlots.forEach((slot, i) => {
+        const hasPrac = slotHasPractical(slot);
+        if (hasPrac) {
+            row2 += `<th colspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${i === 0 ? BL : ''} ${BB}">${slot.label}</th>`;
         } else {
-            row2 += `<th rowspan="1" style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center; white-space: nowrap; ${i === 0 ? BL : ''}">${label}</th>`;
+            row2 += `<th rowspan="1" style="padding: 12px 8px; font-weight: 700; color: var(--color-text); text-align: center; white-space: nowrap; ${i === 0 ? BL : ''}">${slot.label}</th>`;
         }
     });
     row2 += `</tr>`;
 
-    // If we have practicals, add a 3rd row showing Th/Pr sub-headers only for subjects that have practicals
+    // ── Row 3: Th/Pr headers (rendered only if practicals exist) ──
     let row3 = "";
-    if (hasPrac) {
+    if (anyPrac) {
         row3 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">`;
-        activeSubjects.forEach((sub, i) => {
-            const subHasPrac = (sub.pMax || 0) > 0;
-            if (subHasPrac) {
+        juniorSlots.forEach((slot, i) => {
+            const hasPrac = slotHasPractical(slot);
+            if (hasPrac) {
                 row3 += `<th style="padding: 6px; font-weight: 600; text-align: center; font-size: 0.8em; ${i === 0 ? BL : ''}">Th</th>`;
                 row3 += `<th style="padding: 6px; font-weight: 600; text-align: center; font-size: 0.8em;">Pr</th>`;
             } else {
@@ -269,8 +293,6 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
             }
         });
         row3 += `</tr>`;
-
-        // Adjust: Row 1 fixed rowspans need to be 3 now
         row1 = row1.replace(/rowspan="2"/g, 'rowspan="3"');
     }
 
@@ -303,15 +325,22 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
             <td style="${TD} font-size: 0.9em; color: var(--color-muted);">${res.fatherName || ""}</td>
             <td style="${TD_C} font-weight: 600;">${genderText}</td>`;
 
-        activeSubjects.forEach((sub, i) => {
-            const subHasPrac = hasPrac && (sub.pMax || 0) > 0;
-            if (subHasPrac) {
-                const th = getScore(res.subjectScores, sub.subjectId, "theoryObt");
-                const pr = getScore(res.subjectScores, sub.subjectId, "practicalObt");
+        juniorSlots.forEach((slot, i) => {
+            let subId = "";
+            if (slot.slotId === "compulsory") {
+                subId = slot.defaultSubId;
+            } else {
+                subId = res[slot.slotId];
+            }
+
+            const hasPrac = slotHasPractical(slot);
+            if (hasPrac) {
+                const th = subId ? getScore(res.subjectScores, subId, "theoryObt") : "";
+                const pr = subId ? getScore(res.subjectScores, subId, "practicalObt") : "";
                 rowHtml += `<td style="${TD_C} font-weight: 600; ${i === 0 ? BL : ''}">${th}</td>`;
                 rowHtml += `<td style="${TD_C} font-weight: 600;">${pr}</td>`;
             } else {
-                const totalOrTheory = getScore(res.subjectScores, sub.subjectId, "totalObt");
+                const totalOrTheory = subId ? getScore(res.subjectScores, subId, "totalObt") : "";
                 rowHtml += `<td style="${TD_C} font-weight: 600; ${i === 0 ? BL : ''}">${totalOrTheory}</td>`;
             }
         });
@@ -329,29 +358,24 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
 //  CLASS 11-12 (Senior) BSEB Layout
 // ═══════════════════════════════════════════
 const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
-
-    // Determine if elective subjects have practical exams configured
-    // We check from the first student's subject details since all students share the same exam config
-    // But we already have pMax in activeSubjects now from backend
+    // Determine if elective/additional subjects have practical exams configured
     const buildElectiveSubHeaders = (sub) => {
-        if (!sub) return { headers: "", colSpan: 1 };
+        if (!sub) return { headers: "", colSpan: 2 };
         const hasPrac = (sub.pMax || 0) > 0;
         if (hasPrac) {
-            return { headers: "Theory|Practical|Marks", colSpan: 3 };
+            return { headers: "Theory|Practical|Marks", colSpan: 4 }; // Subject (1) + Theory (1) + Practical (1) + Marks (1)
         } else {
-            return { headers: "Theory|Marks", colSpan: 2 };
+            return { headers: "Theory|Marks", colSpan: 2 }; // Subject (1) + Marks (1)
         }
     };
 
-    // Find subject configs from activeSubjects for the elective slots
-    // We use the first student's slot IDs to get the actual subject configs
+    // Find subject configurations from activeSubjects for elective and additional slots
     const firstStudent = filteredStudents[0];
     const getSubjectConfig = (slotId) => {
         if (!slotId) return null;
         return activeSubjects.find(s => String(s.subjectId) === String(slotId)) || null;
     };
 
-    // Get elective configs for column headers
     const e1Config = firstStudent ? getSubjectConfig(firstStudent.elective1) : null;
     const e2Config = firstStudent ? getSubjectConfig(firstStudent.elective2) : null;
     const e3Config = firstStudent ? getSubjectConfig(firstStudent.elective3) : null;
@@ -388,23 +412,23 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
 
     // Elective 1
     subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL}">Subject - 1</th>`;
-    if (e1Cols.colSpan === 3) {
+    if (e1Cols.colSpan === 4) {
         subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Theory</th>`;
         subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Practical</th>`;
     }
     subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>`;
 
     // Elective 2
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Subject - 2</th>`;
-    if (e2Cols.colSpan === 3) {
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL}">Subject - 2</th>`;
+    if (e2Cols.colSpan === 4) {
         subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Theory</th>`;
         subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Practical</th>`;
     }
     subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>`;
 
     // Elective 3
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Subject - 3</th>`;
-    if (e3Cols.colSpan === 3) {
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL}">Subject - 3</th>`;
+    if (e3Cols.colSpan === 4) {
         subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Theory</th>`;
         subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Practical</th>`;
     }
@@ -412,7 +436,7 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
 
     // Additional
     subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL}">Subject</th>`;
-    if (addCols.colSpan === 3) {
+    if (addCols.colSpan === 4) {
         subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Theory</th>`;
         subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Practical</th>`;
     }
@@ -476,29 +500,6 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
         } else if (res.result === "Compartmental") {
             resultBadgeStyle = "color: #e67e22; font-weight: bold;";
         }
-
-        // Build elective data cells
-        const renderElectiveCell = (sd, config) => {
-            let cells = "";
-            cells += `<td style="padding: 12px 8px; text-align: center; font-size: 0.9em;">${sd.name}</td>`;
-            if (config && (config.pMax || 0) > 0) {
-                cells += `<td style="padding: 12px 8px; text-align: center; font-weight: 600;">${sd.theoryObt}</td>`;
-                cells += `<td style="padding: 12px 8px; text-align: center; font-weight: 600;">${sd.practicalObt}</td>`;
-            }
-            cells += `<td style="padding: 12px 8px; text-align: center; font-weight: 600;">${sd.totalObt}</td>`;
-            return cells;
-        };
-
-        const renderAdditionalCell = (sd, config) => {
-            let cells = "";
-            cells += `<td style="padding: 12px 8px; text-align: center; ${BL} font-size: 0.9em;">${sd.name}</td>`;
-            if (config && (config.pMax || 0) > 0) {
-                cells += `<td style="padding: 12px 8px; text-align: center; font-weight: 600;">${sd.theoryObt}</td>`;
-                cells += `<td style="padding: 12px 8px; text-align: center; font-weight: 600;">${sd.practicalObt}</td>`;
-            }
-            cells += `<td style="padding: 12px 8px; text-align: center; font-weight: 600;">${sd.totalObt}</td>`;
-            return cells;
-        };
 
         let rowHtml = `<tr style="border-bottom: 1px solid var(--color-border); ${index % 2 === 0 ? 'background: #FFFFFF;' : 'background: #F9FAFB;'}">
             <td style="${TD_C} font-weight: 600; color: var(--color-primary);">${res.rollNo}</td>
