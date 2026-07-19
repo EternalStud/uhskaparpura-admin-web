@@ -369,7 +369,6 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
                 <td style="${TD_C} font-weight: 600;">${sscLitAct}</td>
                 <td style="${TD_C} font-weight: 600;">${sscProjectWork}</td>`;
         }
-
         rowHtml += `
             <td style="${TD_C} font-weight: 700; ${BL}">${res.grandTotal}</td>
             <td style="${TD_C} ${resultBadgeStyle}">${res.division || res.result}</td>
@@ -383,36 +382,28 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
 //  CLASS 11-12 (Senior) BSEB Layout
 // ═══════════════════════════════════════════
 const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
-    // Determine if elective/additional subjects have practical exams configured
-    const buildElectiveSubHeaders = (sub) => {
-        if (!sub) return { headers: "", colSpan: 2 };
-        const hasPrac = (sub.pMax || 0) > 0;
-        if (hasPrac) {
-            return { headers: "Theory|Practical|Marks", colSpan: 4 }; // Subject (1) + Theory (1) + Practical (1) + Marks (1)
-        } else {
-            return { headers: "Theory|Marks", colSpan: 2 }; // Subject (1) + Marks (1)
-        }
+    // Helper to check if ANY student in the list takes a subject with practicals in this slot
+    const slotHasPractical = (slotId) => {
+        return filteredStudents.some(res => {
+            const subId = res[slotId];
+            if (!subId) return false;
+            const config = activeSubjects.find(s => String(s.subjectId) === String(subId));
+            return config && (config.pMax || 0) > 0;
+        });
     };
 
-    // Find subject configurations from activeSubjects for elective and additional slots
-    const firstStudent = filteredStudents[0];
-    const getSubjectConfig = (slotId) => {
-        if (!slotId) return null;
-        return activeSubjects.find(s => String(s.subjectId) === String(slotId)) || null;
-    };
+    const e1HasPrac = slotHasPractical("elective1");
+    const e2HasPrac = slotHasPractical("elective2");
+    const e3HasPrac = slotHasPractical("elective3");
+    const addHasPrac = slotHasPractical("additional");
 
-    const e1Config = firstStudent ? getSubjectConfig(firstStudent.elective1) : null;
-    const e2Config = firstStudent ? getSubjectConfig(firstStudent.elective2) : null;
-    const e3Config = firstStudent ? getSubjectConfig(firstStudent.elective3) : null;
-    const addConfig = firstStudent ? getSubjectConfig(firstStudent.additional) : null;
+    const e1ColSpan = e1HasPrac ? 4 : 2;
+    const e2ColSpan = e2HasPrac ? 4 : 2;
+    const e3ColSpan = e3HasPrac ? 4 : 2;
+    const addColSpan = addHasPrac ? 4 : 2;
 
-    const e1Cols = buildElectiveSubHeaders(e1Config);
-    const e2Cols = buildElectiveSubHeaders(e2Config);
-    const e3Cols = buildElectiveSubHeaders(e3Config);
-    const addCols = buildElectiveSubHeaders(addConfig);
-
-    const electiveColSpan = e1Cols.colSpan + e2Cols.colSpan + e3Cols.colSpan;
-    const additionalColSpan = addCols.colSpan;
+    const electiveColSpan = e1ColSpan + e2ColSpan + e3ColSpan;
+    const additionalColSpan = addColSpan;
 
     // ── Row 1 ──
     let headerRow = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
@@ -430,42 +421,42 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
     // ── Row 2: Sub-headers ──
     let subRow = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">`;
     // Compulsory languages: always Subject | Marks
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL}">Subject - 1</th>`;
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>`;
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Subject - 2</th>`;
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>`;
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL} width: 5%;">Subject - 1</th>`;
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 3%;">Marks</th>`;
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 5%;">Subject - 2</th>`;
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 3%;">Marks</th>`;
 
     // Elective 1
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL}">Subject - 1</th>`;
-    if (e1Cols.colSpan === 4) {
-        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Theory</th>`;
-        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Practical</th>`;
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL} width: 7%;">Subject - 1</th>`;
+    if (e1HasPrac) {
+        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 4.5%;">Theory</th>`;
+        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 4.5%;">Practical</th>`;
     }
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>`;
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 4.5%;">Marks</th>`;
 
     // Elective 2
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL}">Subject - 2</th>`;
-    if (e2Cols.colSpan === 4) {
-        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Theory</th>`;
-        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Practical</th>`;
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL} width: 7%;">Subject - 2</th>`;
+    if (e2HasPrac) {
+        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 4.5%;">Theory</th>`;
+        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 4.5%;">Practical</th>`;
     }
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>`;
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 4.5%;">Marks</th>`;
 
     // Elective 3
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL}">Subject - 3</th>`;
-    if (e3Cols.colSpan === 4) {
-        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Theory</th>`;
-        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Practical</th>`;
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL} width: 7%;">Subject - 3</th>`;
+    if (e3HasPrac) {
+        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 4.5%;">Theory</th>`;
+        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 4.5%;">Practical</th>`;
     }
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>`;
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 4.5%;">Marks</th>`;
 
     // Additional
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL}">Subject</th>`;
-    if (addCols.colSpan === 4) {
-        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Theory</th>`;
-        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Practical</th>`;
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; ${BL} width: 7%;">Subject</th>`;
+    if (addHasPrac) {
+        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 4.5%;">Theory</th>`;
+        subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 4.5%;">Practical</th>`;
     }
-    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center;">Marks</th>`;
+    subRow += `<th style="padding: 8px; font-weight: 600; text-align: center; width: 4.5%;">Marks</th>`;
 
     subRow += `</tr>`;
     thead.innerHTML = headerRow + subRow;
@@ -530,45 +521,43 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
             <td style="${TD_C} font-weight: 600; color: var(--color-primary);">${res.rollNo}</td>
             <td style="${TD_C} font-weight: 600; color: var(--color-primary);">${activeClassVal}</td>
             <td style="${TD} line-height: 1.3; max-width: 0;">${combinedName}</td>
-            <td style="${TD_C} font-weight: 600;">${genderText}</td>
-            
-            <td style="${TD_C} font-size: 0.85em; ${BL}">${sdL1.name}</td>
-            <td style="${TD_C} font-weight: 600;">${sdL1.totalObt}</td>
-            <td style="${TD_C} font-size: 0.85em;">${sdL2.name}</td>
-            <td style="${TD_C} font-weight: 600;">${sdL2.totalObt}</td>
+            <td style="${TD_C} font-weight: 600;">${genderText}</td>`;
 
-            <td style="${TD_C} font-size: 0.85em; ${BL}">${sdE1.name}</td>`;
+        // Compulsory Language 1
+        rowHtml += `<td style="${TD_C} font-size: 0.85em; ${BL}">${sdL1.name}</td>`;
+        rowHtml += `<td style="${TD_C} font-weight: 600;">${sdL1.totalObt}</td>`;
+
+        // Compulsory Language 2
+        rowHtml += `<td style="${TD_C} font-size: 0.85em;">${sdL2.name}</td>`;
+        rowHtml += `<td style="${TD_C} font-weight: 600;">${sdL2.totalObt}</td>`;
+
+        // Helper to output cells for a slot based on whether slot has practical
+        const renderSlotCells = (sd, slotHasPrac, isLeftBorder = false) => {
+            let cellsHtml = `<td style="${TD_C} font-size: 0.85em; ${isLeftBorder ? BL : ''}">${sd.name}</td>`;
+            if (slotHasPrac) {
+                if (sd.pMax > 0) {
+                    cellsHtml += `<td style="${TD_C} font-weight: 600;">${sd.theoryObt}</td>`;
+                    cellsHtml += `<td style="${TD_C} font-weight: 600;">${sd.practicalObt}</td>`;
+                } else {
+                    cellsHtml += `<td style="${TD_C} color: var(--color-muted);">-</td>`;
+                    cellsHtml += `<td style="${TD_C} color: var(--color-muted);">-</td>`;
+                }
+            }
+            cellsHtml += `<td style="${TD_C} font-weight: 600;">${sd.totalObt}</td>`;
+            return cellsHtml;
+        };
 
         // Elective 1
-        if (e1Config && (e1Config.pMax || 0) > 0) {
-            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE1.theoryObt}</td>`;
-            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE1.practicalObt}</td>`;
-        }
-        rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE1.totalObt}</td>`;
+        rowHtml += renderSlotCells(sdE1, e1HasPrac, true);
 
         // Elective 2
-        rowHtml += `<td style="${TD_C} font-size: 0.85em;">${sdE2.name}</td>`;
-        if (e2Config && (e2Config.pMax || 0) > 0) {
-            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE2.theoryObt}</td>`;
-            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE2.practicalObt}</td>`;
-        }
-        rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE2.totalObt}</td>`;
+        rowHtml += renderSlotCells(sdE2, e2HasPrac, false);
 
         // Elective 3
-        rowHtml += `<td style="${TD_C} font-size: 0.85em;">${sdE3.name}</td>`;
-        if (e3Config && (e3Config.pMax || 0) > 0) {
-            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE3.theoryObt}</td>`;
-            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE3.practicalObt}</td>`;
-        }
-        rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE3.totalObt}</td>`;
+        rowHtml += renderSlotCells(sdE3, e3HasPrac, false);
 
         // Additional
-        rowHtml += `<td style="${TD_C} font-size: 0.85em; ${BL}">${sdAdd.name}</td>`;
-        if (addConfig && (addConfig.pMax || 0) > 0) {
-            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdAdd.theoryObt}</td>`;
-            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdAdd.practicalObt}</td>`;
-        }
-        rowHtml += `<td style="${TD_C} font-weight: 600;">${sdAdd.totalObt}</td>`;
+        rowHtml += renderSlotCells(sdAdd, addHasPrac, true);
 
         rowHtml += `
             <td style="${TD_C} font-weight: 700; ${BL}">${res.grandTotal}</td>
