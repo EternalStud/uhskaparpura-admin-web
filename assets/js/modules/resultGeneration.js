@@ -496,7 +496,20 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
                 theoryObt: scoreObj ? scoreObj.theoryObt : "",
                 practicalObt: scoreObj ? scoreObj.practicalObt : "",
                 totalObt: scoreObj ? scoreObj.totalObt : "",
-                let combinedName = `<div style="text-align:left; font-weight:600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${res.studentName}">${res.studentName}</div>`;
+                score: scoreObj ? scoreObj.displayVal : "",
+                tMax: subObj.tMax || "",
+                pMax: subObj.pMax || 0
+            };
+        };
+
+        const sdL1 = getSubData(l1);
+        const sdL2 = getSubData(l2);
+        const sdE1 = getSubData(e1);
+        const sdE2 = getSubData(e2);
+        const sdE3 = getSubData(e3);
+        const sdAdd = getSubData(add);
+
+        let combinedName = `<div style="text-align:left; font-weight:600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${res.studentName}">${res.studentName}</div>`;
         if (res.motherName && res.motherName !== "-") {
             combinedName += `<div style="text-align:left; font-size: 0.8em; color: var(--color-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${res.motherName}">${res.motherName}</div>`;
         }
