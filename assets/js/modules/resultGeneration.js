@@ -644,6 +644,70 @@ const handleGenerateResults = async () => {
 };
 
 /**
+ * Exports the currently displayed HTML table to an Excel file with exact formatting.
+ */
+const handleExportToExcel = () => {
+    const table = document.querySelector(".data-table");
+    if (!table) {
+        showToast("No data available to export.", "error");
+        return;
+    }
+
+    const yearSelect = document.querySelector("#filter-academic-year");
+    const examSelect = document.querySelector("#filter-exam");
+    const sectionSelect = document.querySelector("#filter-section");
+
+    const year = yearSelect ? yearSelect.value : "";
+    const examName = examSelect ? examSelect.value : "";
+    const section = sectionSelect ? sectionSelect.value : "";
+
+    const filename = `Results_Class_${activeClassVal}_${examName.replace(/\s+/g, '_')}_Section_${section}_${year}.xls`;
+
+    // Clone table to clean styles
+    const clonedTable = table.cloneNode(true);
+    const html = clonedTable.outerHTML;
+    const template = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="utf-8">
+  <!--[if gte mso 9]>
+  <xml>
+    <x:ExcelWorkbook>
+      <x:ExcelWorksheets>
+        <x:ExcelWorksheet>
+          <x:Name>Class ${activeClassVal} Results</x:Name>
+          <x:WorksheetOptions>
+            <x:DisplayGridlines/>
+          </x:WorksheetOptions>
+        </x:ExcelWorksheet>
+      </x:ExcelWorksheets>
+    </x:ExcelWorkbook>
+  </xml>
+  <![endif]-->
+  <style>
+    table { border-collapse: collapse; font-family: Arial, sans-serif; }
+    th { background-color: #F3F4F6; color: #111827; border: 1px solid #D1D5DB; font-weight: bold; text-align: center; font-size: 11px; padding: 6px; }
+    td { border: 1px solid #E5E7EB; padding: 6px; text-align: center; font-size: 11px; }
+  </style>
+</head>
+<body>
+  ${html}
+</body>
+</html>
+    `;
+
+    const blob = new Blob([template], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("Excel spreadsheet exported successfully!", "success");
+};
+
+
+/**
  * Initializes the Result Generation module view.
  */
 export async function initResultGenerationView() {
@@ -704,6 +768,11 @@ export async function initResultGenerationView() {
             sortSelect.addEventListener("change", () => {
                 renderTable();
             });
+        }
+
+        const exportBtn = document.querySelector("#export-excel-btn");
+        if (exportBtn) {
+            exportBtn.addEventListener("click", handleExportToExcel);
         }
 
         // Initial setup

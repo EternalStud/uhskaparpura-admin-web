@@ -103,9 +103,19 @@
                             <option value="aggregate">Sort by Aggregate (Highest First)</option>
                         </select>
                     </div>
-                    <span class="status-pill" style="font-weight: 600;" id="result-stats-summary">
-                        0 Students Listed
-                    </span>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="status-pill" style="font-weight: 600; padding: 8px 12px;" id="result-stats-summary">
+                            0 Students Listed
+                        </span>
+                        <button id="export-excel-btn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 0.88rem; border-radius: var(--radius-sm); background: var(--color-success); border-color: var(--color-success); color: white; font-weight: 600;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 2px;">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Export to Excel
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Live Results Table Container -->
