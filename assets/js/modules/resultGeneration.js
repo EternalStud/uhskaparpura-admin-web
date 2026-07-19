@@ -248,60 +248,60 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
     if (hasPrac) {
         // ── Three-row header (for Practical/Internal exams) ──
         row1 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
-            <th rowspan="3" style="${TH_C} width: 45px; min-width: 45px;">SL NO</th>
-            <th rowspan="3" style="${TH_C} width: 65px; min-width: 65px;">ROLL NO.</th>
-            <th rowspan="3" style="${TH_C} width: 55px; min-width: 55px;">CLASS</th>
-            <th rowspan="3" style="${TH} width: 140px; min-width: 140px; max-width: 160px;">STUDENT NAME</th>
-            <th rowspan="3" style="${TH} width: 140px; min-width: 140px; max-width: 160px;">MOTHER'S NAME</th>
-            <th rowspan="3" style="${TH} width: 140px; min-width: 140px; max-width: 160px;">FATHER'S NAME</th>
-            <th rowspan="3" style="${TH_C} width: 50px; min-width: 50px;">GENDER</th>
+            <th rowspan="3" style="${TH_C} width: 3%;">SL NO</th>
+            <th rowspan="3" style="${TH_C} width: 4%;">ROLL NO.</th>
+            <th rowspan="3" style="${TH_C} width: 4%;">CLASS</th>
+            <th rowspan="3" style="${TH} width: 15%;">STUDENT NAME</th>
+            <th rowspan="3" style="${TH} width: 13%;">MOTHER'S NAME</th>
+            <th rowspan="3" style="${TH} width: 13%;">FATHER'S NAME</th>
+            <th rowspan="3" style="${TH_C} width: 3%;">GENDER</th>
             <th colspan="6" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB}">MARKS OBTAINED(THEORY)</th>
             <th colspan="3" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB}">MARKS OBTAINED (INTERNAL ASSEMENT & PRACTICAL)</th>
-            <th rowspan="3" style="${TH_C} width: 90px; min-width: 90px; ${BL}">AGGREGATE</th>
-            <th rowspan="3" style="${TH_C} width: 90px; min-width: 90px;">RESULT</th>
+            <th rowspan="3" style="${TH_C} width: 7%; ${BL}">AGGREGATE</th>
+            <th rowspan="3" style="${TH_C} width: 7%;">RESULT</th>
         </tr>`;
 
         // Row 2: theory labels and practical category labels
         row2 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
-            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} width: 60px; min-width: 60px;">MIL</th>
-            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 60px; min-width: 60px;">SIL</th>
-            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 60px; min-width: 60px;">MAT</th>
-            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 60px; min-width: 60px;">SCI</th>
-            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 60px; min-width: 60px;">SSC</th>
-            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 60px; min-width: 60px;">ENG</th>
+            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} width: 4.5%;">MIL</th>
+            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 4.5%;">SIL</th>
+            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 4.5%;">MAT</th>
+            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 4.5%;">SCI</th>
+            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 4.5%;">SSC</th>
+            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 4.5%;">ENG</th>
             
-            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} width: 60px; min-width: 60px;">SCI</th>
+            <th rowspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} width: 4%;">SCI</th>
             <th colspan="2" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BB}">SSC</th>
         </tr>`;
 
         // Row 3: sub-columns for SSC practicals (LIT.ACT and Project Wrok)
         row3 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
-            <th style="padding: 6px; font-weight: 600; text-align: center; font-size: 0.8em; ${BL} width: 60px; min-width: 60px;">LIT.ACT</th>
-            <th style="padding: 6px; font-weight: 600; text-align: center; font-size: 0.8em; width: 60px; min-width: 60px;">Project Wrok</th>
+            <th style="padding: 6px; font-weight: 600; text-align: center; font-size: 0.8em; ${BL} width: 4%;">LIT.ACT</th>
+            <th style="padding: 6px; font-weight: 600; text-align: center; font-size: 0.8em; width: 4%;">Project Wrok</th>
         </tr>`;
 
     } else {
         // ── Two-row header (for Theory-only exams) ──
         row1 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
-            <th rowspan="2" style="${TH_C} width: 45px; min-width: 45px;">SL NO</th>
-            <th rowspan="2" style="${TH_C} width: 65px; min-width: 65px;">ROLL NO.</th>
-            <th rowspan="2" style="${TH_C} width: 55px; min-width: 55px;">CLASS</th>
-            <th rowspan="2" style="${TH} width: 140px; min-width: 140px; max-width: 160px;">STUDENT NAME</th>
-            <th rowspan="2" style="${TH} width: 140px; min-width: 140px; max-width: 160px;">MOTHER'S NAME</th>
-            <th rowspan="2" style="${TH} width: 140px; min-width: 140px; max-width: 160px;">FATHER'S NAME</th>
-            <th rowspan="2" style="${TH_C} width: 50px; min-width: 50px;">GENDER</th>
+            <th rowspan="2" style="${TH_C} width: 3%;">SL NO</th>
+            <th rowspan="2" style="${TH_C} width: 4%;">ROLL NO.</th>
+            <th rowspan="2" style="${TH_C} width: 4%;">CLASS</th>
+            <th rowspan="2" style="${TH} width: 17%;">STUDENT NAME</th>
+            <th rowspan="2" style="${TH} width: 14%;">MOTHER'S NAME</th>
+            <th rowspan="2" style="${TH} width: 14%;">FATHER'S NAME</th>
+            <th rowspan="2" style="${TH_C} width: 4%;">GENDER</th>
             <th colspan="6" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB}">MARKS OBTAINED(THEORY)</th>
-            <th rowspan="2" style="${TH_C} width: 90px; min-width: 90px; ${BL}">AGGREGATE</th>
-            <th rowspan="2" style="${TH_C} width: 90px; min-width: 90px;">RESULT</th>
+            <th rowspan="2" style="${TH_C} width: 7%; ${BL}">AGGREGATE</th>
+            <th rowspan="2" style="${TH_C} width: 7%;">RESULT</th>
         </tr>`;
 
         row2 = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
-            <th style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} width: 70px; min-width: 70px;">MIL</th>
-            <th style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 70px; min-width: 70px;">SIL</th>
-            <th style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 70px; min-width: 70px;">MAT</th>
-            <th style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 70px; min-width: 70px;">SCI</th>
-            <th style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 70px; min-width: 70px;">SSC</th>
-            <th style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 70px; min-width: 70px;">ENG</th>
+            <th style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} width: 5%;">MIL</th>
+            <th style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 5%;">SIL</th>
+            <th style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 5%;">MAT</th>
+            <th style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 5%;">SCI</th>
+            <th style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 5%;">SSC</th>
+            <th style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; width: 5%;">ENG</th>
         </tr>`;
     }
 
@@ -342,13 +342,13 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
         const engTheory = getScore(res.subjectScores, engId, "theoryObt");
 
         let rowHtml = `<tr style="border-bottom: 1px solid var(--color-border); ${index % 2 === 0 ? 'background: #FFFFFF;' : 'background: #F9FAFB;'}">
-            <td style="${TD_C} font-weight: 600; width: 45px; min-width: 45px;">${index + 1}</td>
-            <td style="${TD_C} font-weight: 600; width: 65px; min-width: 65px;">${res.rollNo}</td>
-            <td style="${TD_C} font-weight: 600; width: 55px; min-width: 55px;">${classNumeral}</td>
-            <td style="${TD} font-weight: 600; width: 140px; min-width: 140px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${res.studentName}">${res.studentName}</td>
-            <td style="${TD} font-size: 0.9em; color: var(--color-muted); width: 140px; min-width: 140px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${res.motherName || ""}">${res.motherName || ""}</td>
-            <td style="${TD} font-size: 0.9em; color: var(--color-muted); width: 140px; min-width: 140px; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${res.fatherName || ""}">${res.fatherName || ""}</td>
-            <td style="${TD_C} font-weight: 600; width: 50px; min-width: 50px;">${genderText}</td>
+            <td style="${TD_C} font-weight: 600;">${index + 1}</td>
+            <td style="${TD_C} font-weight: 600;">${res.rollNo}</td>
+            <td style="${TD_C} font-weight: 600;">${classNumeral}</td>
+            <td style="${TD} font-weight: 600; max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${res.studentName}">${res.studentName}</td>
+            <td style="${TD} font-size: 0.9em; color: var(--color-muted); max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${res.motherName || ""}">${res.motherName || ""}</td>
+            <td style="${TD} font-size: 0.9em; color: var(--color-muted); max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${res.fatherName || ""}">${res.fatherName || ""}</td>
+            <td style="${TD_C} font-weight: 600;">${genderText}</td>
             
             <td style="${TD_C} font-weight: 600; ${BL}">${milTheory}</td>
             <td style="${TD_C} font-weight: 600;">${silTheory}</td>
@@ -416,15 +416,15 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
 
     // ── Row 1 ──
     let headerRow = `<tr style="border-bottom: 2px solid var(--color-border); background-color: var(--color-surface-hover);">
-        <th rowspan="2" style="${TH_C} width: 65px; min-width: 65px;">Roll no.</th>
-        <th rowspan="2" style="${TH_C} width: 55px; min-width: 55px;">Class</th>
-        <th rowspan="2" style="${TH} width: 150px; min-width: 140px; max-width: 180px;">Student's Name<br>Mother's Name<br>Father's Name</th>
-        <th rowspan="2" style="${TH_C} width: 50px; min-width: 50px;">M/F</th>
-        <th colspan="4" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB}">Compulsory Language Subjects</th>
-        <th colspan="${electiveColSpan}" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB}">Elective Subjects</th>
-        <th colspan="${additionalColSpan}" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB}">Additional Subjects</th>
-        <th rowspan="2" style="${TH_C} width: 90px; min-width: 90px; ${BL}">Aggregate & Result</th>
-        <th rowspan="2" style="${TH_C} width: 90px; min-width: 90px;">Result</th>
+        <th rowspan="2" style="${TH_C} width: 4%;">Roll no.</th>
+        <th rowspan="2" style="${TH_C} width: 4%;">Class</th>
+        <th rowspan="2" style="${TH} width: 18%;">Student's Name<br>Mother's Name<br>Father's Name</th>
+        <th rowspan="2" style="${TH_C} width: 4%;">M/F</th>
+        <th colspan="4" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB} width: 16%;">Compulsory Language Subjects</th>
+        <th colspan="${electiveColSpan}" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB} width: 36%;">Elective Subjects</th>
+        <th colspan="${additionalColSpan}" style="padding: 8px; font-weight: 700; color: var(--color-text); text-align: center; ${BL} ${BB} width: 10%;">Additional Subjects</th>
+        <th rowspan="2" style="${TH_C} width: 8%; ${BL}">Aggregate & Result</th>
+        <th rowspan="2" style="${TH_C} width: 10%;">Result</th>
     </tr>`;
 
     // ── Row 2: Sub-headers ──
@@ -527,52 +527,52 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
         }
 
         let rowHtml = `<tr style="border-bottom: 1px solid var(--color-border); ${index % 2 === 0 ? 'background: #FFFFFF;' : 'background: #F9FAFB;'}">
-            <td style="${TD_C} font-weight: 600; color: var(--color-primary); width: 65px; min-width: 65px;">${res.rollNo}</td>
-            <td style="${TD_C} font-weight: 600; color: var(--color-primary); width: 55px; min-width: 55px;">${activeClassVal}</td>
-            <td style="${TD} line-height: 1.3; width: 150px; min-width: 140px; max-width: 180px;">${combinedName}</td>
-            <td style="${TD_C} font-weight: 600; width: 50px; min-width: 50px;">${genderText}</td>
+            <td style="${TD_C} font-weight: 600; color: var(--color-primary);">${res.rollNo}</td>
+            <td style="${TD_C} font-weight: 600; color: var(--color-primary);">${activeClassVal}</td>
+            <td style="${TD} line-height: 1.3; max-width: 0;">${combinedName}</td>
+            <td style="${TD_C} font-weight: 600;">${genderText}</td>
             
-            <td style="${TD_C} font-size: 0.85em; ${BL} width: 70px; min-width: 70px;">${sdL1.name}</td>
-            <td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdL1.totalObt}</td>
-            <td style="${TD_C} font-size: 0.85em; width: 70px; min-width: 70px;">${sdL2.name}</td>
-            <td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdL2.totalObt}</td>
+            <td style="${TD_C} font-size: 0.85em; ${BL}">${sdL1.name}</td>
+            <td style="${TD_C} font-weight: 600;">${sdL1.totalObt}</td>
+            <td style="${TD_C} font-size: 0.85em;">${sdL2.name}</td>
+            <td style="${TD_C} font-weight: 600;">${sdL2.totalObt}</td>
 
-            <td style="${TD_C} font-size: 0.85em; ${BL} width: 70px; min-width: 70px;">${sdE1.name}</td>`;
+            <td style="${TD_C} font-size: 0.85em; ${BL}">${sdE1.name}</td>`;
 
         // Elective 1
         if (e1Config && (e1Config.pMax || 0) > 0) {
-            rowHtml += `<td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdE1.theoryObt}</td>`;
-            rowHtml += `<td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdE1.practicalObt}</td>`;
+            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE1.theoryObt}</td>`;
+            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE1.practicalObt}</td>`;
         }
-        rowHtml += `<td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdE1.totalObt}</td>`;
+        rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE1.totalObt}</td>`;
 
         // Elective 2
-        rowHtml += `<td style="${TD_C} font-size: 0.85em; width: 70px; min-width: 70px;">${sdE2.name}</td>`;
+        rowHtml += `<td style="${TD_C} font-size: 0.85em;">${sdE2.name}</td>`;
         if (e2Config && (e2Config.pMax || 0) > 0) {
-            rowHtml += `<td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdE2.theoryObt}</td>`;
-            rowHtml += `<td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdE2.practicalObt}</td>`;
+            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE2.theoryObt}</td>`;
+            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE2.practicalObt}</td>`;
         }
-        rowHtml += `<td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdE2.totalObt}</td>`;
+        rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE2.totalObt}</td>`;
 
         // Elective 3
-        rowHtml += `<td style="${TD_C} font-size: 0.85em; width: 70px; min-width: 70px;">${sdE3.name}</td>`;
+        rowHtml += `<td style="${TD_C} font-size: 0.85em;">${sdE3.name}</td>`;
         if (e3Config && (e3Config.pMax || 0) > 0) {
-            rowHtml += `<td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdE3.theoryObt}</td>`;
-            rowHtml += `<td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdE3.practicalObt}</td>`;
+            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE3.theoryObt}</td>`;
+            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE3.practicalObt}</td>`;
         }
-        rowHtml += `<td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdE3.totalObt}</td>`;
+        rowHtml += `<td style="${TD_C} font-weight: 600;">${sdE3.totalObt}</td>`;
 
         // Additional
-        rowHtml += `<td style="${TD_C} font-size: 0.85em; ${BL} width: 70px; min-width: 70px;">${sdAdd.name}</td>`;
+        rowHtml += `<td style="${TD_C} font-size: 0.85em; ${BL}">${sdAdd.name}</td>`;
         if (addConfig && (addConfig.pMax || 0) > 0) {
-            rowHtml += `<td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdAdd.theoryObt}</td>`;
-            rowHtml += `<td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdAdd.practicalObt}</td>`;
+            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdAdd.theoryObt}</td>`;
+            rowHtml += `<td style="${TD_C} font-weight: 600;">${sdAdd.practicalObt}</td>`;
         }
-        rowHtml += `<td style="${TD_C} font-weight: 600; width: 60px; min-width: 60px;">${sdAdd.totalObt}</td>`;
+        rowHtml += `<td style="${TD_C} font-weight: 600;">${sdAdd.totalObt}</td>`;
 
         rowHtml += `
-            <td style="${TD_C} font-weight: 700; ${BL} width: 90px; min-width: 90px;">${res.grandTotal}</td>
-            <td style="${TD_C} ${resultBadgeStyle} width: 90px; min-width: 90px;">${res.division || res.result}</td>
+            <td style="${TD_C} font-weight: 700; ${BL}">${res.grandTotal}</td>
+            <td style="${TD_C} ${resultBadgeStyle}">${res.division || res.result}</td>
         </tr>`;
         tbody.innerHTML += rowHtml;
     });
