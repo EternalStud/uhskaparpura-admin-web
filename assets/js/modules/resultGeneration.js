@@ -62,125 +62,131 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const totalPassMarks = l1Pass + l2Pass + matPass + sciPass + sscPass;
 
     return `
-    <div class="bseb-report-card-page" style="width: 210mm; min-height: 297mm; padding: 12mm 15mm; margin: 0 auto; background: #fff; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; color: #000; page-break-after: always; position: relative; overflow: hidden;">
+    <div class="bseb-report-card-page" style="width: 210mm; min-height: 297mm; padding: 12mm 15mm; margin: 0 auto; background: #fff; box-sizing: border-box; font-family: Arial, sans-serif; color: #000; page-break-after: always; position: relative; overflow: hidden;">
         <!-- Watermark Emblem -->
-        <div style="position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%); width: 380px; height: 380px; opacity: 0.10; pointer-events: none; z-index: 0;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; height: 400px; opacity: 0.08; pointer-events: none; z-index: 0;">
             <img src="${logoB64}" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
 
         <!-- Content Area -->
         <div style="position: relative; z-index: 1;">
             <!-- Header Container -->
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                <div style="width: 90px; text-align: left;">
-                    <img src="${logoB64}" style="width: 85px; height: 85px; object-fit: contain;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                <div style="width: 100px; text-align: left;">
+                    <img src="${logoB64}" style="width: 90px; height: 90px; object-fit: contain;">
                 </div>
                 <div style="flex: 1; text-align: center; padding: 0 10px;">
-                    <h1 style="font-size: 24px; font-weight: 800; margin: 0; text-transform: uppercase; color: #000; font-family: Arial, sans-serif;">Bihar School Examination Board, Patna</h1>
-                    <h2 style="font-size: 20px; font-weight: 700; margin: 3px 0; color: #000;">बिहार विद्यालय परीक्षा समिति , पटना</h2>
-                    <div style="font-size: 16px; font-weight: 800; margin-top: 4px; color: #000;">विद्यालय: U.H.S. KAPARPURA, KANTI, MUZAFFARPUR</div>
-                    <div style="font-size: 14px; font-weight: 800; margin-top: 4px; text-transform: uppercase; color: #000;">${examName.toUpperCase()} STATEMENT OF MARKS</div>
-                    <div style="font-size: 14px; font-weight: 800; color: #000;">CLASS ${classNumeral}</div>
+                    <h1 style="font-size: 22px; font-weight: 600; margin: 0; color: #000; letter-spacing: 0.5px;">Bihar School Examination Board, Patna</h1>
+                    <h2 style="font-size: 21px; font-weight: 600; margin: 5px 0; color: #000;">बिहार विद्यालय परीक्षा समिति , पटना</h2>
+                    <div style="font-size: 15px; font-weight: bold; margin-top: 8px; color: #000; letter-spacing: 0.3px;">विद्यालय: U.H.S. KAPARPURA, KANTI, MUZAFFARPUR</div>
+                    <div style="font-size: 14px; font-weight: bold; margin-top: 5px; text-transform: uppercase; color: #000;">${examName} STATEMENT OF MARKS</div>
+                    <div style="font-size: 14px; font-weight: bold; color: #000; margin-top: 2px;">CLASS ${classNumeral}</div>
                 </div>
-                <div style="width: 90px;"></div>
+                <div style="width: 100px;"></div>
             </div>
 
-            <hr style="border: none; border-top: 2px solid #000; margin: 0 0 15px 0;">
+            <hr style="border: none; border-top: 1.5px solid #000; margin: 0 0 15px 0;">
 
             <!-- Student Details Grid -->
-            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; line-height: 1.8; margin-bottom: 15px; color: #000;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px; line-height: 1.6; margin-bottom: 15px; color: #000;">
                 <div>
-                    <div>नाम Name: <span style="font-weight: 700; text-transform: uppercase;">${res.studentName}</span></div>
-                    <div>पिता का नाम Father's Name: <span style="font-weight: 700; text-transform: uppercase;">${res.fatherName || '-'}</span></div>
-                    <div>माता का नाम Mother's Name: <span style="font-weight: 700; text-transform: uppercase;">${res.motherName || '-'}</span></div>
-                    <div>रोल न. Roll No.: <span style="font-weight: 700;">${res.rollNo}</span></div>
+                    <div>नाम Name: &nbsp;&nbsp;&nbsp; <span style="text-transform: uppercase;">${res.studentName}</span></div>
+                    <div>पिता का नाम Father's Name: &nbsp;&nbsp;&nbsp; <span style="text-transform: uppercase;">${res.fatherName || '-'}</span></div>
+                    <div>माता का नाम Mother's Name: &nbsp;&nbsp;&nbsp; <span style="text-transform: uppercase;">${res.motherName || '-'}</span></div>
+                    <div>रोल न. Roll No.: &nbsp;&nbsp;&nbsp; <span>${res.rollNo}</span></div>
                 </div>
                 <div style="text-align: right;">
-                    <div><span style="font-weight: 700;">UDISE CODE:</span> &nbsp; <span style="font-weight: 800;">10140616812</span></div>
-                    <div><span style="font-weight: 700;">BSEB CODE:</span> &nbsp; <span style="font-weight: 800;">51375</span></div>
-                    <div><span style="font-weight: 700;">सत्र Session:</span> &nbsp; <span style="font-weight: 800;">${academicYear}</span></div>
+                    <div style="display: flex; justify-content: space-between; width: 220px;">
+                        <span>UDISE CODE:</span> <span style="font-weight: bold;">10140616812</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; width: 220px;">
+                        <span>BSEB CODE:</span> <span style="font-weight: bold;">51375</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; width: 220px;">
+                        <span>सत्र Session:</span> <span style="font-weight: bold;">${academicYear}</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Marks Table -->
-            <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px; margin-bottom: 25px; border: 2px solid #000;" border="1">
+            <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px; margin-bottom: 25px; border: 1.5px solid #000;" border="1">
                 <thead>
-                    <tr style="background: #CCCCCC; font-weight: 800; color: #000; height: 40px;">
-                        <th style="border: 1.5px solid #000; padding: 8px; width: 14%;">SUB. CODE</th>
-                        <th style="border: 1.5px solid #000; padding: 8px; width: 36%;">SUBJECT</th>
-                        <th style="border: 1.5px solid #000; padding: 8px; width: 16%;">FULL MARKS</th>
-                        <th style="border: 1.5px solid #000; padding: 8px; width: 16%;">PASS MARKS</th>
-                        <th style="border: 1.5px solid #000; padding: 8px; width: 18%;">MARKS OBTAINED</th>
+                    <tr style="background: #EAEAEA; font-weight: bold; color: #000; height: 45px;">
+                        <th style="border: 1px solid #000; padding: 8px; width: 14%;">SUB.<br>CODE</th>
+                        <th style="border: 1px solid #000; padding: 8px; width: 36%;">SUBJECT</th>
+                        <th style="border: 1px solid #000; padding: 8px; width: 16%;">FULL MARKS</th>
+                        <th style="border: 1px solid #000; padding: 8px; width: 16%;">PASS MARKS</th>
+                        <th style="border: 1px solid #000; padding: 8px; width: 18%;">MARKS OBTAINED</th>
                     </tr>
                 </thead>
-                <tbody style="font-size: 13px; font-weight: 700;">
-                    <tr style="height: 36px;">
+                <tbody style="font-size: 14px;">
+                    <tr style="height: 40px;">
                         <td style="border: 1px solid #000; padding: 6px;">${l1.code || '101'}</td>
-                        <td style="border: 1px solid #000; padding: 6px 12px; text-align: center; text-transform: uppercase;">${l1.name || 'HINDI'}</td>
+                        <td style="border: 1px solid #000; padding: 6px 15px; text-align: left; text-transform: uppercase;">${l1.name || 'HINDI'}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${l1Full}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${l1Pass}</td>
-                        <td style="border: 1px solid #000; padding: 6px; font-weight: 800;">${getScoreVal(res.language1)}</td>
+                        <td style="border: 1px solid #000; padding: 6px;">${getScoreVal(res.language1)}</td>
                     </tr>
-                    <tr style="height: 36px;">
+                    <tr style="height: 40px;">
                         <td style="border: 1px solid #000; padding: 6px;">${l2.code || '105/103'}</td>
-                        <td style="border: 1px solid #000; padding: 6px 12px; text-align: center; text-transform: uppercase;">${l2.name || 'SANSKRIT/URDU'}</td>
+                        <td style="border: 1px solid #000; padding: 6px 15px; text-align: left; text-transform: uppercase;">${l2.name || 'SANSKRIT/URDU'}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${l2Full}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${l2Pass}</td>
-                        <td style="border: 1px solid #000; padding: 6px; font-weight: 800;">${getScoreVal(res.language2)}</td>
+                        <td style="border: 1px solid #000; padding: 6px;">${getScoreVal(res.language2)}</td>
                     </tr>
-                    <tr style="height: 36px;">
+                    <tr style="height: 40px;">
                         <td style="border: 1px solid #000; padding: 6px;">${mat.code || '110'}</td>
-                        <td style="border: 1px solid #000; padding: 6px 12px; text-align: center; text-transform: uppercase;">${mat.name || 'MATHEMATICS'}</td>
+                        <td style="border: 1px solid #000; padding: 6px 15px; text-align: left; text-transform: uppercase;">${mat.name || 'MATHEMATICS'}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${matFull}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${matPass}</td>
-                        <td style="border: 1px solid #000; padding: 6px; font-weight: 800;">${getScoreVal(`${activeClassVal}_MAT`)}</td>
+                        <td style="border: 1px solid #000; padding: 6px;">${getScoreVal(`${activeClassVal}_MAT`)}</td>
                     </tr>
-                    <tr style="height: 36px;">
+                    <tr style="height: 40px;">
                         <td style="border: 1px solid #000; padding: 6px;">${sci.code || '112'}</td>
-                        <td style="border: 1px solid #000; padding: 6px 12px; text-align: center; text-transform: uppercase;">${sci.name || 'SCIENCE'}</td>
+                        <td style="border: 1px solid #000; padding: 6px 15px; text-align: left; text-transform: uppercase;">${sci.name || 'SCIENCE'}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${sciFull}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${sciPass}</td>
-                        <td style="border: 1px solid #000; padding: 6px; font-weight: 800;">${getScoreVal(`${activeClassVal}_SCI`)}</td>
+                        <td style="border: 1px solid #000; padding: 6px;">${getScoreVal(`${activeClassVal}_SCI`)}</td>
                     </tr>
-                    <tr style="height: 36px;">
+                    <tr style="height: 40px;">
                         <td style="border: 1px solid #000; padding: 6px;">${ssc.code || '111'}</td>
-                        <td style="border: 1px solid #000; padding: 6px 12px; text-align: center; text-transform: uppercase;">${ssc.name || 'SOCIAL SCIENCE'}</td>
+                        <td style="border: 1px solid #000; padding: 6px 15px; text-align: left; text-transform: uppercase;">${ssc.name || 'SOCIAL SCIENCE'}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${sscFull}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${sscPass}</td>
-                        <td style="border: 1px solid #000; padding: 6px; font-weight: 800;">${getScoreVal(`${activeClassVal}_SST`)}</td>
+                        <td style="border: 1px solid #000; padding: 6px;">${getScoreVal(`${activeClassVal}_SST`)}</td>
                     </tr>
-                    <tr style="height: 38px; font-weight: 800;">
+                    <tr style="height: 45px; font-weight: bold;">
                         <td style="border: 1px solid #000; padding: 6px;" colspan="2">TOTAL</td>
                         <td style="border: 1px solid #000; padding: 6px;">${totalFullMarks}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${totalPassMarks}</td>
-                        <td style="border: 1px solid #000; padding: 6px; font-size: 15px;">${res.grandTotal}</td>
+                        <td style="border: 1px solid #000; padding: 6px; font-size: 15px;">${res.grandTotal !== undefined && res.grandTotal !== '' ? res.grandTotal : ''}</td>
                     </tr>
-                    <tr style="height: 36px;">
+                    <tr style="height: 40px;">
                         <td style="border: 1px solid #000; padding: 6px;">${eng.code || '113'}</td>
-                        <td style="border: 1px solid #000; padding: 6px 12px; text-align: center; text-transform: uppercase;">${eng.name || 'ENGLISH'}</td>
+                        <td style="border: 1px solid #000; padding: 6px 15px; text-align: left; text-transform: uppercase;">${eng.name || 'ENGLISH'}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${engFull}</td>
                         <td style="border: 1px solid #000; padding: 6px;">${engPass}</td>
-                        <td style="border: 1px solid #000; padding: 6px; font-weight: 800;">${getScoreVal(`${activeClassVal}_ENG`)}</td>
+                        <td style="border: 1px solid #000; padding: 6px;">${getScoreVal(`${activeClassVal}_ENG`)}</td>
                     </tr>
                 </tbody>
             </table>
 
             <!-- Result Metrics & Summary -->
-            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; margin-bottom: 50px; padding: 0 5px; color: #000;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 50px; padding: 0 5px; color: #000;">
                 <div style="line-height: 1.8;">
                     <div>PLACE: MUZAFFARPUR</div>
                     <div style="margin-top: 5px;">ISSUE DATE: ${issueDate}</div>
                 </div>
-                <div style="width: 220px; line-height: 1.8;">
-                    <div style="display: flex; justify-content: space-between;"><span>RANK</span> <span>${res.rank || '-'}</span></div>
-                    <div style="display: flex; justify-content: space-between;"><span>PERCENTAGE</span> <span>${res.percentage}</span></div>
-                    <div style="display: flex; justify-content: space-between;"><span>DIVISION</span> <span>${res.division}</span></div>
-                    <div style="display: flex; justify-content: space-between;"><span>RESULT</span> <span>${res.result}</span></div>
+                <div style="width: 250px; line-height: 1.8;">
+                    <div style="display: flex; justify-content: space-between;"><span>RANK</span> <span style="font-weight: bold;">${res.rank && res.rank !== '-' ? res.rank : ''}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>PERCENTAGE</span> <span style="font-weight: bold;">${res.percentage !== '0.0%' ? res.percentage : ''}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>DIVISION</span> <span style="font-weight: bold;">${res.division !== 'Incomplete' ? res.division : ''}</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>RESULT</span> <span style="font-weight: bold;">${res.result !== 'Incomplete' ? res.result : ''}</span></div>
                 </div>
             </div>
 
             <!-- Signatures -->
-            <div style="display: flex; justify-content: space-between; margin-top: 80px; font-weight: 800; font-size: 13px; color: #000;">
+            <div style="display: flex; justify-content: space-between; margin-top: 80px; font-size: 14px; color: #000;">
                 <div>CLASS TEACHER'S SIGNATURE</div>
                 <div>PRINCIPAL'S SIGNATURE</div>
             </div>
@@ -234,84 +240,92 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const renderSubRow = (sd) => {
         if (!sd.name) return "";
         return `
-        <tr style="height: 32px;">
-            <td style="border: 1px solid #000; padding: 6px 10px; text-align: left; text-transform: uppercase;">${sd.name}</td>
+        <tr style="height: 36px;">
+            <td style="border: 1px solid #000; padding: 6px 15px; text-align: left; text-transform: uppercase;">${sd.name}</td>
             <td style="border: 1px solid #000; padding: 6px;">${sd.fullMarks}</td>
             <td style="border: 1px solid #000; padding: 6px;">${sd.passMarks}</td>
             <td style="border: 1px solid #000; padding: 6px;">${sd.theoryObt}</td>
             <td style="border: 1px solid #000; padding: 6px;">${sd.pMax > 0 ? sd.practicalObt : ''}</td>
-            <td style="border: 1px solid #000; padding: 6px; font-weight: 800;">${sd.totalObt}</td>
+            <td style="border: 1px solid #000; padding: 6px;">${sd.totalObt}</td>
         </tr>`;
     };
 
     return `
-    <div class="bseb-report-card-page" style="width: 210mm; min-height: 297mm; padding: 12mm 15mm; margin: 0 auto; background: #fff; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; color: #000; page-break-after: always; position: relative; overflow: hidden;">
+    <div class="bseb-report-card-page" style="width: 210mm; min-height: 297mm; padding: 12mm 15mm; margin: 0 auto; background: #fff; box-sizing: border-box; font-family: Arial, sans-serif; color: #000; page-break-after: always; position: relative; overflow: hidden;">
         <!-- Watermark Emblem -->
-        <div style="position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%); width: 380px; height: 380px; opacity: 0.10; pointer-events: none; z-index: 0;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; height: 400px; opacity: 0.08; pointer-events: none; z-index: 0;">
             <img src="${logoB64}" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
 
         <!-- Content Area -->
         <div style="position: relative; z-index: 1;">
             <!-- Header Container -->
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                <div style="width: 90px; text-align: left;">
-                    <img src="${logoB64}" style="width: 85px; height: 85px; object-fit: contain;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                <div style="width: 100px; text-align: left;">
+                    <img src="${logoB64}" style="width: 90px; height: 90px; object-fit: contain;">
                 </div>
                 <div style="flex: 1; text-align: center; padding: 0 10px;">
-                    <h1 style="font-size: 24px; font-weight: 800; margin: 0; text-transform: uppercase; color: #000; font-family: Arial, sans-serif;">Bihar School Examination Board, Patna</h1>
-                    <h2 style="font-size: 20px; font-weight: 700; margin: 3px 0; color: #000;">बिहार विद्यालय परीक्षा समिति , पटना</h2>
-                    <div style="font-size: 16px; font-weight: 800; margin-top: 4px; color: #000;">विद्यालय: U.H.S. KAPARPURA, KANTI, MUZAFFARPUR</div>
-                    <div style="font-size: 14px; font-weight: 800; margin-top: 4px; text-transform: uppercase; color: #000;">${examName.toUpperCase()} STATEMENT OF MARKS</div>
-                    <div style="font-size: 14px; font-weight: 800; color: #000;">CLASS ${classNumeral}</div>
+                    <h1 style="font-size: 22px; font-weight: 600; margin: 0; color: #000; letter-spacing: 0.5px;">Bihar School Examination Board, Patna</h1>
+                    <h2 style="font-size: 21px; font-weight: 600; margin: 5px 0; color: #000;">बिहार विद्यालय परीक्षा समिति , पटना</h2>
+                    <div style="font-size: 15px; font-weight: bold; margin-top: 8px; color: #000; letter-spacing: 0.3px;">विद्यालय: U.H.S. KAPARPURA, KANTI, MUZAFFARPUR</div>
+                    <div style="font-size: 14px; font-weight: bold; margin-top: 5px; text-transform: uppercase; color: #000;">${examName} STATEMENT OF MARKS</div>
+                    <div style="font-size: 14px; font-weight: bold; color: #000; margin-top: 2px;">CLASS ${classNumeral}</div>
                 </div>
-                <div style="width: 90px;"></div>
+                <div style="width: 100px;"></div>
             </div>
 
-            <hr style="border: none; border-top: 2px solid #000; margin: 0 0 15px 0;">
+            <hr style="border: none; border-top: 1.5px solid #000; margin: 0 0 15px 0;">
 
             <!-- Student Details Grid -->
-            <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; line-height: 1.8; margin-bottom: 15px; color: #000;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px; line-height: 1.6; margin-bottom: 15px; color: #000;">
                 <div>
-                    <div>नाम Name: <span style="font-weight: 700; text-transform: uppercase;">${res.studentName}</span></div>
-                    <div>पिता का नाम Father's Name: <span style="font-weight: 700; text-transform: uppercase;">${res.fatherName || '-'}</span></div>
-                    <div>माता का नाम Mother's Name: <span style="font-weight: 700; text-transform: uppercase;">${res.motherName || '-'}</span></div>
-                    <div>रोल न. Roll No.: <span style="font-weight: 700;">${res.rollNo}</span></div>
+                    <div>नाम Name: &nbsp;&nbsp;&nbsp; <span style="text-transform: uppercase;">${res.studentName}</span></div>
+                    <div>पिता का नाम Father's Name: &nbsp;&nbsp;&nbsp; <span style="text-transform: uppercase;">${res.fatherName || '-'}</span></div>
+                    <div>माता का नाम Mother's Name: &nbsp;&nbsp;&nbsp; <span style="text-transform: uppercase;">${res.motherName || '-'}</span></div>
+                    <div>रोल न. Roll No.: &nbsp;&nbsp;&nbsp; <span>${res.rollNo}</span></div>
                 </div>
                 <div style="text-align: right;">
-                    <div><span style="font-weight: 700;">UDISE CODE:</span> &nbsp; <span style="font-weight: 800;">10140616812</span></div>
-                    <div><span style="font-weight: 700;">सत्र Session:</span> &nbsp; <span style="font-weight: 800;">${academicYear}</span></div>
-                    <div><span style="font-weight: 700;">INTER CODE:</span> &nbsp; <span style="font-weight: 800;">31445</span></div>
-                    <div><span style="font-weight: 700;">FACULTY:</span> &nbsp; <span style="font-weight: 800; text-transform: uppercase;">${streamName || 'ARTS'}</span></div>
+                    <div style="display: flex; justify-content: space-between; width: 220px;">
+                        <span>UDISE CODE:</span> <span style="font-weight: bold;">10140616812</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; width: 220px;">
+                        <span>सत्र Session:</span> <span style="font-weight: bold;">${academicYear}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; width: 220px;">
+                        <span>INTER CODE:</span> <span style="font-weight: bold;">31445</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; width: 220px;">
+                        <span>FACULTY:</span> <span style="font-weight: bold; text-transform: uppercase;">${streamName || 'ARTS'}</span>
+                    </div>
                 </div>
             </div>
 
             <!-- Marks Table -->
-            <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px; margin-bottom: 25px; border: 2px solid #000;" border="1">
+            <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px; margin-bottom: 25px; border: 1.5px solid #000;" border="1">
                 <thead>
-                    <tr style="background: #CCCCCC; font-weight: 800; color: #000;">
-                        <th rowspan="2" style="border: 1.5px solid #000; padding: 6px; width: 35%;">SUBJECT</th>
-                        <th rowspan="2" style="border: 1.5px solid #000; padding: 6px; width: 12%;">FULL MARKS</th>
-                        <th rowspan="2" style="border: 1.5px solid #000; padding: 6px; width: 12%;">PASS MARKS</th>
-                        <th colspan="2" style="border: 1.5px solid #000; padding: 6px; width: 25%;">MARKS OBTAINED</th>
-                        <th rowspan="2" style="border: 1.5px solid #000; padding: 6px; width: 16%;">SUBJECT TOTAL</th>
+                    <tr style="background: #EAEAEA; font-weight: bold; color: #000;">
+                        <th rowspan="2" style="border: 1px solid #000; padding: 6px; width: 35%;">SUBJECT</th>
+                        <th rowspan="2" style="border: 1px solid #000; padding: 6px; width: 12%;">FULL<br>MARKS</th>
+                        <th rowspan="2" style="border: 1px solid #000; padding: 6px; width: 12%;">PASS<br>MARKS</th>
+                        <th colspan="2" style="border: 1px solid #000; padding: 6px; width: 25%;">MARKS OBTAINED</th>
+                        <th rowspan="2" style="border: 1px solid #000; padding: 6px; width: 16%;">SUBJECT<br>TOTAL</th>
                     </tr>
-                    <tr style="background: #CCCCCC; font-weight: 800; color: #000;">
-                        <th style="border: 1.5px solid #000; padding: 4px;">THEORY</th>
-                        <th style="border: 1.5px solid #000; padding: 4px;">PRACTICAL</th>
+                    <tr style="background: #EAEAEA; font-weight: bold; color: #000;">
+                        <th style="border: 1px solid #000; padding: 4px;">THEORY</th>
+                        <th style="border: 1px solid #000; padding: 4px;">PRACTICAL</th>
                     </tr>
                 </thead>
-                <tbody style="font-size: 13px; font-weight: 700;">
+                <tbody style="font-size: 14px;">
                     <!-- 1. Compulsory -->
-                    <tr style="background: #E5E7EB; font-weight: 800;">
-                        <td colspan="6" style="border: 1px solid #000; padding: 6px; text-align: left;">1. अनिवार्य (Compulsory)</td>
+                    <tr style="background: #F4F4F4;">
+                        <td colspan="6" style="border: 1px solid #000; padding: 6px 15px; text-align: left; font-weight: bold;">1. अनिवार्य (Compulsory)</td>
                     </tr>
                     ${renderSubRow(sdL1)}
                     ${renderSubRow(sdL2)}
 
                     <!-- 2. Elective -->
-                    <tr style="background: #E5E7EB; font-weight: 800;">
-                        <td colspan="6" style="border: 1px solid #000; padding: 6px; text-align: left;">2.ऐच्छिक (Elective)</td>
+                    <tr style="background: #F4F4F4;">
+                        <td colspan="6" style="border: 1px solid #000; padding: 6px 15px; text-align: left; font-weight: bold;">2. ऐच्छिक (Elective)</td>
                     </tr>
                     ${renderSubRow(sdE1)}
                     ${renderSubRow(sdE2)}
@@ -319,33 +333,33 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
 
                     <!-- 3. Additional (if present) -->
                     ${sdAdd.name ? `
-                    <tr style="background: #E5E7EB; font-weight: 800;">
-                        <td colspan="6" style="border: 1px solid #000; padding: 6px; text-align: left;">3. अतिरिक्त Additional</td>
+                    <tr style="background: #F4F4F4;">
+                        <td colspan="6" style="border: 1px solid #000; padding: 6px 15px; text-align: left; font-weight: bold;">3. अतिरिक्त (Additional)</td>
                     </tr>
                     ${renderSubRow(sdAdd)}
                     ` : ''}
 
                     <!-- Final Result Section -->
-                    <tr style="background: #E5E7EB; font-weight: 800;">
-                        <td colspan="6" style="border: 1px solid #000; padding: 6px; text-align: left;">FINAL RESULT</td>
+                    <tr style="background: #F4F4F4;">
+                        <td colspan="6" style="border: 1px solid #000; padding: 6px 15px; text-align: left; font-weight: bold;">FINAL RESULT</td>
                     </tr>
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #000; padding: 7px; font-weight: 800; text-align: left;">AGGREGATE MARKS :</td>
-                        <td colspan="4" style="border: 1px solid #000; padding: 7px; font-weight: 800; font-size: 14px; text-align: left;">${res.grandTotal}</td>
+                    <tr style="height: 36px;">
+                        <td colspan="2" style="border: 1px solid #000; padding: 6px 15px; font-weight: bold; text-align: left;">AGGREGATE MARKS :</td>
+                        <td colspan="4" style="border: 1px solid #000; padding: 6px 15px; font-weight: bold; text-align: left;">${res.grandTotal !== undefined && res.grandTotal !== '' ? res.grandTotal : ''}</td>
                     </tr>
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #000; padding: 7px; font-weight: 800; text-align: left;">RESULT / DIVISION :</td>
-                        <td colspan="4" style="border: 1px solid #000; padding: 7px; font-weight: 800; font-size: 14px; text-align: left;">${res.result} &nbsp; / &nbsp; ${res.division}</td>
+                    <tr style="height: 36px;">
+                        <td colspan="2" style="border: 1px solid #000; padding: 6px 15px; font-weight: bold; text-align: left;">RESULT / DIVISION :</td>
+                        <td colspan="4" style="border: 1px solid #000; padding: 6px 15px; font-weight: bold; text-align: left;">${res.result !== 'Incomplete' ? res.result : ''} &nbsp; / &nbsp; ${res.division !== 'Incomplete' ? res.division : ''}</td>
                     </tr>
-                    <tr>
-                        <td colspan="2" style="border: 1px solid #000; padding: 7px; font-weight: 800; text-align: left;">PERCENTAGE :</td>
-                        <td colspan="4" style="border: 1px solid #000; padding: 7px; font-weight: 800; font-size: 14px; text-align: left;">${res.percentage}</td>
+                    <tr style="height: 36px;">
+                        <td colspan="2" style="border: 1px solid #000; padding: 6px 15px; font-weight: bold; text-align: left;">PERCENTAGE :</td>
+                        <td colspan="4" style="border: 1px solid #000; padding: 6px 15px; font-weight: bold; text-align: left;">${res.percentage !== '0.0%' ? res.percentage : ''}</td>
                     </tr>
                 </tbody>
             </table>
 
             <!-- Result Metrics & Summary -->
-            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; margin-bottom: 50px; padding: 0 5px; color: #000;">
+            <div style="display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 50px; padding: 0 5px; color: #000;">
                 <div style="line-height: 1.8;">
                     <div>PLACE: MUZAFFARPUR</div>
                     <div style="margin-top: 5px;">ISSUE DATE: ${issueDate}</div>
@@ -353,7 +367,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
             </div>
 
             <!-- Signatures -->
-            <div style="display: flex; justify-content: space-between; margin-top: 80px; font-weight: 800; font-size: 13px; color: #000;">
+            <div style="display: flex; justify-content: space-between; margin-top: 80px; font-size: 14px; color: #000;">
                 <div>CLASS TEACHER'S SIGNATURE</div>
                 <div>PRINCIPAL'S SIGNATURE</div>
             </div>
