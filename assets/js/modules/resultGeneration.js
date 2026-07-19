@@ -196,6 +196,22 @@ const renderTable = () => {
         );
     });
 
+    // Sort students
+    const sortSelect = document.querySelector("#result-sort-select");
+    const sortBy = sortSelect ? sortSelect.value : "roll";
+    if (sortBy === "aggregate") {
+        filteredStudents.sort((a, b) => (b.grandTotal || 0) - (a.grandTotal || 0));
+    } else {
+        filteredStudents.sort((a, b) => {
+            const rollA = parseInt(a.rollNo, 10);
+            const rollB = parseInt(b.rollNo, 10);
+            if (isNaN(rollA) && isNaN(rollB)) return 0;
+            if (isNaN(rollA)) return 1;
+            if (isNaN(rollB)) return -1;
+            return rollA - rollB;
+        });
+    }
+
     if (statsSummary) {
         statsSummary.textContent = `${filteredStudents.length} Students Listed`;
     }
@@ -679,6 +695,13 @@ export async function initResultGenerationView() {
         if (searchInput) {
             searchInput.addEventListener("input", (e) => {
                 searchQuery = e.target.value;
+                renderTable();
+            });
+        }
+
+        const sortSelect = document.querySelector("#result-sort-select");
+        if (sortSelect) {
+            sortSelect.addEventListener("change", () => {
                 renderTable();
             });
         }

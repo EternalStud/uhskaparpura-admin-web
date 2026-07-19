@@ -96,8 +96,12 @@
 
                 <!-- Toolbar (Search & info) -->
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 16px; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
                         <input type="text" id="result-search-input" placeholder="Search student by name or roll..." style="padding: 8px 12px; font-size: 0.88rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); width: 260px;">
+                        <select id="result-sort-select" style="padding: 8px 12px; font-size: 0.88rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: #ffffff; cursor: pointer; color: var(--color-text);">
+                            <option value="roll">Sort by Roll Number</option>
+                            <option value="aggregate">Sort by Aggregate (Highest First)</option>
+                        </select>
                     </div>
                     <span class="status-pill" style="font-weight: 600;" id="result-stats-summary">
                         0 Students Listed
@@ -106,9 +110,9 @@
 
                 <!-- Live Results Table Container -->
                 <div style="border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; background: #ffffff;">
-                    <div style="overflow-x: auto;">
+                    <div style="max-height: 680px; overflow-y: auto; overflow-x: auto;">
                         <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
-                            <thead id="results-table-thead" style="background: var(--color-background); border-bottom: 2px solid var(--color-border);">
+                            <thead id="results-table-thead" style="background: var(--color-background); border-bottom: 2px solid var(--color-border); position: sticky; top: 0; z-index: 100;">
                                 <!-- Dynamic Headers -->
                             </thead>
                             <tbody id="results-table-tbody">
