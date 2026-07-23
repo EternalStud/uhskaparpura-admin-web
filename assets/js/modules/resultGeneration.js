@@ -62,10 +62,10 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const totalFullMarks = l1Full + l2Full + matFull + sciFull + sscFull;
     const totalPassMarks = l1Pass + l2Pass + matPass + sciPass + sscPass;
 
-    const watermarkSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSczNjAnIGhlaWdodD0nMjIwJyB2aWV3Qm94PScwIDAgMzYwIDIyMCc+PHRleHQgeD0nNTAlJyB5PSc1MCUnIHRyYW5zZm9ybT0ncm90YXRlKC0yNSwgMTgwLCAxMTApJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb250LWZhbWlseT0nQXJpYWwsIHNhbnMtc2VyaWYnIGZvbnQtc2l6ZT0nMTgnIGZvbnQtd2VpZ2h0PSdib2xkJyBmaWxsPSdyZ2JhKDAsMCwwLDAuMTMpJz7gpIku4KSu4KS+LuCkteCkvy4g4KSV4KSq4KSw4KSq4KWB4KSw4KS+LCDgpJXgpL7gpIHgpJ/gpYAsIOCkruClgeCknOCkq+CljeCkq+CksOCkquClgeCksDwvdGV4dD48L3N2Zz4=`;
+    const watermarkSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNDAnIGhlaWdodD0nMTIwJyB2aWV3Qm94PScwIDAgMjQwIDEyMCc+PHRleHQgeD0nNTAlJyB5PSc1MCUnIHRyYW5zZm9ybT0ncm90YXRlKC0zMCwgMTIwLCA2MCknIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZvbnQtZmFtaWx5PSdBcmlhbCwgc2Fucy1zZXJpZicgZm9udC1zaXplPScxMicgZm9udC13ZWlnaHQ9J2JvbGQnIGZpbGw9J3JnYmEoMCwwLDAsMC4xMSknPuCkiS7gpK7gpL4u4KS14KS/LiDgpJXgpKrgpLDgpKrgpYHgpLDgpL4sIOCkleCkvuCkgeCkn+ClgCwg4KSu4KWB4KSc4KSr4KWN4KSr4KSw4KSq4KWB4KSwPC90ZXh0Pjwvc3ZnPg==`;
 
     return `
-    <div class="bseb-report-card-page" style="width: 210mm; min-height: 297mm; padding: 12mm 15mm; margin: 0 auto; background: #fff url('${watermarkSvg}') repeat; background-size: 360px 220px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: Arial, sans-serif; color: #000; page-break-after: always; position: relative; overflow: hidden;">
+    <div class="bseb-report-card-page" style="width: 210mm; height: 297mm; max-height: 297mm; padding: 10mm 12mm; margin: 0 auto; background: #fff url('${watermarkSvg}') repeat; background-size: 240px 120px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: Arial, sans-serif; color: #000; position: relative; overflow: hidden;">
         <!-- Watermark Emblem -->
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; height: 400px; opacity: 0.08; pointer-events: none; z-index: 0;">
             <img src="${logoB64}" style="width: 100%; height: 100%; object-fit: contain;">
@@ -189,7 +189,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
             </div>
 
             <!-- Signatures -->
-            <div style="display: flex; justify-content: space-between; margin-top: 80px; font-size: 14px; color: #000;">
+            <div style="display: flex; justify-content: space-between; margin-top: 45px; font-size: 14px; color: #000;">
                 <div>CLASS TEACHER'S SIGNATURE</div>
                 <div>PRINCIPAL'S SIGNATURE</div>
             </div>
@@ -253,10 +253,10 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
         </tr>`;
     };
 
-    const watermarkSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSczNjAnIGhlaWdodD0nMjIwJyB2aWV3Qm94PScwIDAgMzYwIDIyMCc+PHRleHQgeD0nNTAlJyB5PSc1MCUnIHRyYW5zZm9ybT0ncm90YXRlKC0yNSwgMTgwLCAxMTApJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyBmb250LWZhbWlseT0nQXJpYWwsIHNhbnMtc2VyaWYnIGZvbnQtc2l6ZT0nMTgnIGZvbnQtd2VpZ2h0PSdib2xkJyBmaWxsPSdyZ2JhKDAsMCwwLDAuMTMpJz7gpIku4KSu4KS+LuCkteCkvy4g4KSV4KSq4KSw4KSq4KWB4KSw4KS+LCDgpJXgpL7gpIHgpJ/gpYAsIOCkruClgeCknOCkq+CljeCkq+CksOCkquClgeCksDwvdGV4dD48L3N2Zz4=`;
+    const watermarkSvg = `data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNDAnIGhlaWdodD0nMTIwJyB2aWV3Qm94PScwIDAgMjQwIDEyMCc+PHRleHQgeD0nNTAlJyB5PSc1MCUnIHRyYW5zZm9ybT0ncm90YXRlKC0zMCwgMTIwLCA2MCknIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZvbnQtZmFtaWx5PSdBcmlhbCwgc2Fucy1zZXJpZicgZm9udC1zaXplPScxMicgZm9udC13ZWlnaHQ9J2JvbGQnIGZpbGw9J3JnYmEoMCwwLDAsMC4xMSknPuCkiS7gpK7gpL4u4KS14KS/LiDgpJXgpKrgpLDgpKrgpYHgpLDgpL4sIOCkleCkvuCkgeCkn+ClgCwg4KSu4KWB4KSc4KSr4KWN4KSr4KSw4KSq4KWB4KSwPC90ZXh0Pjwvc3ZnPg==`;
 
     return `
-    <div class="bseb-report-card-page" style="width: 210mm; min-height: 297mm; padding: 12mm 15mm; margin: 0 auto; background: #fff url('${watermarkSvg}') repeat; background-size: 360px 220px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: Arial, sans-serif; color: #000; page-break-after: always; position: relative; overflow: hidden;">
+    <div class="bseb-report-card-page" style="width: 210mm; height: 297mm; max-height: 297mm; padding: 10mm 12mm; margin: 0 auto; background: #fff url('${watermarkSvg}') repeat; background-size: 240px 120px; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: Arial, sans-serif; color: #000; position: relative; overflow: hidden;">
         <!-- Watermark Emblem -->
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; height: 400px; opacity: 0.08; pointer-events: none; z-index: 0;">
             <img src="${logoB64}" style="width: 100%; height: 100%; object-fit: contain;">
@@ -372,7 +372,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
             </div>
 
             <!-- Signatures -->
-            <div style="display: flex; justify-content: space-between; margin-top: 80px; font-size: 14px; color: #000;">
+            <div style="display: flex; justify-content: space-between; margin-top: 45px; font-size: 14px; color: #000;">
                 <div>CLASS TEACHER'S SIGNATURE</div>
                 <div>PRINCIPAL'S SIGNATURE</div>
             </div>
@@ -399,13 +399,15 @@ const openPrintWindow = (htmlContent, documentTitle) => {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
                 @page { size: A4 portrait; margin: 0; }
-                body { margin: 0; padding: 0; background: #525659; font-family: 'Times New Roman', Times, serif; }
+                html, body { margin: 0; padding: 0; background: #525659; font-family: 'Times New Roman', Times, serif; }
                 * { box-sizing: border-box; }
                 .bseb-report-card-page { margin: 20px auto !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
                 @media print {
                     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-                    body { background: #fff !important; }
-                    .bseb-report-card-page { margin: 0 auto !important; box-shadow: none !important; page-break-after: always; }
+                    html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; height: 100% !important; overflow: hidden !important; }
+                    .print-wrapper { padding: 0 !important; margin: 0 !important; }
+                    .bseb-report-card-page { margin: 0 auto !important; box-shadow: none !important; height: 297mm !important; max-height: 297mm !important; overflow: hidden !important; page-break-after: auto !important; page-break-inside: avoid !important; }
+                    .bseb-report-card-page:not(:last-child) { page-break-after: always !important; }
                     .no-print-bar { display: none !important; }
                 }
             </style>
@@ -425,7 +427,7 @@ const openPrintWindow = (htmlContent, documentTitle) => {
                 </div>
             </div>
 
-            <div style="padding-top: 10px;">
+            <div class="print-wrapper">
                 ${htmlContent}
             </div>
 
