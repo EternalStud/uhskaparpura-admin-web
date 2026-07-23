@@ -643,6 +643,97 @@ const BB = "border-bottom: 1px solid var(--color-border);";
  * Renders the results grid table for the active class tab.
  */
 
+
+/**
+ * Helper to extract subject names and scores for mobile cards breakdown table.
+ */
+const getStudentSubjectScoreRows = (stud, activeClassVal) => {
+    const isSenior = (activeClassVal === 11 || activeClassVal === 12);
+    const rows = [];
+
+    if (!stud || !stud.subjectScores) return rows;
+
+    if (isSenior) {
+        const details = stud.subjectDetails || [];
+        if (details.length > 0) {
+            details.forEach(sub => {
+                const subId = sub.subjectId || sub.id;
+                const scoreObj = stud.subjectScores[subId] || stud.subjectScores[sub.code];
+                let displayVal = "-";
+                if (scoreObj) {
+                    if (typeof scoreObj === "object") {
+                        if (scoreObj.displayVal !== undefined && scoreObj.displayVal !== "") {
+                            displayVal = scoreObj.displayVal;
+                        } else if (scoreObj.totalObt !== undefined && scoreObj.totalObt !== "") {
+                            displayVal = scoreObj.totalObt;
+                        } else if (scoreObj.theoryObt !== undefined && scoreObj.theoryObt !== "") {
+                            const th = scoreObj.theoryObt === "A" ? "A" : (Number(scoreObj.theoryObt) || 0);
+                            const pr = (scoreObj.practicalObt && scoreObj.practicalObt !== "A") ? (Number(scoreObj.practicalObt) || 0) : 0;
+                            displayVal = th === "A" ? "A" : String(th + pr);
+                        }
+                    } else {
+                        displayVal = String(scoreObj);
+                    }
+                }
+                rows.push({ name: sub.name || sub.code || subId, score: displayVal });
+            });
+        } else {
+            Object.keys(stud.subjectScores).forEach(subId => {
+                const scoreObj = stud.subjectScores[subId];
+                let displayVal = "-";
+                if (scoreObj) {
+                    if (typeof scoreObj === "object") {
+                        displayVal = scoreObj.displayVal || scoreObj.totalObt || "-";
+                    } else {
+                        displayVal = String(scoreObj);
+                    }
+                }
+                rows.push({ name: subId, score: displayVal });
+            });
+        }
+    } else {
+        const getSubName = (subId, defaultName) => {
+            const found = (stud.subjectDetails || []).find(s => String(s.subjectId) === String(subId));
+            return found ? (found.name || defaultName) : defaultName;
+        };
+
+        const milId = stud.language1;
+        const silId = stud.language2;
+        const matId = `${activeClassVal}_MAT`;
+        const sciId = `${activeClassVal}_SCI`;
+        const sscId = `${activeClassVal}_SST`;
+        const engId = `${activeClassVal}_ENG`;
+
+        const getVal = (subId) => {
+            if (!subId) return "-";
+            const obj = stud.subjectScores[subId];
+            if (!obj) return "-";
+            if (typeof obj === "object") {
+                if (obj.displayVal !== undefined && obj.displayVal !== "") return obj.displayVal;
+                if (obj.totalObt !== undefined && obj.totalObt !== "") return obj.totalObt;
+                if (obj.theoryObt !== undefined && obj.theoryObt !== "") {
+                    const th = obj.theoryObt === "A" ? "A" : (Number(obj.theoryObt) || 0);
+                    const pr = (obj.practicalObt && obj.practicalObt !== "A") ? (Number(obj.practicalObt) || 0) : 0;
+                    const inP = (obj.internalObt && obj.internalObt !== "A") ? (Number(obj.internalObt) || 0) : 0;
+                    if (th === "A") return "A";
+                    return String(th + pr + inP);
+                }
+                return "-";
+            }
+            return String(obj) || "-";
+        };
+
+        rows.push({ name: getSubName(milId, "MIL (Language 1)"), score: getVal(milId) });
+        rows.push({ name: getSubName(silId, "SIL (Language 2)"), score: getVal(silId) });
+        rows.push({ name: getSubName(matId, "MATHEMATICS"), score: getVal(matId) });
+        rows.push({ name: getSubName(sciId, "SCIENCE"), score: getVal(sciId) });
+        rows.push({ name: getSubName(sscId, "SOCIAL SCIENCE"), score: getVal(sscId) });
+        rows.push({ name: getSubName(engId, "ENGLISH"), score: getVal(engId) });
+    }
+
+    return rows;
+};
+
 /**
  * Renders touch-friendly cards view for mobile screens.
  */
@@ -674,16 +765,13 @@ const renderCardsView = (container, activeSubjects, filteredStudents) => {
             divBg = "#fee2e2"; divColor = "#b91c1c";
         }
 
+        const scoreRows = getStudentSubjectScoreRows(stud, activeClassVal);
         let subRowsHtml = "";
-        activeSubjects.forEach(sub => {
-            let scoreVal = getScore(stud.subjectScores, sub.id, "displayVal");
-            let totalObt = getScore(stud.subjectScores, sub.id, "totalObt");
-            if (!scoreVal && totalObt !== "") scoreVal = totalObt;
-
+        scoreRows.forEach(row => {
             subRowsHtml += `
                 <tr style="border-bottom: 1px dashed var(--color-border);">
-                    <td style="padding: 6px 4px; font-weight: 600; color: var(--color-text); font-size: 0.82rem;">${sub.name}</td>
-                    <td style="padding: 6px 4px; text-align: right; font-weight: 700; color: var(--color-primary); font-size: 0.85rem;">${scoreVal || '-'}</td>
+                    <td style="padding: 6px 4px; font-weight: 600; color: var(--color-text); font-size: 0.82rem; text-transform: uppercase;">${row.name}</td>
+                    <td style="padding: 6px 4px; text-align: right; font-weight: 700; color: var(--color-primary); font-size: 0.85rem;">${row.score}</td>
                 </tr>
             `;
         });
@@ -719,7 +807,7 @@ const renderCardsView = (container, activeSubjects, filteredStudents) => {
                 </div>
             </div>
 
-            <details style="border: 1px solid var(--color-border); border-radius: 8px; padding: 8px 12px; background: #ffffff;">
+            <details open style="border: 1px solid var(--color-border); border-radius: 8px; padding: 8px 12px; background: #ffffff;">
                 <summary style="font-weight: 700; font-size: 0.82rem; color: var(--color-primary); cursor: pointer; user-select: none;">
                     Subject Scores Breakdown
                 </summary>
