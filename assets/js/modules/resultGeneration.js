@@ -396,20 +396,57 @@ const openPrintWindow = (htmlContent, documentTitle) => {
         <head>
             <title>${documentTitle}</title>
             <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
                 @page { size: A4 portrait; margin: 0; }
-                body { margin: 0; padding: 0; background: #fff; font-family: 'Times New Roman', Times, serif; }
+                body { margin: 0; padding: 0; background: #525659; font-family: 'Times New Roman', Times, serif; }
                 * { box-sizing: border-box; }
-                @media print { .bseb-report-card-page { page-break-after: always; } }
+                .bseb-report-card-page { margin: 20px auto !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+                @media print {
+                    body { background: #fff !important; }
+                    .bseb-report-card-page { margin: 0 auto !important; box-shadow: none !important; page-break-after: always; }
+                    .no-print-bar { display: none !important; }
+                }
             </style>
         </head>
         <body>
-            ${htmlContent}
+            <div class="no-print-bar" style="position: sticky; top: 0; left: 0; right: 0; background: #0f172a; color: #fff; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 999999; box-shadow: 0 4px 12px rgba(0,0,0,0.3); font-family: Arial, sans-serif;">
+                <span style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+                    📄 ${documentTitle}
+                </span>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="window.print()" style="background: #2563eb; color: #fff; border: none; padding: 8px 16px; font-weight: 700; border-radius: 6px; cursor: pointer; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+                        🖨️ Save PDF / Print
+                    </button>
+                    <button onclick="window.close()" style="background: #475569; color: #fff; border: none; padding: 8px 14px; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 0.88rem;">
+                        ✕ Close
+                    </button>
+                </div>
+            </div>
+
+            <div style="padding-top: 10px;">
+                ${htmlContent}
+            </div>
+
             <script>
-                window.onload = function() {
-                    window.print();
-                    setTimeout(function() { window.close(); }, 500);
-                };
+                function triggerPrint() {
+                    setTimeout(function() {
+                        window.print();
+                    }, 400);
+                }
+
+                window.addEventListener('afterprint', function() {
+                    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+                    if (!isMobile) {
+                        setTimeout(function() { window.close(); }, 300);
+                    }
+                });
+
+                if (document.readyState === 'complete') {
+                    triggerPrint();
+                } else {
+                    window.onload = triggerPrint;
+                }
             </script>
         </body>
         </html>
