@@ -3,11 +3,50 @@
 import { CONFIG } from "../config/config.js";
 import { getSession, clearSession } from "./session.js";
 
+// In-Memory API Cache Map
+const apiCache = new Map();
+
+// Caching Rules for GET / Read operations
+const CACHE_RULES = [
+    { prefix: "exam.list", ttl: 5 * 60 * 1000 },
+    { prefix: "auth.profile", ttl: 10 * 60 * 1000 },
+    { prefix: "settings.load", ttl: 2 * 60 * 1000 },
+    { prefix: "subject.tag.getSections", ttl: 10 * 60 * 1000 },
+    { prefix: "subject.tag.getDropdowns", ttl: 10 * 60 * 1000 },
+    { prefix: "exam.config.load", ttl: 5 * 60 * 1000 }
+];
+
+// Mutation actions that invalidate cache
+const INVALIDATION_RULES = {
+    "exam.create": ["exam.list"],
+    "exam.delete": ["exam.list"],
+    "exam.status.toggle": ["exam.list"],
+    "exam.config.save": ["exam.config.load"],
+    "settings.save": ["settings.load"],
+    "subject.tag.save": ["subject.tag.getSections", "subject.tag.loadStudents"],
+    "exam.marks.save": ["exam.marks.load", "exam.results.generate"],
+    "student.master.sync": ["student.master.load"]
+};
 
 /**
- * Sends a request to the Google Apps Script REST API.
+ * Clears cached API responses matching prefix or all cache if omitted.
+ */
+export function clearApiCache(prefixFilter = null) {
+    if (!prefixFilter) {
+        apiCache.clear();
+        return;
+    }
+    for (const key of apiCache.keys()) {
+        if (key.includes(prefixFilter)) {
+            apiCache.delete(key);
+        }
+    }
+}
+
+/**
+ * Sends a request to the Google Apps Script REST API with smart caching.
  * @param {string} path API path.
- * @param {RequestInit} options Fetch options.
+ * @param {RequestInit & { bypassCache?: boolean }} options Fetch options.
  * @returns {Promise<unknown>}
  */
 export async function apiRequest(path, options = {}) {
@@ -34,6 +73,27 @@ export async function apiRequest(path, options = {}) {
 
         if (session?.token) {
             url.searchParams.set("token", session.token);
+        }
+
+        const isMutation = (options.method && options.method.toUpperCase() !== "GET") || !!options.body;
+
+        // Handle Cache Invalidation on Mutation
+        if (isMutation) {
+            const prefixesToInvalidate = INVALIDATION_RULES[actionPath] || [];
+            prefixesToInvalidate.forEach(prefix => clearApiCache(prefix));
+        }
+
+        // Check if path is eligible for GET caching
+        const cacheRule = !isMutation && !options.bypassCache && CACHE_RULES.find(rule => actionPath.startsWith(rule.prefix));
+        const cacheKey = cacheRule ? url.toString() : null;
+
+        if (cacheKey && apiCache.has(cacheKey)) {
+            const entry = apiCache.get(cacheKey);
+            if (Date.now() < entry.expiry) {
+                return JSON.parse(JSON.stringify(entry.payload));
+            } else {
+                apiCache.delete(cacheKey);
+            }
         }
 
         const finalUrl = url.toString().replace(/\+/g, "%20");
@@ -70,6 +130,14 @@ export async function apiRequest(path, options = {}) {
                 throw new Error(payload.message || "Authentication required. Please sign in again.");
             }
             throw new Error(payload.error ?? payload.message ?? "API request failed.");
+        }
+
+        // Save to cache if eligible
+        if (cacheKey && cacheRule && payload?.success !== false) {
+            apiCache.set(cacheKey, {
+                expiry: Date.now() + cacheRule.ttl,
+                payload: JSON.parse(JSON.stringify(payload))
+            });
         }
 
         return payload;

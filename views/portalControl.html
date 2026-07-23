@@ -73,7 +73,22 @@
                         <span class="material-symbols-rounded" style="color: var(--color-primary);">verified</span>
                         अंक पत्र मोहर एवं हस्ताक्षर प्रबंधन (Report Card Signatures & Stamp)
                     </h3>
-                    
+
+                    <!-- Selection Filters for Signatures & Stamp -->
+                    <div style="display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; background: var(--color-bg); padding: 14px 18px; border-radius: var(--radius-md); border: 1px solid var(--color-border); align-items: center;">
+                        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px;">
+                            <label style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-muted);">शैक्षणिक सत्र (Academic Session)</label>
+                            <select id="asset-academic-year" class="form-control" style="padding: 6px 12px; font-weight: 600;">
+                            </select>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 180px;">
+                            <label style="font-size: 0.82rem; font-weight: 700; color: var(--color-text-muted);">परीक्षा का नाम (Exam Name)</label>
+                            <select id="asset-exam-name" class="form-control" style="padding: 6px 12px; font-weight: 600;">
+                                <option value="">Select Exam</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
                         <!-- Teacher Signature Slot -->
                         <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; background: var(--color-surface); text-align: center;">

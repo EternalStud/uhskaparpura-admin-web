@@ -197,14 +197,11 @@ const updateAvailableSections = async () => {
     }
 
     function renderSections(sections) {
-        sectionSelect.innerHTML = '<option value="">Select Section</option>';
-        sections.forEach(sec => {
-            sectionSelect.innerHTML += `<option value="${sec}">Section ${sec}</option>`;
-        });
-        
         if (sections.length === 0) {
             sectionSelect.innerHTML = '<option value="">No sections available</option>';
         } else {
+            const opts = sections.map(sec => `<option value="${sec}">Section ${sec}</option>`).join("");
+            sectionSelect.innerHTML = '<option value="">Select Section</option>' + opts;
             if (sections.includes("A")) {
                 sectionSelect.value = "A";
             } else {
@@ -275,10 +272,11 @@ const updateSubjectsDropdown = async () => {
         });
 
         // Render grouped options
-        Object.values(groups).forEach(g => {
+        const opts = Object.values(groups).map(g => {
             const compositeValue = g.ids.join(",");
-            subjectSelect.innerHTML += `<option value="${compositeValue}">${g.name} (${g.code})</option>`;
-        });
+            return `<option value="${compositeValue}">${g.name} (${g.code})</option>`;
+        }).join("");
+        subjectSelect.innerHTML = '<option value="">Select Subject</option>' + opts;
     }
 };
 
@@ -945,11 +943,9 @@ export async function initMarksEntryView() {
             try {
                 const res = await apiRequest("exam.list");
                 if (res.success && res.exams) {
-                    examSelect.innerHTML = '<option value="">Select Exam</option>';
                     const openExams = res.exams.filter(exam => exam.status === "OPEN");
-                    openExams.forEach(exam => {
-                        examSelect.innerHTML += `<option value="${exam.name}">${exam.name}</option>`;
-                    });
+                    const opts = openExams.map(exam => `<option value="${exam.name}">${exam.name}</option>`).join("");
+                    examSelect.innerHTML = '<option value="">Select Exam</option>' + opts;
                 }
             } catch (err) {
                 console.error("Failed to load exams list:", err);

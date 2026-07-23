@@ -88,14 +88,11 @@ const updateAvailableSections = async () => {
     }
 
     function renderSections(sections) {
-        sectionSelect.innerHTML = '<option value="">Select Section</option>';
-        sections.forEach(sec => {
-            sectionSelect.innerHTML += `<option value="${sec}">Section ${sec}</option>`;
-        });
-        
         if (sections.length === 0) {
             sectionSelect.innerHTML = '<option value="">No sections available</option>';
         } else {
+            const opts = sections.map(sec => `<option value="${sec}">Section ${sec}</option>`).join("");
+            sectionSelect.innerHTML = '<option value="">Select Section</option>' + opts;
             if (sections.includes("A")) {
                 sectionSelect.value = "A";
             } else {
@@ -611,7 +608,7 @@ const renderWorkspaceData = () => {
         const tr = document.createElement("tr");
         tr.dataset.studentId = student.studentId;
 
-        tr.innerHTML = `
+        let rowHtml = `
             <td class="col-sticky col-roll"><strong>${student.rollNo}</strong></td>
             <td class="col-sticky col-name">${student.studentName}</td>
             <td><div style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${student.fatherName || "—"}</div></td>
@@ -620,7 +617,7 @@ const renderWorkspaceData = () => {
         `;
 
         if (isSrSec) {
-            tr.innerHTML += `
+            rowHtml += `
                 <td class="td-e1"><div class="custom-select-container"></div></td>
                 <td class="td-e2"><div class="custom-select-container"></div></td>
                 <td class="td-e3"><div class="custom-select-container"></div></td>
@@ -628,9 +625,11 @@ const renderWorkspaceData = () => {
             `;
         }
 
-        tr.innerHTML += `
+        rowHtml += `
             <td class="col-center"><span class="row-status">Pending</span></td>
         `;
+
+        tr.innerHTML = rowHtml;
 
         desktopTbody.appendChild(tr);
 

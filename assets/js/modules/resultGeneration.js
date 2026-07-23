@@ -69,21 +69,30 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const cleanExam = examName.replace(/\s+/g, '_').toUpperCase();
     const certNo = `Academic Session = ${academicYear} ,Exam Name = ${examName} ,class = ${activeClassVal} , Student Code = ${res.studentId || res.rollNo}`;
 
-    // Stored Assets
-    const teacherSig = localStorage.getItem("report_card_teacher_sig") || "";
-    const hmSig = localStorage.getItem("report_card_hm_sig") || DEFAULT_HM_SIG_B64;
-    const schoolStamp = localStorage.getItem("report_card_school_stamp") || DEFAULT_SCHOOL_STAMP_B64;
+    // Stored Assets per Academic Session & Exam Name
+    const cleanExamKey = examName ? examName.trim().replace(/\s+/g, '_') : "";
+    const getAsset = (baseKey, fallback) => {
+        if (academicYear && cleanExamKey) {
+            const specificVal = localStorage.getItem(`${baseKey}_${academicYear}_${cleanExamKey}`);
+            if (specificVal) return specificVal;
+        }
+        return localStorage.getItem(baseKey) || fallback;
+    };
+
+    const teacherSig = getAsset("report_card_teacher_sig", "");
+    const hmSig = getAsset("report_card_hm_sig", DEFAULT_HM_SIG_B64);
+    const schoolStamp = getAsset("report_card_school_stamp", DEFAULT_SCHOOL_STAMP_B64);
 
     const teacherSigHtml = teacherSig 
         ? `<img src="${teacherSig}" style="height: 42px; max-width: 150px; display: block; margin: 0 auto 2px auto; object-fit: contain;">` 
         : `<div style="height: 38px;"></div>`;
 
     const hmSigHtml = hmSig 
-        ? `<img src="${hmSig}" style="position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); height: 60px; object-fit: contain; z-index: 2; mix-blend-mode: multiply;">` 
+        ? `<img src="${hmSig}" style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); height: 60px; object-fit: contain; z-index: 2; mix-blend-mode: multiply;">` 
         : `<div style="height: 38px;"></div>`;
 
     const stampHtml = schoolStamp
-        ? `<img src="${schoolStamp}" style="position: absolute; bottom: 0px; left: 50%; transform: translateX(-50%); width: 140px; height: 140px; object-fit: contain; opacity: 0.85; z-index: 1;">`
+        ? `<img src="${schoolStamp}" style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); width: 170px; height: 170px; object-fit: contain; opacity: 0.85; z-index: 1;">`
         : `<div style="width: 65px; height: 65px; border: 1.5px dashed #94a3b8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8.5px; font-weight: bold; color: #64748b; margin: 0 auto; text-align: center; line-height: 1.1;">SCHOOL<br>SEAL</div>`;
 
     const getSubObj = (subId) => {
@@ -314,7 +323,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                     <div style="border-top: 1px solid #0f172a; padding-top: 4px;">Class Teacher's Signature</div>
                 </div>
 
-                <div style="text-align: center; width: 200px; position: relative; height: 150px; display: flex; flex-direction: column; justify-content: flex-end;">
+                <div style="text-align: center; width: 200px; position: relative; height: 160px; display: flex; flex-direction: column; justify-content: flex-end;">
                     ${stampHtml}
                     ${hmSigHtml}
                     <div style="border-top: 1px solid #0f172a; padding-top: 4px; position: relative; z-index: 3;">Principal's Signature</div>
@@ -352,21 +361,30 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const cleanExam = examName.replace(/\s+/g, '_').toUpperCase();
     const certNo = `Academic Session = ${academicYear} ,Exam Name = ${examName} ,class = ${activeClassVal} , Student Code = ${res.studentId || res.rollNo}`;
 
-    // Stored Assets
-    const teacherSig = localStorage.getItem("report_card_teacher_sig") || "";
-    const hmSig = localStorage.getItem("report_card_hm_sig") || DEFAULT_HM_SIG_B64;
-    const schoolStamp = localStorage.getItem("report_card_school_stamp") || DEFAULT_SCHOOL_STAMP_B64;
+    // Stored Assets per Academic Session & Exam Name
+    const cleanExamKey = examName ? examName.trim().replace(/\s+/g, '_') : "";
+    const getAsset = (baseKey, fallback) => {
+        if (academicYear && cleanExamKey) {
+            const specificVal = localStorage.getItem(`${baseKey}_${academicYear}_${cleanExamKey}`);
+            if (specificVal) return specificVal;
+        }
+        return localStorage.getItem(baseKey) || fallback;
+    };
+
+    const teacherSig = getAsset("report_card_teacher_sig", "");
+    const hmSig = getAsset("report_card_hm_sig", DEFAULT_HM_SIG_B64);
+    const schoolStamp = getAsset("report_card_school_stamp", DEFAULT_SCHOOL_STAMP_B64);
 
     const teacherSigHtml = teacherSig 
         ? `<img src="${teacherSig}" style="height: 42px; max-width: 150px; display: block; margin: 0 auto 2px auto; object-fit: contain;">` 
         : `<div style="height: 38px;"></div>`;
 
     const hmSigHtml = hmSig 
-        ? `<img src="${hmSig}" style="position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); height: 60px; object-fit: contain; z-index: 2; mix-blend-mode: multiply;">` 
+        ? `<img src="${hmSig}" style="position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); height: 60px; object-fit: contain; z-index: 2; mix-blend-mode: multiply;">` 
         : `<div style="height: 38px;"></div>`;
 
     const stampHtml = schoolStamp
-        ? `<img src="${schoolStamp}" style="position: absolute; bottom: 0px; left: 50%; transform: translateX(-50%); width: 140px; height: 140px; object-fit: contain; opacity: 0.85; z-index: 1;">`
+        ? `<img src="${schoolStamp}" style="position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); width: 170px; height: 170px; object-fit: contain; opacity: 0.85; z-index: 1;">`
         : `<div style="width: 65px; height: 65px; border: 1.5px dashed #94a3b8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8.5px; font-weight: bold; color: #64748b; margin: 0 auto; text-align: center; line-height: 1.1;">SCHOOL<br>SEAL</div>`;
 
     const getSubDetails = (subId) => {
@@ -578,7 +596,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
                     <div style="border-top: 1px solid #0f172a; padding-top: 4px;">Class Teacher's Signature</div>
                 </div>
 
-                <div style="text-align: center; width: 200px; position: relative; height: 150px; display: flex; flex-direction: column; justify-content: flex-end;">
+                <div style="text-align: center; width: 200px; position: relative; height: 160px; display: flex; flex-direction: column; justify-content: flex-end;">
                     ${stampHtml}
                     ${hmSigHtml}
                     <div style="border-top: 1px solid #0f172a; padding-top: 4px; position: relative; z-index: 3;">Principal's Signature</div>
@@ -791,14 +809,11 @@ const updateAvailableSections = async () => {
     try {
         const response = await apiRequest(`subject.tag.getSections?academicYear=${year}&classNum=${classNum}`);
         if (response.success && response.sections) {
-            sectionSelect.innerHTML = '<option value="">Select Section</option>';
-            response.sections.forEach(sec => {
-                sectionSelect.innerHTML += `<option value="${sec}">Section ${sec}</option>`;
-            });
-            
             if (response.sections.length === 0) {
                 sectionSelect.innerHTML = '<option value="">No sections available</option>';
             } else {
+                const opts = response.sections.map(sec => `<option value="${sec}">Section ${sec}</option>`).join("");
+                sectionSelect.innerHTML = '<option value="">Select Section</option>' + opts;
                 if (response.sections.includes("A")) {
                     sectionSelect.value = "A";
                 } else {
@@ -1290,7 +1305,7 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
         return;
     }
 
-    filteredStudents.forEach((res, index) => {
+    const rowsHtml = filteredStudents.map((res, index) => {
         const genderRaw = String(res.gender || "").toLowerCase().trim();
         const genderText = (genderRaw === "female" || genderRaw === "f") ? "F" : ((genderRaw === "male" || genderRaw === "m") ? "M" : "");
 
@@ -1336,9 +1351,7 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
             <td style="${TD_C} font-weight: 600;">${engTheory}</td>`;
 
         if (hasPrac) {
-            // SCI Practical (from practicalObt)
             const sciPrac = getScore(res.subjectScores, sciId, "practicalObt");
-            // SSC LIT.ACT (from practicalObt) and SSC Project Wrok (from internalObt)
             const sscLitAct = getScore(res.subjectScores, sscId, "practicalObt");
             const sscProjectWork = getScore(res.subjectScores, sscId, "internalObt");
 
@@ -1357,8 +1370,9 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
                 </button>
             </td>
         </tr>`;
-        tbody.innerHTML += rowHtml;
-    });
+        return rowHtml;
+    }).join("");
+    tbody.innerHTML = rowsHtml;
 
     tbody.querySelectorAll(".btn-print-card").forEach(btn => {
         btn.addEventListener("click", (e) => {
@@ -1458,7 +1472,7 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
         return;
     }
 
-    filteredStudents.forEach((res, index) => {
+    const rowsHtml = filteredStudents.map((res, index) => {
         const getSubDetails = (subId) => {
             if (!subId) return null;
             return res.subjectDetails.find(s => String(s.subjectId) === String(subId)) || null;
@@ -1561,8 +1575,9 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
                 </button>
             </td>
         </tr>`;
-        tbody.innerHTML += rowHtml;
-    });
+        return rowHtml;
+    }).join("");
+    tbody.innerHTML = rowsHtml;
 
     tbody.querySelectorAll(".btn-print-card").forEach(btn => {
         btn.addEventListener("click", (e) => {
@@ -1716,10 +1731,8 @@ export async function initResultGenerationView() {
             try {
                 const res = await apiRequest("exam.list");
                 if (res.success && res.exams) {
-                    examSelect.innerHTML = '<option value="">Select Exam</option>';
-                    res.exams.forEach(exam => {
-                        examSelect.innerHTML += `<option value="${exam.name}">${exam.name}</option>`;
-                    });
+                    const opts = res.exams.map(exam => `<option value="${exam.name}">${exam.name}</option>`).join("");
+                    examSelect.innerHTML = '<option value="">Select Exam</option>' + opts;
                 }
             } catch (err) {
                 console.error("Failed to load exams list:", err);

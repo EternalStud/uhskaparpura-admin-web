@@ -95,10 +95,60 @@ export const initPortalControlView = async () => {
         }
     });
 
+    // Populate Academic Session and Exam Name dropdowns for Asset Control
+    const assetYearSelect = document.querySelector("#asset-academic-year");
+    const assetExamSelect = document.querySelector("#asset-exam-name");
+
+    const getAcademicYears = () => {
+        const currentYear = new Date().getFullYear();
+        const month = new Date().getMonth() + 1;
+        let startYear = month >= 4 ? currentYear : currentYear - 1;
+        const current = `${startYear}-${String(startYear + 1).slice(-2)}`;
+        const next = `${startYear + 1}-${String(startYear + 2).slice(-2)}`;
+        const prev = `${startYear - 1}-${String(startYear).slice(-2)}`;
+        return [current, next, prev];
+    };
+
+    if (assetYearSelect) {
+        const years = getAcademicYears();
+        assetYearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
+    }
+
+    if (assetExamSelect) {
+        try {
+            const res = await apiRequest("exam.list");
+            if (res.success && res.exams && res.exams.length) {
+                assetExamSelect.innerHTML = res.exams.map(e => `<option value="${e.name}">${e.name}</option>`).join("");
+            } else {
+                assetExamSelect.innerHTML = `
+                    <option value="Quarterly">Quarterly</option>
+                    <option value="Half Yearly">Half Yearly</option>
+                    <option value="Annual">Annual</option>
+                `;
+            }
+        } catch (err) {
+            console.error("Failed to load exams for asset control:", err);
+            assetExamSelect.innerHTML = `
+                <option value="Quarterly">Quarterly</option>
+                <option value="Half Yearly">Half Yearly</option>
+                <option value="Annual">Annual</option>
+            `;
+        }
+    }
+
+    const refreshAssetControls = [];
+
     // Signatures and Stamp Asset Management
     setupAssetControl("teacher-sig", "report_card_teacher_sig", "Teacher Signature");
     setupAssetControl("school-stamp", "report_card_school_stamp", "School Rubber-Stamp");
     setupAssetControl("hm-sig", "report_card_hm_sig", "Headmaster Signature");
+
+    const onFilterChange = () => {
+        refreshAssetControls.forEach(fn => fn());
+    };
+
+    if (assetYearSelect) assetYearSelect.addEventListener("change", onFilterChange);
+    if (assetExamSelect) assetExamSelect.addEventListener("change", onFilterChange);
 
     // Issue Date Control
     const inputIssueDate = document.querySelector("#input-issue-date");
@@ -117,6 +167,16 @@ export const initPortalControlView = async () => {
         });
     }
 
+    function getEffectiveKey(baseKey) {
+        const year = assetYearSelect ? assetYearSelect.value : "";
+        const exam = assetExamSelect ? assetExamSelect.value : "";
+        if (year && exam) {
+            const cleanExam = exam.trim().replace(/\s+/g, '_');
+            return `${baseKey}_${year}_${cleanExam}`;
+        }
+        return baseKey;
+    }
+
     function setupAssetControl(type, storageKey, label) {
         const btnUpload = document.querySelector(`#btn-upload-${type}`);
         const fileInput = document.querySelector(`#file-${type}`);
@@ -126,7 +186,8 @@ export const initPortalControlView = async () => {
         if (!btnUpload || !fileInput || !previewEl || !btnRemove) return;
 
         const refreshPreview = () => {
-            const savedData = localStorage.getItem(storageKey);
+            const currentKey = getEffectiveKey(storageKey);
+            const savedData = localStorage.getItem(currentKey) || localStorage.getItem(storageKey);
             if (savedData) {
                 previewEl.innerHTML = `<img src="${savedData}" style="max-height: 55px; max-width: 100%; object-fit: contain;">`;
                 btnRemove.style.display = "inline-block";
@@ -137,6 +198,7 @@ export const initPortalControlView = async () => {
         };
 
         refreshPreview();
+        refreshAssetControls.push(refreshPreview);
 
         btnUpload.addEventListener("click", () => fileInput.click());
 
@@ -150,7 +212,8 @@ export const initPortalControlView = async () => {
             const reader = new FileReader();
             reader.onload = (evt) => {
                 const b64 = evt.target.result;
-                localStorage.setItem(storageKey, b64);
+                const currentKey = getEffectiveKey(storageKey);
+                localStorage.setItem(currentKey, b64);
                 refreshPreview();
                 showToast(`${label} uploaded successfully!`, "success");
             };
@@ -158,7 +221,8 @@ export const initPortalControlView = async () => {
         });
 
         btnRemove.addEventListener("click", () => {
-            localStorage.removeItem(storageKey);
+            const currentKey = getEffectiveKey(storageKey);
+            localStorage.removeItem(currentKey);
             fileInput.value = "";
             refreshPreview();
             showToast(`${label} removed.`, "info");
