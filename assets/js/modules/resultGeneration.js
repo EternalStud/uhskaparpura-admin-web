@@ -753,6 +753,10 @@ const renderTable = () => {
     const thead = document.querySelector("#results-table-thead");
     const tbody = document.querySelector("#results-table-tbody");
     const statsSummary = document.querySelector("#result-stats-summary");
+    const tableWrapper = document.querySelector("#results-table-wrapper");
+    const cardsContainer = document.querySelector("#results-cards-container");
+    const btnTable = document.querySelector("#toggle-view-table");
+    const btnCards = document.querySelector("#toggle-view-cards");
 
     if (!thead || !tbody) return;
 
