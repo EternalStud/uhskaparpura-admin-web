@@ -67,6 +67,64 @@
                     </div>
                 </section>
 
+                <!-- Report Card Signatures & Stamp Controls Card -->
+                <section class="workspace-card" style="padding: 24px;">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--color-text); display: flex; align-items: center; gap: 8px;">
+                        <span class="material-symbols-rounded" style="color: var(--color-primary);">verified</span>
+                        अंक पत्र मोहर एवं हस्ताक्षर प्रबंधन (Report Card Signatures & Stamp)
+                    </h3>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;">
+                        <!-- Teacher Signature Slot -->
+                        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; background: var(--color-surface); text-align: center;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 8px;">वर्ग शिक्षक हस्ताक्षर (Teacher Sig)</h4>
+                            <div id="preview-teacher-sig" style="height: 65px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--color-border); border-radius: 6px; margin-bottom: 12px; background: #fff;">
+                                <span style="font-size: 0.8rem; color: var(--color-muted);">No Signature</span>
+                            </div>
+                            <input type="file" id="file-teacher-sig" accept="image/*" style="display: none;">
+                            <div style="display: flex; gap: 8px; justify-content: center;">
+                                <button type="button" class="btn btn-secondary" id="btn-upload-teacher-sig" style="padding: 6px 12px; font-size: 0.8rem;">Upload</button>
+                                <button type="button" class="btn btn-danger" id="btn-remove-teacher-sig" style="padding: 6px 12px; font-size: 0.8rem; display: none;">Remove</button>
+                            </div>
+                        </div>
+
+                        <!-- School Rubber-Stamp Slot -->
+                        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; background: var(--color-surface); text-align: center;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 8px;">विद्यालय गोल मोहर (Rubber-Stamp)</h4>
+                            <div id="preview-school-stamp" style="height: 65px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--color-border); border-radius: 6px; margin-bottom: 12px; background: #fff;">
+                                <span style="font-size: 0.8rem; color: var(--color-muted);">No Stamp</span>
+                            </div>
+                            <input type="file" id="file-school-stamp" accept="image/*" style="display: none;">
+                            <div style="display: flex; gap: 8px; justify-content: center;">
+                                <button type="button" class="btn btn-secondary" id="btn-upload-school-stamp" style="padding: 6px 12px; font-size: 0.8rem;">Upload</button>
+                                <button type="button" class="btn btn-danger" id="btn-remove-school-stamp" style="padding: 6px 12px; font-size: 0.8rem; display: none;">Remove</button>
+                            </div>
+                        </div>
+
+                        <!-- HM Signature Slot -->
+                        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; background: var(--color-surface); text-align: center;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 8px;">प्रधानाध्यापक हस्ताक्षर (HM Sig)</h4>
+                            <div id="preview-hm-sig" style="height: 65px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--color-border); border-radius: 6px; margin-bottom: 12px; background: #fff;">
+                                <span style="font-size: 0.8rem; color: var(--color-muted);">No Signature</span>
+                            </div>
+                            <input type="file" id="file-hm-sig" accept="image/*" style="display: none;">
+                            <div style="display: flex; gap: 8px; justify-content: center;">
+                                <button type="button" class="btn btn-secondary" id="btn-upload-hm-sig" style="padding: 6px 12px; font-size: 0.8rem;">Upload</button>
+                                <button type="button" class="btn btn-danger" id="btn-remove-hm-sig" style="padding: 6px 12px; font-size: 0.8rem; display: none;">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Issue Date Configuration -->
+                    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--color-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h4 style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--color-text);">अंक पत्र जारी करने की तिथि (Report Card Issue Date)</h4>
+                            <p style="font-size: 0.8rem; color: var(--color-muted); margin: 2px 0 0 0;">खाली रखने पर आज की तिथि स्वतः अंकित होगी।</p>
+                        </div>
+                        <input type="date" id="input-issue-date" class="form-control" style="max-width: 200px; padding: 6px 12px; font-weight: 600;">
+                    </div>
+                </section>
+
                 <!-- Helpful Links Card -->
                 <section class="workspace-card" style="padding: 24px;">
                     <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--color-text); display: flex; align-items: center; gap: 8px;">

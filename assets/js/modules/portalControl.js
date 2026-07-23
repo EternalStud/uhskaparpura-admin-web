@@ -95,6 +95,76 @@ export const initPortalControlView = async () => {
         }
     });
 
+    // Signatures and Stamp Asset Management
+    setupAssetControl("teacher-sig", "report_card_teacher_sig", "Teacher Signature");
+    setupAssetControl("school-stamp", "report_card_school_stamp", "School Rubber-Stamp");
+    setupAssetControl("hm-sig", "report_card_hm_sig", "Headmaster Signature");
+
+    // Issue Date Control
+    const inputIssueDate = document.querySelector("#input-issue-date");
+    if (inputIssueDate) {
+        const savedDate = localStorage.getItem("report_card_issue_date");
+        if (savedDate) inputIssueDate.value = savedDate;
+
+        inputIssueDate.addEventListener("change", () => {
+            if (inputIssueDate.value) {
+                localStorage.setItem("report_card_issue_date", inputIssueDate.value);
+                showToast("Issue date updated successfully.", "success");
+            } else {
+                localStorage.removeItem("report_card_issue_date");
+                showToast("Default issue date restored.", "info");
+            }
+        });
+    }
+
+    function setupAssetControl(type, storageKey, label) {
+        const btnUpload = document.querySelector(`#btn-upload-${type}`);
+        const fileInput = document.querySelector(`#file-${type}`);
+        const previewEl = document.querySelector(`#preview-${type}`);
+        const btnRemove = document.querySelector(`#btn-remove-${type}`);
+
+        if (!btnUpload || !fileInput || !previewEl || !btnRemove) return;
+
+        const refreshPreview = () => {
+            const savedData = localStorage.getItem(storageKey);
+            if (savedData) {
+                previewEl.innerHTML = `<img src="${savedData}" style="max-height: 55px; max-width: 100%; object-fit: contain;">`;
+                btnRemove.style.display = "inline-block";
+            } else {
+                previewEl.innerHTML = `<span style="font-size: 0.8rem; color: var(--color-muted);">No ${label}</span>`;
+                btnRemove.style.display = "none";
+            }
+        };
+
+        refreshPreview();
+
+        btnUpload.addEventListener("click", () => fileInput.click());
+
+        fileInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                showToast("File size must be under 2MB.", "error");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const b64 = evt.target.result;
+                localStorage.setItem(storageKey, b64);
+                refreshPreview();
+                showToast(`${label} uploaded successfully!`, "success");
+            };
+            reader.readAsDataURL(file);
+        });
+
+        btnRemove.addEventListener("click", () => {
+            localStorage.removeItem(storageKey);
+            fileInput.value = "";
+            refreshPreview();
+            showToast(`${label} removed.`, "info");
+        });
+    }
+
     function updateStatusText(el, checked) {
         if (!el) return;
         if (checked) {
