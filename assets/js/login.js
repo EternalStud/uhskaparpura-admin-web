@@ -41,6 +41,37 @@ const showLoginWarning = (message) => {
  */
 export async function initLoginView() {
     try {
+        const isLocalHost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+        const devContainer = document.querySelector("#dev-login-container");
+        const devBtn = document.querySelector("#dev-login-btn");
+
+        if (isLocalHost && devContainer) {
+            devContainer.style.display = "block";
+        }
+
+        if (devBtn) {
+            devBtn.addEventListener("click", async () => {
+                showLoader();
+                try {
+                    saveSession({
+                        token: "DEV_LOCAL_BYPASS_TOKEN",
+                        user: {
+                            name: "MD ZAFAR ALI (Admin)",
+                            email: "mdzafarali.ali@gmail.com",
+                            role: "ADMIN"
+                        },
+                        expiresAt: Date.now() + 8 * 60 * 60 * 1000
+                    });
+                    showToast("Signed in as Admin (Local Dev Mode).", "success");
+                    await navigateTo("/dashboard");
+                } catch (err) {
+                    console.error("Local sign-in error:", err);
+                } finally {
+                    hideLoader();
+                }
+            });
+        }
+
         await googleScriptReady();
         await signInWithGoogle({
             buttonElement: document.querySelector("#google-login-button"),

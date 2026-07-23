@@ -37,34 +37,44 @@ export async function apiRequest(path, options = {}) {
         }
 
         const finalUrl = url.toString().replace(/\+/g, "%20");
-        const response = await fetch(finalUrl, {
-            ...options,
-            headers: {
-                "Content-Type": "text/plain",
-                ...(options.headers ?? {})
+        let response;
+        try {
+            response = await fetch(finalUrl, {
+                ...options,
+                headers: {
+                    "Content-Type": "text/plain",
+                    ...(options.headers ?? {})
+                }
+            });
+        } catch (netErr) {
+            console.error("API Fetch Error:", netErr);
+            if (!session || !session.user?.email) {
+                clearSession();
+                window.location.hash = "#/login";
+                throw new Error("Session expired or not signed in. Please sign in to continue.");
             }
-        });
+            throw new Error("Unable to connect to school server. Please check your internet connection.");
+        }
+
         const payload = await response.json();
 
-
-
         if (!response.ok) {
-            throw new Error(payload.error ?? payload.message ?? `API request failed with ${response.status}`);
+            throw new Error(payload.error ?? payload.message ?? `API request failed with status ${response.status}`);
         }
 
         if (payload?.success === false) {
             const code = payload.code;
-            if (code === "UNAUTHORIZED" || code === "USER_NOT_REGISTERED" || code === "TOKEN_INVALID" || code === "TOKEN_MISSING" || code === "EMAIL_MISMATCH") {
+            if (code === "UNAUTHORIZED" || code === "USER_NOT_REGISTERED" || code === "TOKEN_INVALID" || code === "TOKEN_MISSING" || code === "EMAIL_MISMATCH" || code === "AUTH_REQUIRED") {
                 clearSession();
                 window.location.hash = "#/login";
+                throw new Error(payload.message || "Authentication required. Please sign in again.");
             }
             throw new Error(payload.error ?? payload.message ?? "API request failed.");
         }
 
-
         return payload;
     } catch (error) {
-        console.error(error);
+        console.error("apiRequest Error:", error);
         throw error;
     }
 }
