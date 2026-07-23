@@ -157,10 +157,6 @@
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
 
-.prepare-exam-form {
-    display: grid;
-    gap: 16px;
-}
 
 @media (min-width: 680px) {
     .topbar {

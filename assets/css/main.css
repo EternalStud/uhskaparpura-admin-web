@@ -293,36 +293,6 @@ a {
     }
 }
 
-/* Prepare Exam Success State */
-.prepare-exam-success {
-    display: grid;
-    gap: 20px;
-    padding: 10px 0;
-}
-
-.success-header {
-    text-align: center;
-    display: grid;
-    gap: 8px;
-    justify-items: center;
-}
-
-.success-icon {
-    font-size: 3.5rem;
-    color: var(--color-success);
-}
-
-.success-header h3 {
-    margin: 0;
-    font-size: 1.3rem;
-    color: var(--color-text);
-}
-
-.success-header p {
-    margin: 0;
-    color: var(--color-muted);
-    font-size: 0.95rem;
-}
 
 .success-body {
     background: var(--color-surface-strong);
@@ -1155,5 +1125,32 @@ a {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.15); }
 }
+
+/* Result Generation Mobile Enhancements */
+@media (max-width: 768px) {
+    .results-toolbar {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .results-toolbar > div {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    #result-search-input {
+        width: 100% !important;
+        min-width: 100% !important;
+    }
+
+    #result-sort-select {
+        flex: 1;
+    }
+
+    .mobile-student-card:active {
+        transform: scale(0.99);
+    }
+}
+
 
 

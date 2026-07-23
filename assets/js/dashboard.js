@@ -2,7 +2,6 @@ import { renderNavbar } from "../../components/navbar.js?t=17892929155";
 import { logout } from "../../services/auth.js";
 import { navigateTo } from "./router.js?t=17892929155";
 import { showToast } from "../../components/toast.js";
-import { openPrepareExamModal } from "./modules/prepareExam.js";
 import { getSession, saveSession } from "../../services/session.js";
 import { apiRequest } from "../../services/api.js";
 
@@ -12,12 +11,6 @@ const modules = [
         description: "Manage student records.",
         icon: "group",
         action: "student-master"
-    },
-    {
-        title: "Prepare Exam Sheets",
-        description: "Generate templates in Drive.",
-        icon: "article",
-        action: "prepare-exam"
     },
     {
         title: "Students-Subject Tag",
@@ -97,11 +90,6 @@ const handleAction = async (action) => {
             return;
         }
 
-        if (action === "prepare-exam") {
-            await openPrepareExamModal();
-            return;
-        }
-
         if (action === "student-master") {
             await navigateTo("/student-master");
             return;
@@ -173,9 +161,9 @@ export async function initDashboardView() {
 
         const visibleCards = modules.filter(module => {
             if (module.hidden) return false;
-            // Hide result generation and prepare exam cards for TEACHERs
+            // Hide result generation card for TEACHERs
             if (userRole === "TEACHER") {
-                if (module.action === "result-generation" || module.action === "prepare-exam" || module.action === "sync-schooldb" || module.action === "exam-control" || module.action === "portal-control") {
+                if (module.action === "result-generation" || module.action === "sync-schooldb" || module.action === "exam-control" || module.action === "portal-control") {
                     return false;
                 }
             }
