@@ -193,6 +193,39 @@ export const initPortalControlView = async () => {
         return baseKey;
     }
 
+const compressImage = (base64Str, maxWidth, maxHeight) => {
+    return new Promise((resolve) => {
+        if (!base64Str || !base64Str.startsWith("data:image")) {
+            resolve(base64Str);
+            return;
+        }
+        const img = new Image();
+        img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth || height > maxHeight) {
+                if (width > height) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                } else {
+                    width = Math.round((width * maxHeight) / height);
+                    height = maxHeight;
+                }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/png"));
+        };
+        img.onerror = () => {
+            resolve(base64Str);
+        };
+        img.src = base64Str;
+    });
+};
+
     function setupAssetControl(type, storageKey, label) {
         const btnUpload = document.querySelector(`#btn-upload-${type}`);
         const fileInput = document.querySelector(`#file-${type}`);
@@ -229,7 +262,10 @@ export const initPortalControlView = async () => {
             }
             const reader = new FileReader();
             reader.onload = async (evt) => {
-                const b64 = evt.target.result;
+                showLoader();
+                let b64 = evt.target.result;
+                const isStamp = type.includes("stamp");
+                b64 = await compressImage(b64, isStamp ? 250 : 300, isStamp ? 250 : 150);
                 const currentKey = getEffectiveKey(storageKey);
                 localStorage.setItem(currentKey, b64);
                 localStorage.setItem(storageKey, b64);
@@ -242,6 +278,8 @@ export const initPortalControlView = async () => {
                     });
                 } catch (err) {
                     console.error("Failed to sync asset to backend settings:", err);
+                } finally {
+                    hideLoader();
                 }
                 showToast(`${label} uploaded successfully!`, "success");
             };

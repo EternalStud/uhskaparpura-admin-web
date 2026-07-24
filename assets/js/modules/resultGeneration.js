@@ -21,6 +21,39 @@ const generateQrSvg = (text) => {
     }
 };
 
+const compressImage = (base64Str, maxWidth, maxHeight) => {
+    return new Promise((resolve) => {
+        if (!base64Str || !base64Str.startsWith("data:image")) {
+            resolve(base64Str);
+            return;
+        }
+        const img = new Image();
+        img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxWidth || height > maxHeight) {
+                if (width > height) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                } else {
+                    width = Math.round((width * maxHeight) / height);
+                    height = maxHeight;
+                }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/png"));
+        };
+        img.onerror = () => {
+            resolve(base64Str);
+        };
+        img.src = base64Str;
+    });
+};
+
 
 "use strict";
 
@@ -651,18 +684,26 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     </div>`;
 };
 
-const openPrintWindow = (htmlContent, documentTitle) => {
+const openPrintWindow = async (htmlContent, documentTitle) => {
+    showLoader();
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
+        hideLoader();
         showToast("Pop-up blocker prevented opening the print window. Please allow pop-ups.", "error");
         return;
     }
 
-    const teacherSig = localStorage.getItem("report_card_teacher_sig") || "";
-    let hmSig = localStorage.getItem("report_card_hm_sig");
-    if (hmSig === "REMOVED") hmSig = "";
-    let schoolStamp = localStorage.getItem("report_card_school_stamp");
-    if (schoolStamp === "REMOVED") schoolStamp = "";
+    const teacherSigRaw = localStorage.getItem("report_card_teacher_sig") || "";
+    let hmSigRaw = localStorage.getItem("report_card_hm_sig") || "";
+    if (hmSigRaw === "REMOVED") hmSigRaw = "";
+    let schoolStampRaw = localStorage.getItem("report_card_school_stamp") || "";
+    if (schoolStampRaw === "REMOVED") schoolStampRaw = "";
+
+    const [teacherSig, hmSig, schoolStamp] = await Promise.all([
+        compressImage(teacherSigRaw, 250, 100),
+        compressImage(hmSigRaw, 250, 100),
+        compressImage(schoolStampRaw, 250, 250)
+    ]);
 
     const assetStyles = `
         .bseb-logo-img { background-image: url("${BSEB_LOGO_B64}"); background-size: contain; background-repeat: no-repeat; background-position: center; }
@@ -670,6 +711,8 @@ const openPrintWindow = (htmlContent, documentTitle) => {
         ${hmSig ? `.hm-sig-img { background-image: url("${hmSig}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
         ${schoolStamp ? `.school-stamp-img { background-image: url("${schoolStamp}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
     `;
+
+    hideLoader();
 
     printWindow.document.write(`
         <!DOCTYPE html>
@@ -748,7 +791,7 @@ const openPrintWindow = (htmlContent, documentTitle) => {
 /**
  * Print individual report card for a single student.
  */
-const handlePrintSingleReportCard = (studentId) => {
+const handlePrintSingleReportCard = async (studentId) => {
     const activeData = currentResults.find(r => r.classVal === activeClassVal);
     if (!activeData) return;
 
@@ -768,13 +811,13 @@ const handlePrintSingleReportCard = (studentId) => {
         ? generateSeniorReportCardHtml(student, examName, year, activeClassVal, streamName, BSEB_LOGO_B64)
         : generateJuniorReportCardHtml(student, examName, year, activeClassVal, BSEB_LOGO_B64);
 
-    openPrintWindow(cardHtml, `ReportCard_${student.rollNo}_${student.studentName}`);
+    await openPrintWindow(cardHtml, `ReportCard_${student.rollNo}_${student.studentName}`);
 };
 
 /**
  * Batch print all report cards for current class selection.
  */
-const handlePrintAllReportCards = () => {
+const handlePrintAllReportCards = async () => {
     const activeData = currentResults.find(r => r.classVal === activeClassVal);
     if (!activeData || !activeData.studentResults || !activeData.studentResults.length) {
         showToast("No student results available to print.", "error");
@@ -799,7 +842,7 @@ const handlePrintAllReportCards = () => {
         allCardsHtml += cardHtml;
     });
 
-    openPrintWindow(allCardsHtml, `All_ReportCards_Class_${activeClassVal}_${examName}`);
+    await openPrintWindow(allCardsHtml, `All_ReportCards_Class_${activeClassVal}_${examName}`);
 };
 
 
