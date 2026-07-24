@@ -64,7 +64,7 @@ import { showLoader, hideLoader } from "../../../components/loader.js?t=17892929
 import { apiRequest } from "../../../services/api.js";
 import { renderNavbar } from "../../../components/navbar.js?t=17892929155";
 
-const BSEB_LOGO_B64 = '/assets/images/bseb_logo_hd.png';
+const BSEB_LOGO_B64 = '/assets/images/bseb_logo.png';
 const DEFAULT_HM_SIG_B64 = '/assets/images/hm_sig.png';
 const DEFAULT_SCHOOL_STAMP_B64 = '/assets/images/school_stamp.png';
 
@@ -726,7 +726,13 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
                 @page { size: A4 portrait; margin: 0; }
                 html, body { margin: 0; padding: 0; background: #525659; font-family: 'Times New Roman', Times, serif; }
                 * { box-sizing: border-box; }
-                .bseb-report-card-page { margin: 20px auto !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+                .bseb-report-card-page { 
+                    margin: 20px auto !important; 
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+                    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyODAnIGhlaWdodD0nMTQwJyB2aWV3Qm94PScwIDAgMjgwIDE0MCc+PHRleHQgeD0nNTAlJyB5PSc1MCUnIHRyYW5zZm9ybT0ncm90YXRlKC0yNSwgMTQwLCA3MCknIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZvbnQtZmFtaWx5PSdBcmlhbCwgc2Fucy1zZXJpZicgZm9udC1zaXplPScxMicgZm9udC13ZWlnaHQ9J2JvbGQnIGZpbGw9J3JnYmEoMCwwLDAsMC4wNSknPuCkiS7gpK7gpL4u4KS14KS/LiDgpJXgpKrgpLDgpKrgpYHgpLDgpL4sIOCkleCkvuCkgeCkn+ClgCwg4KSu4KWB4KSc4KSr4KWN4KSr4KSw4KSq4KWB4KSwPC90ZXh0Pjwvc3ZnPg==") !important;
+                    background-repeat: repeat !important;
+                    background-size: 280px 140px !important;
+                }
                 @media print {
                     * { 
                         box-shadow: none !important; 
