@@ -1766,6 +1766,69 @@ export async function initResultGenerationView() {
             yearInput.value = getDefaultAcademicYear();
         }
 
+        // Setup filter listeners
+        const generateBtn = document.querySelector("#generate-results-btn");
+        const searchInput = document.querySelector("#result-search-input");
+
+        document.querySelectorAll('input[name="classes"]').forEach(el => {
+            el.addEventListener("change", async () => {
+                updateStreamFilterVisibility();
+                await updateAvailableSections();
+            });
+        });
+
+        if (yearInput) {
+            yearInput.addEventListener("input", async () => {
+                await updateAvailableSections();
+            });
+        }
+
+        if (generateBtn) {
+            generateBtn.addEventListener("click", handleGenerateResults);
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener("input", (e) => {
+                searchQuery = e.target.value;
+                renderTable();
+            });
+        }
+
+        const sortSelect = document.querySelector("#result-sort-select");
+        if (sortSelect) {
+            sortSelect.addEventListener("change", () => {
+                renderTable();
+            });
+        }
+
+        const exportBtn = document.querySelector("#export-excel-btn");
+        if (exportBtn) {
+            exportBtn.addEventListener("click", handleExportToExcel);
+        }
+
+        const printAllBtn = document.querySelector("#print-all-cards-btn");
+        if (printAllBtn) {
+            printAllBtn.addEventListener("click", handlePrintAllReportCards);
+        }
+
+        // Setup view mode toggle listeners
+        const btnTable = document.querySelector("#toggle-view-table");
+        const btnCards = document.querySelector("#toggle-view-cards");
+
+        if (btnTable) {
+            btnTable.addEventListener("click", () => {
+                currentViewMode = "table";
+                renderTable();
+            });
+        }
+
+        if (btnCards) {
+            btnCards.addEventListener("click", () => {
+                currentViewMode = "cards";
+                renderTable();
+            });
+        }
+
         // Initial setup - parallelize dropdown load and sections fetch
         updateStreamFilterVisibility();
         await Promise.all([
