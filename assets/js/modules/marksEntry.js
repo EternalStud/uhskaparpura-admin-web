@@ -780,9 +780,7 @@ const loadStudentMarks = async () => {
     document.querySelector("#stats-progress-section").style.display = "none";
     document.querySelector("#subject-tag-loading").style.display = "block";
     showLoader();
-
     currentFilters = { ...filters };
-    showLoader();
 
     try {
         const query = new URLSearchParams(filters).toString();
