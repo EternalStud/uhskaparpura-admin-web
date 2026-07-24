@@ -672,10 +672,24 @@ const openPrintWindow = (htmlContent, documentTitle) => {
                 .bseb-report-card-page { margin: 20px auto !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
                 @media print {
                     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-                    html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; height: 100% !important; overflow: hidden !important; }
-                    .print-wrapper { padding: 0 !important; margin: 0 !important; }
-                    .bseb-report-card-page { margin: 0 auto !important; box-shadow: none !important; height: 297mm !important; max-height: 297mm !important; overflow: hidden !important; page-break-after: auto !important; page-break-inside: avoid !important; }
-                    .bseb-report-card-page:not(:last-child) { page-break-after: always !important; }
+                    html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; height: auto !important; min-height: 100% !important; overflow: visible !important; }
+                    .print-wrapper { padding: 0 !important; margin: 0 !important; display: block !important; }
+                    .bseb-report-card-page { 
+                        margin: 0 auto !important; 
+                        box-shadow: none !important; 
+                        width: 210mm !important;
+                        height: 297mm !important; 
+                        max-height: 297mm !important; 
+                        overflow: hidden !important; 
+                        page-break-after: always !important; 
+                        break-after: page !important; 
+                        page-break-inside: avoid !important;
+                        break-inside: avoid !important;
+                    }
+                    .bseb-report-card-page:last-child {
+                        page-break-after: auto !important;
+                        break-after: auto !important;
+                    }
                     .no-print-bar { display: none !important; }
                 }
             </style>
