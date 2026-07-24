@@ -87,15 +87,15 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const schoolStamp = getAsset("report_card_school_stamp", "");
 
     const teacherSigHtml = teacherSig 
-        ? `<img src="${teacherSig}" style="height: 42px; max-width: 150px; display: block; margin: 0 auto 2px auto; object-fit: contain;">` 
+        ? `<div class="teacher-sig-img" style="height: 42px; width: 150px; margin: 0 auto 2px auto;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
     const hmSigHtml = hmSig 
-        ? `<img src="${hmSig}" style="position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%); height: 55px; object-fit: contain; z-index: 2; mix-blend-mode: multiply;">` 
+        ? `<div class="hm-sig-img" style="position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%); height: 55px; width: 160px; z-index: 2; mix-blend-mode: multiply;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
     const stampHtml = schoolStamp
-        ? `<img src="${schoolStamp}" style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 80mm; height: 76mm; object-fit: contain; opacity: 0.90; z-index: 1;">`
+        ? `<div class="school-stamp-img" style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 80mm; height: 76mm; z-index: 1; opacity: 0.90;"></div>`
         : ``;
 
     const getSubObj = (subId) => {
@@ -166,8 +166,8 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     <div class="bseb-report-card-page" style="width: 210mm; height: 297mm; max-height: 297mm; padding: 12mm 14mm; margin: 0 auto; background-color: #ffffff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: 'Arial', 'Helvetica Neue', sans-serif; color: #1e293b; position: relative; overflow: hidden; border: 2.5px solid #0f172a;">
 
         <!-- Centered Emblem Watermark Layer (Single Light Seal) -->
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; height: 440px; opacity: 0.06; pointer-events: none; z-index: 0; display: flex; align-items: center; justify-content: center;">
-            <img src="${logoB64}" style="width: 100%; height: 100%; object-fit: contain;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; height: 440px; opacity: 0.06; pointer-events: none; z-index: 0;">
+            <div class="bseb-logo-img" style="width: 100%; height: 100%;"></div>
         </div>
 
         <!-- Main Content Area -->
@@ -175,7 +175,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
             <!-- Header Container -->
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                 <div style="width: 120px; text-align: left; display: flex; align-items: center;">
-                    <img src="${logoB64}" style="width: 120px; height: 120px; object-fit: contain;">
+                    <div class="bseb-logo-img" style="width: 120px; height: 120px;"></div>
                 </div>
                 <div style="flex: 1; text-align: center; padding: 0 10px;">
                     <h1 style="font-size: 24px; font-weight: 700; margin: 0; color: #1e3a8a; letter-spacing: 0.5px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1);">बिहार विद्यालय परीक्षा समिति, पटना</h1>
@@ -416,15 +416,15 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const schoolStamp = getAsset("report_card_school_stamp", "");
 
     const teacherSigHtml = teacherSig 
-        ? `<img src="${teacherSig}" style="height: 42px; max-width: 150px; display: block; margin: 0 auto 2px auto; object-fit: contain;">` 
+        ? `<div class="teacher-sig-img" style="height: 42px; width: 150px; margin: 0 auto 2px auto;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
     const hmSigHtml = hmSig 
-        ? `<img src="${hmSig}" style="position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%); height: 55px; object-fit: contain; z-index: 2; mix-blend-mode: multiply;">` 
+        ? `<div class="hm-sig-img" style="position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%); height: 55px; width: 160px; z-index: 2; mix-blend-mode: multiply;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
     const stampHtml = schoolStamp
-        ? `<img src="${schoolStamp}" style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 80mm; height: 76mm; object-fit: contain; opacity: 0.90; z-index: 1;">`
+        ? `<div class="school-stamp-img" style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 80mm; height: 76mm; z-index: 1; opacity: 0.90;"></div>`
         : ``;
 
     const getSubDetails = (subId) => {
@@ -482,7 +482,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
 
         <!-- Single Centered Faint BSEB Seal Watermark (~6% opacity) -->
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 420px; height: 420px; opacity: 0.06; pointer-events: none; z-index: 0;">
-            <img src="${logoB64}" style="width: 100%; height: 100%; object-fit: contain;">
+            <div class="bseb-logo-img" style="width: 100%; height: 100%;"></div>
         </div>
 
         <!-- Main Content Area -->
@@ -490,7 +490,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
             <!-- Header Container -->
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                 <div style="width: 120px; text-align: left; display: flex; align-items: center;">
-                    <img src="${logoB64}" style="width: 120px; height: 120px; object-fit: contain;">
+                    <div class="bseb-logo-img" style="width: 120px; height: 120px;"></div>
                 </div>
                 <div style="flex: 1; text-align: center; padding: 0 10px;">
                     <h1 style="font-size: 24px; font-weight: 700; margin: 0; color: #1e3a8a; letter-spacing: 0.5px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1);">बिहार विद्यालय परीक्षा समिति, पटना</h1>
@@ -658,6 +658,19 @@ const openPrintWindow = (htmlContent, documentTitle) => {
         return;
     }
 
+    const teacherSig = localStorage.getItem("report_card_teacher_sig") || "";
+    let hmSig = localStorage.getItem("report_card_hm_sig");
+    if (hmSig === "REMOVED") hmSig = "";
+    let schoolStamp = localStorage.getItem("report_card_school_stamp");
+    if (schoolStamp === "REMOVED") schoolStamp = "";
+
+    const assetStyles = `
+        .bseb-logo-img { background-image: url("${BSEB_LOGO_B64}"); background-size: contain; background-repeat: no-repeat; background-position: center; }
+        ${teacherSig && teacherSig !== "REMOVED" ? `.teacher-sig-img { background-image: url("${teacherSig}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
+        ${hmSig ? `.hm-sig-img { background-image: url("${hmSig}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
+        ${schoolStamp ? `.school-stamp-img { background-image: url("${schoolStamp}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
+    `;
+
     printWindow.document.write(`
         <!DOCTYPE html>
         <html>
@@ -666,6 +679,7 @@ const openPrintWindow = (htmlContent, documentTitle) => {
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
+                ${assetStyles}
                 @page { size: A4 portrait; margin: 0; }
                 html, body { margin: 0; padding: 0; background: #525659; font-family: 'Times New Roman', Times, serif; }
                 * { box-sizing: border-box; }
