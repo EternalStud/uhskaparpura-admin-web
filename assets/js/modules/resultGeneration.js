@@ -119,12 +119,6 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
         return Math.round(getFullMarks(subObj) * 0.3);
     };
 
-    const getScoreVal = (subId) => {
-        const obj = res.subjectScores[subId];
-        if (!obj) return "";
-        return obj.totalObt !== undefined ? obj.totalObt : "";
-    };
-
     const l1Full = getFullMarks(l1), l1Pass = getPassMarks(l1);
     const l2Full = getFullMarks(l2), l2Pass = getPassMarks(l2);
     const matFull = getFullMarks(mat), matPass = getPassMarks(mat);
@@ -138,13 +132,8 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     return `
     <div class="bseb-report-card-page" style="width: 210mm; height: 297mm; max-height: 297mm; padding: 12mm 14mm; margin: 0 auto; background-color: #ffffff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: 'Arial', 'Helvetica Neue', sans-serif; color: #1e293b; position: relative; overflow: hidden; border: 2.5px solid #0f172a;">
 
-        
-
-        <!-- Double Inner Border Frame -->
-        <div style="position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px; border: 1px solid #0f172a; pointer-events: none; z-index: 10;"></div>
-
-        <!-- Single Centered Faint BSEB Seal Watermark (~6% opacity) -->
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 420px; height: 420px; opacity: 0.06; pointer-events: none; z-index: 0;">
+        <!-- Centered Emblem Watermark Layer (Single Light Seal) -->
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; height: 440px; opacity: 0.06; pointer-events: none; z-index: 0; display: flex; align-items: center; justify-content: center;">
             <img src="${logoB64}" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
 
@@ -219,11 +208,13 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
             <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px; margin-bottom: 14px; border: 1.5px solid #0f172a; border-radius: 6px; overflow: hidden;" border="1">
                 <thead>
                     <tr style="background: #f1f5f9; font-weight: 700; color: #0f172a; height: 38px;">
-                        <th style="border: 1px solid #0f172a; padding: 6px; width: 14%;">CODE</th>
-                        <th style="border: 1px solid #0f172a; padding: 6px; width: 36%;">SUBJECT</th>
-                        <th style="border: 1px solid #0f172a; padding: 6px; width: 16%;">FULL MARKS</th>
-                        <th style="border: 1px solid #0f172a; padding: 6px; width: 16%;">PASS MARKS</th>
-                        <th style="border: 1px solid #0f172a; padding: 6px; width: 18%;">MARKS OBTAINED</th>
+                        <th style="border: 1px solid #0f172a; padding: 6px; width: 10%;">CODE</th>
+                        <th style="border: 1px solid #0f172a; padding: 6px; width: 30%;">SUBJECT</th>
+                        <th style="border: 1px solid #0f172a; padding: 6px; width: 12%;">FULL MARKS</th>
+                        <th style="border: 1px solid #0f172a; padding: 6px; width: 12%;">PASS MARKS</th>
+                        <th style="border: 1px solid #0f172a; padding: 6px; width: 12%;">THEORY</th>
+                        <th style="border: 1px solid #0f172a; padding: 6px; width: 12%;">INT/PRAC</th>
+                        <th style="border: 1px solid #0f172a; padding: 6px; width: 12%;">MARKS OBTAINED</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -232,6 +223,8 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                         <td style="border: 1px solid #0f172a; padding: 6px 12px; text-align: left; text-transform: uppercase;">${l1.name || 'HINDI'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${l1Full}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${l1Pass}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${getTheoryVal(res.language1)}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${getPracVal(res.language1)}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px; font-weight: 700;">${getScoreVal(res.language1)}</td>
                     </tr>
                     <tr style="height: 34px;">
@@ -239,6 +232,8 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                         <td style="border: 1px solid #0f172a; padding: 6px 12px; text-align: left; text-transform: uppercase;">${l2.name || 'SANSKRIT'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${l2Full}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${l2Pass}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${getTheoryVal(res.language2)}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${getPracVal(res.language2)}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px; font-weight: 700;">${getScoreVal(res.language2)}</td>
                     </tr>
                     <tr style="height: 34px;">
@@ -246,6 +241,8 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                         <td style="border: 1px solid #0f172a; padding: 6px 12px; text-align: left; text-transform: uppercase;">${mat.name || 'MATHEMATICS'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${matFull}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${matPass}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${getTheoryVal(`${activeClassVal}_MAT`)}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${getPracVal(`${activeClassVal}_MAT`)}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px; font-weight: 700;">${getScoreVal(`${activeClassVal}_MAT`)}</td>
                     </tr>
                     <tr style="height: 34px;">
@@ -253,6 +250,8 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                         <td style="border: 1px solid #0f172a; padding: 6px 12px; text-align: left; text-transform: uppercase;">${sci.name || 'SCIENCE'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${sciFull}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${sciPass}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${getTheoryVal(`${activeClassVal}_SCI`)}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${getPracVal(`${activeClassVal}_SCI`)}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px; font-weight: 700;">${getScoreVal(`${activeClassVal}_SCI`)}</td>
                     </tr>
                     <tr style="height: 34px;">
@@ -260,12 +259,15 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                         <td style="border: 1px solid #0f172a; padding: 6px 12px; text-align: left; text-transform: uppercase;">${ssc.name || 'SOCIAL SCIENCE'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${sscFull}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${sscPass}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${getTheoryVal(`${activeClassVal}_SST`)}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${getPracVal(`${activeClassVal}_SST`)}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px; font-weight: 700;">${getScoreVal(`${activeClassVal}_SST`)}</td>
                     </tr>
                     <tr style="height: 34px; font-weight: 700; background: #f8fafc;">
                         <td style="border: 1px solid #0f172a; padding: 6px;" colspan="2">TOTAL</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${totalFullMarks}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${totalPassMarks}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;" colspan="2">-</td>
                         <td style="border: 1px solid #0f172a; padding: 6px; font-weight: 800;">${res.grandTotal !== undefined ? res.grandTotal : ''}</td>
                     </tr>
                     <tr style="height: 34px;">
@@ -273,6 +275,8 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                         <td style="border: 1px solid #0f172a; padding: 6px 12px; text-align: left; text-transform: uppercase;">${eng.name || 'ENGLISH'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${engFull}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${engPass}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${getTheoryVal(`${activeClassVal}_ENG`)}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${getPracVal(`${activeClassVal}_ENG`)}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px; font-weight: 700;">${getScoreVal(`${activeClassVal}_ENG`)}</td>
                     </tr>
                 </tbody>
