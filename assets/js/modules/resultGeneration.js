@@ -92,8 +92,8 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
         : `<div style="height: 38px;"></div>`;
 
     const stampHtml = schoolStamp
-        ? `<img src="${schoolStamp}" style="position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); width: 210px; height: 210px; object-fit: contain; opacity: 0.90; z-index: 1;">`
-        : `<div style="width: 80px; height: 80px; border: 1.5px dashed #94a3b8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: #64748b; margin: 0 auto; text-align: center; line-height: 1.1;">SCHOOL<br>SEAL</div>`;
+        ? `<img src="${schoolStamp}" style="position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); width: 40mm; height: 38mm; object-fit: contain; opacity: 0.90; z-index: 1;">`
+        : `<div style="width: 40mm; height: 38mm; border: 1.5px dashed #94a3b8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: #64748b; margin: 0 auto; text-align: center; line-height: 1.1;">SCHOOL<br>SEAL</div>`;
 
     const getSubObj = (subId) => {
         if (!subId) return {};
@@ -384,8 +384,8 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
         : `<div style="height: 38px;"></div>`;
 
     const stampHtml = schoolStamp
-        ? `<img src="${schoolStamp}" style="position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); width: 210px; height: 210px; object-fit: contain; opacity: 0.90; z-index: 1;">`
-        : `<div style="width: 80px; height: 80px; border: 1.5px dashed #94a3b8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: #64748b; margin: 0 auto; text-align: center; line-height: 1.1;">SCHOOL<br>SEAL</div>`;
+        ? `<img src="${schoolStamp}" style="position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); width: 40mm; height: 38mm; object-fit: contain; opacity: 0.90; z-index: 1;">`
+        : `<div style="width: 40mm; height: 38mm; border: 1.5px dashed #94a3b8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold; color: #64748b; margin: 0 auto; text-align: center; line-height: 1.1;">SCHOOL<br>SEAL</div>`;
 
     const getSubDetails = (subId) => {
         if (!subId) return null;
