@@ -72,11 +72,14 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     // Stored Assets per Academic Session & Exam Name
     const cleanExamKey = examName ? examName.trim().replace(/\s+/g, '_') : "";
     const getAsset = (baseKey, fallback) => {
+        let val = "";
         if (academicYear && cleanExamKey) {
-            const specificVal = localStorage.getItem(`${baseKey}_${academicYear}_${cleanExamKey}`);
-            if (specificVal) return specificVal;
+            val = localStorage.getItem(`${baseKey}_${academicYear}_${cleanExamKey}`);
         }
-        return localStorage.getItem(baseKey) || fallback;
+        if (!val) val = localStorage.getItem(baseKey);
+        if (val === "REMOVED") return "";
+        if (val) return val;
+        return fallback || "";
     };
 
     const teacherSig = getAsset("report_card_teacher_sig", "");
@@ -398,11 +401,14 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     // Stored Assets per Academic Session & Exam Name
     const cleanExamKey = examName ? examName.trim().replace(/\s+/g, '_') : "";
     const getAsset = (baseKey, fallback) => {
+        let val = "";
         if (academicYear && cleanExamKey) {
-            const specificVal = localStorage.getItem(`${baseKey}_${academicYear}_${cleanExamKey}`);
-            if (specificVal) return specificVal;
+            val = localStorage.getItem(`${baseKey}_${academicYear}_${cleanExamKey}`);
         }
-        return localStorage.getItem(baseKey) || fallback;
+        if (!val) val = localStorage.getItem(baseKey);
+        if (val === "REMOVED") return "";
+        if (val) return val;
+        return fallback || "";
     };
 
     const teacherSig = getAsset("report_card_teacher_sig", "");

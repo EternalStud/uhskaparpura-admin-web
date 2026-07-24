@@ -34,6 +34,16 @@ export const initPortalControlView = async () => {
             const isResultPublished = settings["result_published"] === "ON" || settings["result_published"] === "true";
             toggleResult.checked = isResultPublished;
             updateStatusText(resultText, isResultPublished);
+
+            // Sync backend settings to localStorage for issue date & assets
+            if (settings["report_card_issue_date"]) {
+                localStorage.setItem("report_card_issue_date", settings["report_card_issue_date"]);
+            }
+            Object.keys(settings).forEach(key => {
+                if (key.startsWith("report_card_")) {
+                    localStorage.setItem(key, settings[key]);
+                }
+            });
         } else {
             showToast("Failed to load settings.", "error");
         }
@@ -154,15 +164,21 @@ export const initPortalControlView = async () => {
     const inputIssueDate = document.querySelector("#input-issue-date");
     if (inputIssueDate) {
         const savedDate = localStorage.getItem("report_card_issue_date");
-        if (savedDate) inputIssueDate.value = savedDate;
+        const todayStr = new Date().toISOString().split("T")[0];
+        inputIssueDate.value = savedDate || todayStr;
 
-        inputIssueDate.addEventListener("change", () => {
-            if (inputIssueDate.value) {
-                localStorage.setItem("report_card_issue_date", inputIssueDate.value);
+        inputIssueDate.addEventListener("change", async () => {
+            const val = inputIssueDate.value || todayStr;
+            localStorage.setItem("report_card_issue_date", val);
+            try {
+                await apiRequest("settings.save", {
+                    method: "POST",
+                    body: JSON.stringify({ "report_card_issue_date": val })
+                });
                 showToast("Issue date updated successfully.", "success");
-            } else {
-                localStorage.removeItem("report_card_issue_date");
-                showToast("Default issue date restored.", "info");
+            } catch (err) {
+                console.error("Failed to save issue date to settings:", err);
+                showToast("Issue date saved locally.", "info");
             }
         });
     }
@@ -187,8 +203,10 @@ export const initPortalControlView = async () => {
 
         const refreshPreview = () => {
             const currentKey = getEffectiveKey(storageKey);
-            const savedData = localStorage.getItem(currentKey) || localStorage.getItem(storageKey);
-            if (savedData) {
+            let savedData = localStorage.getItem(currentKey);
+            if (!savedData) savedData = localStorage.getItem(storageKey);
+
+            if (savedData && savedData !== "REMOVED") {
                 previewEl.innerHTML = `<img src="${savedData}" style="max-height: 55px; max-width: 100%; object-fit: contain;">`;
                 btnRemove.style.display = "inline-block";
             } else {
@@ -210,22 +228,42 @@ export const initPortalControlView = async () => {
                 return;
             }
             const reader = new FileReader();
-            reader.onload = (evt) => {
+            reader.onload = async (evt) => {
                 const b64 = evt.target.result;
                 const currentKey = getEffectiveKey(storageKey);
                 localStorage.setItem(currentKey, b64);
+                localStorage.setItem(storageKey, b64);
                 refreshPreview();
+
+                try {
+                    await apiRequest("settings.save", {
+                        method: "POST",
+                        body: JSON.stringify({ [currentKey]: b64, [storageKey]: b64 })
+                    });
+                } catch (err) {
+                    console.error("Failed to sync asset to backend settings:", err);
+                }
                 showToast(`${label} uploaded successfully!`, "success");
             };
             reader.readAsDataURL(file);
         });
 
-        btnRemove.addEventListener("click", () => {
+        btnRemove.addEventListener("click", async () => {
             const currentKey = getEffectiveKey(storageKey);
-            localStorage.removeItem(currentKey);
+            localStorage.setItem(currentKey, "REMOVED");
+            localStorage.setItem(storageKey, "REMOVED");
             fileInput.value = "";
             refreshPreview();
-            showToast(`${label} removed.`, "info");
+
+            try {
+                await apiRequest("settings.save", {
+                    method: "POST",
+                    body: JSON.stringify({ [currentKey]: "REMOVED", [storageKey]: "REMOVED" })
+                });
+            } catch (err) {
+                console.error("Failed to sync asset removal to backend settings:", err);
+            }
+            showToast(`${label} removed successfully!`, "info");
         });
     }
 
