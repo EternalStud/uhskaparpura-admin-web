@@ -119,6 +119,28 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
         return Math.round(getFullMarks(subObj) * 0.3);
     };
 
+    const getScoreVal = (subId) => {
+        const obj = res.subjectScores ? res.subjectScores[subId] : null;
+        if (!obj) return "";
+        return obj.totalObt !== undefined ? obj.totalObt : "";
+    };
+
+    const getTheoryVal = (subId) => {
+        const obj = res.subjectScores ? res.subjectScores[subId] : null;
+        if (!obj) return "";
+        return obj.theoryObt !== undefined && obj.theoryObt !== null ? obj.theoryObt : "";
+    };
+
+    const getPracVal = (subId) => {
+        const obj = res.subjectScores ? res.subjectScores[subId] : null;
+        if (!obj) return "-";
+        let p = obj.practicalObt;
+        if ((p === "" || p === null || p === undefined) && obj.internalObt !== undefined && obj.internalObt !== "") {
+            p = obj.internalObt;
+        }
+        return (p !== undefined && p !== null && p !== "") ? p : "-";
+    };
+
     const l1Full = getFullMarks(l1), l1Pass = getPassMarks(l1);
     const l2Full = getFullMarks(l2), l2Pass = getPassMarks(l2);
     const matFull = getFullMarks(mat), matPass = getPassMarks(mat);
