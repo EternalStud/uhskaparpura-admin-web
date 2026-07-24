@@ -782,10 +782,17 @@ const loadStudentMarks = async () => {
     showLoader();
 
     currentFilters = { ...filters };
-    // Check if the exam is locked for teachers and load max marks config
+    showLoader();
+
     try {
-        const examsRes = await apiRequest("exam.list");
-        if (examsRes.success && examsRes.exams) {
+        const query = new URLSearchParams(filters).toString();
+        const [examsRes, configRes, response] = await Promise.all([
+            apiRequest("exam.list"),
+            apiRequest("exam.config.load?examName=" + encodeURIComponent(filters.examName)),
+            apiRequest(`exam.marks.load?${query}`)
+        ]);
+
+        if (examsRes && examsRes.success && examsRes.exams) {
             const foundExam = examsRes.exams.find(e => e.name.normalize("NFC").toLowerCase() === filters.examName.toLowerCase());
             const status = foundExam ? foundExam.status : "OPEN";
             const session = getSession();
@@ -795,28 +802,15 @@ const loadStudentMarks = async () => {
             isExamLockedForTeacher = false;
         }
 
-        const configRes = await apiRequest("exam.config.load?examName=" + encodeURIComponent(filters.examName));
-        console.log("exam.config.load response:", configRes);
-        if (configRes.success && configRes.configs) {
+        if (configRes && configRes.success && configRes.configs) {
             activeExamConfigs = configRes.configs;
-            console.log("Successfully set activeExamConfigs:", activeExamConfigs);
         } else {
             activeExamConfigs = [];
-            console.warn("Failed to load configs, set empty array");
         }
-    } catch (e) {
-        console.warn("Could not load exam metadata:", e);
-        isExamLockedForTeacher = false;
-        activeExamConfigs = [];
-    }
 
-    maxMarks = deriveMaxMarks(filters.classNum, filters.subjectId);
+        maxMarks = deriveMaxMarks(filters.classNum, filters.subjectId);
 
-    try {
-        const query = new URLSearchParams(filters).toString();
-        const response = await apiRequest(`exam.marks.load?${query}`);
-
-        if (response.success && response.students) {
+        if (response && response.success && response.students) {
             studentsState = response.students.map(s => {
                 const theory = s.theory !== null && s.theory !== undefined ? String(s.theory) : "";
                 const practical = s.practical !== null && s.practical !== undefined ? String(s.practical) : "";
