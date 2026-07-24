@@ -132,13 +132,21 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     };
 
     const getPracVal = (subId) => {
+        const isSciOrSst = String(subId || "").includes("_SCI") || String(subId || "").includes("_SST");
+        if (!isSciOrSst) return "-";
+
         const obj = res.subjectScores ? res.subjectScores[subId] : null;
         if (!obj) return "-";
+        
         let p = obj.practicalObt;
-        if ((p === "" || p === null || p === undefined) && obj.internalObt !== undefined && obj.internalObt !== "") {
+        if ((p === "" || p === null || p === undefined || p === 0 || p === "0") && obj.internalObt !== undefined && obj.internalObt !== "" && obj.internalObt !== 0 && obj.internalObt !== "0") {
             p = obj.internalObt;
         }
-        return (p !== undefined && p !== null && p !== "") ? p : "-";
+
+        if (p === 0 || p === "0" || p === "" || p === null || p === undefined) {
+            return "-";
+        }
+        return p;
     };
 
     const l1Full = getFullMarks(l1), l1Pass = getPassMarks(l1);
