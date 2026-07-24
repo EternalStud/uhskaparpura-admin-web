@@ -715,22 +715,27 @@ const openPrintWindow = (htmlContent, documentTitle) => {
 
             <script>
                 function triggerPrint() {
-                    setTimeout(function() {
-                        window.print();
-                    }, 400);
+                    const imgs = Array.from(document.images);
+                    const promises = imgs.map(function(img) {
+                        if (img.complete) return Promise.resolve();
+                        return new Promise(function(resolve) {
+                            img.onload = resolve;
+                            img.onerror = resolve;
+                        });
+                    });
+                    Promise.all(promises).then(function() {
+                        requestAnimationFrame(function() {
+                            setTimeout(function() {
+                                window.print();
+                            }, 800);
+                        });
+                    });
                 }
-
-                window.addEventListener('afterprint', function() {
-                    const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
-                    if (!isMobile) {
-                        setTimeout(function() { window.close(); }, 300);
-                    }
-                });
 
                 if (document.readyState === 'complete') {
                     triggerPrint();
                 } else {
-                    window.onload = triggerPrint;
+                    window.addEventListener('load', triggerPrint);
                 }
             </script>
         </body>
