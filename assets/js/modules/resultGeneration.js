@@ -685,12 +685,19 @@ const openPrintWindow = (htmlContent, documentTitle) => {
                 * { box-sizing: border-box; }
                 .bseb-report-card-page { margin: 20px auto !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
                 @media print {
-                    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                    * { 
+                        box-shadow: none !important; 
+                        text-shadow: none !important; 
+                        filter: none !important; 
+                        -webkit-print-color-adjust: exact !important; 
+                        print-color-adjust: exact !important; 
+                    }
                     html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; height: auto !important; min-height: 100% !important; overflow: visible !important; }
                     .print-wrapper { padding: 0 !important; margin: 0 !important; display: block !important; }
                     .bseb-report-card-page { 
                         margin: 0 auto !important; 
                         box-shadow: none !important; 
+                        border: 2px solid #000 !important;
                         width: 210mm !important;
                         height: 297mm !important; 
                         max-height: 297mm !important; 
@@ -728,29 +735,9 @@ const openPrintWindow = (htmlContent, documentTitle) => {
             </div>
 
             <script>
-                function triggerPrint() {
-                    const imgs = Array.from(document.images);
-                    const promises = imgs.map(function(img) {
-                        if (img.complete) return Promise.resolve();
-                        return new Promise(function(resolve) {
-                            img.onload = resolve;
-                            img.onerror = resolve;
-                        });
-                    });
-                    Promise.all(promises).then(function() {
-                        requestAnimationFrame(function() {
-                            setTimeout(function() {
-                                window.print();
-                            }, 800);
-                        });
-                    });
-                }
-
-                if (document.readyState === 'complete') {
-                    triggerPrint();
-                } else {
-                    window.addEventListener('load', triggerPrint);
-                }
+                setTimeout(function() {
+                    window.print();
+                }, 300);
             </script>
         </body>
         </html>
