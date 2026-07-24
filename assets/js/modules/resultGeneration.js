@@ -64,7 +64,7 @@ import { showLoader, hideLoader } from "../../../components/loader.js?t=17892929
 import { apiRequest } from "../../../services/api.js";
 import { renderNavbar } from "../../../components/navbar.js?t=17892929155";
 
-const BSEB_LOGO_B64 = '/assets/images/bseb_logo.png';
+const BSEB_LOGO_B64 = '/assets/images/bseb_logo_hd.png';
 const DEFAULT_HM_SIG_B64 = '/assets/images/hm_sig.png';
 const DEFAULT_SCHOOL_STAMP_B64 = '/assets/images/school_stamp.png';
 
@@ -199,7 +199,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     <div class="bseb-report-card-page" style="width: 210mm; height: 297mm; max-height: 297mm; padding: 12mm 14mm; margin: 0 auto; background-color: #ffffff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: 'Arial', 'Helvetica Neue', sans-serif; color: #1e293b; position: relative; overflow: hidden; border: 2.5px solid #0f172a;">
 
         <!-- Centered Emblem Watermark Layer (Single Light Seal) -->
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; height: 440px; opacity: 0.06; pointer-events: none; z-index: 0;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; height: 440px; opacity: 0.05; pointer-events: none; z-index: 5; mix-blend-mode: multiply;">
             <div class="bseb-logo-img" style="width: 100%; height: 100%;"></div>
         </div>
 
@@ -513,8 +513,8 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
         <!-- Double Inner Border Frame -->
         <div style="position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px; border: 1px solid #0f172a; pointer-events: none; z-index: 10;"></div>
 
-        <!-- Single Centered Faint BSEB Seal Watermark (~6% opacity) -->
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 420px; height: 420px; opacity: 0.06; pointer-events: none; z-index: 0;">
+        <!-- Single Centered Faint BSEB Seal Watermark (~5% opacity) -->
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 420px; height: 420px; opacity: 0.05; pointer-events: none; z-index: 5; mix-blend-mode: multiply;">
             <div class="bseb-logo-img" style="width: 100%; height: 100%;"></div>
         </div>
 
@@ -699,14 +699,15 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
     let schoolStampRaw = localStorage.getItem("report_card_school_stamp") || "";
     if (schoolStampRaw === "REMOVED") schoolStampRaw = "";
 
-    const [teacherSig, hmSig, schoolStamp] = await Promise.all([
+    const [logoB64Compressed, teacherSig, hmSig, schoolStamp] = await Promise.all([
+        compressImage(BSEB_LOGO_B64, 600, 600),
         compressImage(teacherSigRaw, 250, 100),
         compressImage(hmSigRaw, 250, 100),
         compressImage(schoolStampRaw, 250, 250)
     ]);
 
     const assetStyles = `
-        .bseb-logo-img { background-image: url("${BSEB_LOGO_B64}"); background-size: contain; background-repeat: no-repeat; background-position: center; }
+        .bseb-logo-img { background-image: url("${logoB64Compressed}"); background-size: contain; background-repeat: no-repeat; background-position: center; }
         ${teacherSig && teacherSig !== "REMOVED" ? `.teacher-sig-img { background-image: url("${teacherSig}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
         ${hmSig ? `.hm-sig-img { background-image: url("${hmSig}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
         ${schoolStamp ? `.school-stamp-img { background-image: url("${schoolStamp}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
@@ -729,9 +730,6 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
                 .bseb-report-card-page { 
                     margin: 20px auto !important; 
                     box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-                    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyODAnIGhlaWdodD0nMTQwJyB2aWV3Qm94PScwIDAgMjgwIDE0MCc+PHRleHQgeD0nNTAlJyB5PSc1MCUnIHRyYW5zZm9ybT0ncm90YXRlKC0yNSwgMTQwLCA3MCknIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZvbnQtZmFtaWx5PSdBcmlhbCwgc2Fucy1zZXJpZicgZm9udC1zaXplPScxMicgZm9udC13ZWlnaHQ9J2JvbGQnIGZpbGw9J3JnYmEoMCwwLDAsMC4wNSknPuCkiS7gpK7gpL4u4KS14KS/LiDgpJXgpKrgpLDgpKrgpYHgpLDgpL4sIOCkleCkvuCkgeCkn+ClgCwg4KSu4KWB4KSc4KSr4KWN4KSr4KSw4KSq4KWB4KSwPC90ZXh0Pjwvc3ZnPg==") !important;
-                    background-repeat: repeat !important;
-                    background-size: 280px 140px !important;
                 }
                 @media print {
                     * { 
