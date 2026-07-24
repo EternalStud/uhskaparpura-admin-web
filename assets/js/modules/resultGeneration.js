@@ -83,8 +83,8 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     };
 
     const teacherSig = getAsset("report_card_teacher_sig", "");
-    const hmSig = getAsset("report_card_hm_sig", DEFAULT_HM_SIG_B64);
-    const schoolStamp = getAsset("report_card_school_stamp", DEFAULT_SCHOOL_STAMP_B64);
+    const hmSig = getAsset("report_card_hm_sig", "");
+    const schoolStamp = getAsset("report_card_school_stamp", "");
 
     const teacherSigHtml = teacherSig 
         ? `<img src="${teacherSig}" style="height: 42px; max-width: 150px; display: block; margin: 0 auto 2px auto; object-fit: contain;">` 
@@ -96,7 +96,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
 
     const stampHtml = schoolStamp
         ? `<img src="${schoolStamp}" style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 80mm; height: 76mm; object-fit: contain; opacity: 0.90; z-index: 1;">`
-        : `<div style="width: 80mm; height: 76mm; border: 1.5px dashed #94a3b8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #64748b; margin: 0 auto; text-align: center; line-height: 1.1;">SCHOOL<br>SEAL</div>`;
+        : ``;
 
     const getSubObj = (subId) => {
         if (!subId) return {};
@@ -412,8 +412,8 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     };
 
     const teacherSig = getAsset("report_card_teacher_sig", "");
-    const hmSig = getAsset("report_card_hm_sig", DEFAULT_HM_SIG_B64);
-    const schoolStamp = getAsset("report_card_school_stamp", DEFAULT_SCHOOL_STAMP_B64);
+    const hmSig = getAsset("report_card_hm_sig", "");
+    const schoolStamp = getAsset("report_card_school_stamp", "");
 
     const teacherSigHtml = teacherSig 
         ? `<img src="${teacherSig}" style="height: 42px; max-width: 150px; display: block; margin: 0 auto 2px auto; object-fit: contain;">` 
@@ -425,7 +425,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
 
     const stampHtml = schoolStamp
         ? `<img src="${schoolStamp}" style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 80mm; height: 76mm; object-fit: contain; opacity: 0.90; z-index: 1;">`
-        : `<div style="width: 80mm; height: 76mm; border: 1.5px dashed #94a3b8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #64748b; margin: 0 auto; text-align: center; line-height: 1.1;">SCHOOL<br>SEAL</div>`;
+        : ``;
 
     const getSubDetails = (subId) => {
         if (!subId) return null;
@@ -1766,85 +1766,25 @@ export async function initResultGenerationView() {
             yearInput.value = getDefaultAcademicYear();
         }
 
-        const examSelect = document.querySelector("#filter-exam");
-        if (examSelect) {
-            try {
-                const res = await apiRequest("exam.list");
-                if (res.success && res.exams) {
-                    const opts = res.exams.map(exam => `<option value="${exam.name}">${exam.name}</option>`).join("");
-                    examSelect.innerHTML = '<option value="">Select Exam</option>' + opts;
-                }
-            } catch (err) {
-                console.error("Failed to load exams list:", err);
-            }
-        }
-
-        // Setup filter listeners
-        const generateBtn = document.querySelector("#generate-results-btn");
-        const searchInput = document.querySelector("#result-search-input");
-
-        document.querySelectorAll('input[name="classes"]').forEach(el => {
-            el.addEventListener("change", async () => {
-                updateStreamFilterVisibility();
-                await updateAvailableSections();
-            });
-        });
-
-        if (yearInput) {
-            yearInput.addEventListener("input", async () => {
-                await updateAvailableSections();
-            });
-        }
-
-        if (generateBtn) {
-            generateBtn.addEventListener("click", handleGenerateResults);
-        }
-
-        if (searchInput) {
-            searchInput.addEventListener("input", (e) => {
-                searchQuery = e.target.value;
-                renderTable();
-            });
-        }
-
-        const sortSelect = document.querySelector("#result-sort-select");
-        if (sortSelect) {
-            sortSelect.addEventListener("change", () => {
-                renderTable();
-            });
-        }
-
-        const exportBtn = document.querySelector("#export-excel-btn");
-        if (exportBtn) {
-            exportBtn.addEventListener("click", handleExportToExcel);
-        }
-
-        const printAllBtn = document.querySelector("#print-all-cards-btn");
-        if (printAllBtn) {
-            printAllBtn.addEventListener("click", handlePrintAllReportCards);
-        }
-
-        // Setup view mode toggle listeners
-        const btnTable = document.querySelector("#toggle-view-table");
-        const btnCards = document.querySelector("#toggle-view-cards");
-
-        if (btnTable) {
-            btnTable.addEventListener("click", () => {
-                currentViewMode = "table";
-                renderTable();
-            });
-        }
-
-        if (btnCards) {
-            btnCards.addEventListener("click", () => {
-                currentViewMode = "cards";
-                renderTable();
-            });
-        }
-
-        // Initial setup
+        // Initial setup - parallelize dropdown load and sections fetch
         updateStreamFilterVisibility();
-        await updateAvailableSections();
+        await Promise.all([
+            (async () => {
+                const examSelect = document.querySelector("#filter-exam");
+                if (examSelect) {
+                    try {
+                        const res = await apiRequest("exam.list");
+                        if (res.success && res.exams) {
+                            const opts = res.exams.map(exam => `<option value="${exam.name}">${exam.name}</option>`).join("");
+                            examSelect.innerHTML = '<option value="">Select Exam</option>' + opts;
+                        }
+                    } catch (err) {
+                        console.error("Failed to load exams list:", err);
+                    }
+                }
+            })(),
+            updateAvailableSections()
+        ]);
 
     } catch (error) {
         console.error(error);
