@@ -67,11 +67,11 @@
                     </div>
                 </section>
 
-                <!-- Report Card Signatures & Stamp Controls Card -->
+                <!-- Report Card Signatures, Stamp & Date/Place Controls Card -->
                 <section class="workspace-card" style="padding: 24px;">
                     <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; color: var(--color-text); display: flex; align-items: center; gap: 8px;">
                         <span class="material-symbols-rounded" style="color: var(--color-primary);">verified</span>
-                        अंक पत्र मोहर एवं हस्ताक्षर प्रबंधन (Report Card Signatures & Stamp)
+                        अंक पत्र मोहर, हस्ताक्षर एवं विवरण प्रबंधन (Report Card Assets & Details)
                     </h3>
 
                     <!-- Selection Filters for Signatures & Stamp -->
@@ -89,6 +89,28 @@
                         </div>
                     </div>
 
+                    <!-- Place & Issue Date Controls Bar (Above Signatures) -->
+                    <div style="background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                        <div>
+                            <h4 style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--color-text); display: flex; align-items: center; gap: 6px;">
+                                <span class="material-symbols-rounded" style="font-size: 1.1rem; color: var(--color-primary);">event</span>
+                                स्थान एवं अंक पत्र जारी करने की तिथि (Place & Issue Date)
+                            </h4>
+                            <p style="font-size: 0.78rem; color: var(--color-muted); margin: 2px 0 0 0;">चयनित सत्र एवं परीक्षा हेतु अंक पत्र पर अंकित होने वाला स्थान और तिथि।</p>
+                        </div>
+                        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-muted);">स्थान (Place)</label>
+                                <input type="text" id="input-issue-place" class="form-control" placeholder="MUZAFFARPUR" style="min-width: 170px; padding: 6px 12px; font-weight: 600;">
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-muted);">जारी तिथि (Issue Date)</label>
+                                <input type="date" id="input-issue-date" class="form-control" style="min-width: 170px; padding: 6px 12px; font-weight: 600;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3 Asset Slots Grid (Signatures & Stamp) -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
                         <!-- Teacher Signature Slot -->
                         <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; background: var(--color-surface); text-align: center; display: flex; flex-direction: column; justify-content: space-between;">
@@ -139,30 +161,12 @@
                         </div>
                     </div>
 
-                    <!-- Single Unified Save Button for All Signatures & Stamp -->
-                    <div style="margin-top: 20px; text-align: center;">
-                        <button type="button" class="btn btn-primary" id="btn-save-all-assets" style="padding: 10px 28px; font-weight: 700; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
-                            <span class="material-symbols-rounded" style="font-size: 1.2rem;">save</span>
-                            चयनित सत्र एवं परीक्षा हेतु सभी हस्ताक्षर एवं मोहर सुरक्षित करें (Save Signatures & Stamp)
+                    <!-- Single Unified Save Button for All Signatures, Stamp, Place & Issue Date -->
+                    <div style="margin-top: 24px; text-align: center;">
+                        <button type="button" class="btn btn-primary" id="btn-save-all-assets" style="padding: 12px 32px; font-weight: 700; font-size: 0.98rem; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.18);">
+                            <span class="material-symbols-rounded" style="font-size: 1.25rem;">save</span>
+                            चयनित सत्र एवं परीक्षा हेतु सभी विवरण सुरक्षित करें (Save All Details)
                         </button>
-                    </div>
-
-                    <!-- Issue Date & Place Configuration -->
-                    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--color-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-                        <div>
-                            <h4 style="font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--color-text);">स्थान एवं अंक पत्र जारी करने की तिथि (Place & Issue Date)</h4>
-                            <p style="font-size: 0.8rem; color: var(--color-muted); margin: 2px 0 0 0;">अंक पत्र पर अंकित स्थान और तिथि को आवश्यकतानुसार प्रबंधित करें।</p>
-                        </div>
-                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                            <div style="display: flex; flex-direction: column; gap: 2px;">
-                                <label style="font-size: 0.75rem; font-weight: 700; color: var(--color-text-muted);">स्थान (Place)</label>
-                                <input type="text" id="input-issue-place" class="form-control" placeholder="MUZAFFARPUR" style="max-width: 170px; padding: 6px 10px; font-weight: 600;">
-                            </div>
-                            <div style="display: flex; flex-direction: column; gap: 2px;">
-                                <label style="font-size: 0.75rem; font-weight: 700; color: var(--color-text-muted);">जारी तिथि (Issue Date)</label>
-                                <input type="date" id="input-issue-date" class="form-control" style="max-width: 170px; padding: 6px 10px; font-weight: 600;">
-                            </div>
-                        </div>
                     </div>
                 </section>
 

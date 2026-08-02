@@ -87,23 +87,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
-    let defaultDate = `${dd}/${mm}/${yyyy}`;
-
-    const savedDate = localStorage.getItem("report_card_issue_date");
-    if (savedDate) {
-        const parts = savedDate.split('-');
-        if (parts.length === 3) {
-            defaultDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-    }
-    const issueDate = defaultDate;
-    const issuePlace = (localStorage.getItem("report_card_issue_place") || "MUZAFFARPUR").toUpperCase();
-
-    // Document Certificate Number & QR Code
-    const cleanExam = examName.replace(/\s+/g, '_').toUpperCase();
-    const certNo = `Academic Session = ${academicYear} ,Exam Name = ${examName} ,class = ${activeClassVal} , Student Code = ${res.studentId || res.rollNo}`;
-
-    // Stored Assets per Academic Session & Exam Name
+    // Stored Assets & Details per Academic Session & Exam Name
     const cleanExamKey = examName ? examName.trim().replace(/\s+/g, '_') : "";
     const getAsset = (baseKey, fallback) => {
         let val = "";
@@ -115,6 +99,23 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
         if (val) return val;
         return fallback || "";
     };
+
+    let defaultDate = `${dd}/${mm}/${yyyy}`;
+    const savedDate = getAsset("report_card_issue_date", "");
+    if (savedDate) {
+        const parts = savedDate.split('-');
+        if (parts.length === 3) {
+            defaultDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        } else {
+            defaultDate = savedDate;
+        }
+    }
+    const issueDate = defaultDate;
+    const issuePlace = (getAsset("report_card_issue_place", "MUZAFFARPUR")).toUpperCase();
+
+    // Document Certificate Number & QR Code
+    const cleanExam = examName.replace(/\s+/g, '_').toUpperCase();
+    const certNo = `Academic Session = ${academicYear} ,Exam Name = ${examName} ,class = ${activeClassVal} , Student Code = ${res.studentId || res.rollNo}`;
 
     const teacherSig = getAsset("report_card_teacher_sig", "");
     const hmSig = getAsset("report_card_hm_sig", "");
@@ -424,23 +425,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
-    let defaultDate = `${dd}/${mm}/${yyyy}`;
-
-    const savedDate = localStorage.getItem("report_card_issue_date");
-    if (savedDate) {
-        const parts = savedDate.split('-');
-        if (parts.length === 3) {
-            defaultDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        }
-    }
-    const issueDate = defaultDate;
-    const issuePlace = (localStorage.getItem("report_card_issue_place") || "MUZAFFARPUR").toUpperCase();
-
-    // Document Certificate Number & QR Code
-    const cleanExam = examName.replace(/\s+/g, '_').toUpperCase();
-    const certNo = `Academic Session = ${academicYear} ,Exam Name = ${examName} ,class = ${activeClassVal} , Student Code = ${res.studentId || res.rollNo}`;
-
-    // Stored Assets per Academic Session & Exam Name
+    // Stored Assets & Details per Academic Session & Exam Name
     const cleanExamKey = examName ? examName.trim().replace(/\s+/g, '_') : "";
     const getAsset = (baseKey, fallback) => {
         let val = "";
@@ -452,6 +437,23 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
         if (val) return val;
         return fallback || "";
     };
+
+    let defaultDate = `${dd}/${mm}/${yyyy}`;
+    const savedDate = getAsset("report_card_issue_date", "");
+    if (savedDate) {
+        const parts = savedDate.split('-');
+        if (parts.length === 3) {
+            defaultDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        } else {
+            defaultDate = savedDate;
+        }
+    }
+    const issueDate = defaultDate;
+    const issuePlace = (getAsset("report_card_issue_place", "MUZAFFARPUR")).toUpperCase();
+
+    // Document Certificate Number & QR Code
+    const cleanExam = examName.replace(/\s+/g, '_').toUpperCase();
+    const certNo = `Academic Session = ${academicYear} ,Exam Name = ${examName} ,class = ${activeClassVal} , Student Code = ${res.studentId || res.rollNo}`;
 
     const teacherSig = getAsset("report_card_teacher_sig", "");
     const hmSig = getAsset("report_card_hm_sig", "");

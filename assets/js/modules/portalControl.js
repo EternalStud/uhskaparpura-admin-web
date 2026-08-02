@@ -148,13 +148,29 @@ export const initPortalControlView = async () => {
 
     const refreshAssetControls = [];
 
-    // Signatures and Stamp Asset Management (Unified Save Button)
-    const assetControls = [
-        setupAssetControl("teacher-sig", "report_card_teacher_sig", "Teacher Signature"),
-        setupAssetControl("school-stamp", "report_card_school_stamp", "School Rubber-Stamp"),
-        setupAssetControl("hm-sig", "report_card_hm_sig", "Headmaster Signature")
-    ];
+    // Issue Date & Place Controls
+    const inputIssueDate = document.querySelector("#input-issue-date");
+    const inputIssuePlace = document.querySelector("#input-issue-place");
 
+    const refreshIssuePlaceAndDate = () => {
+        if (inputIssuePlace) {
+            const currentPlaceKey = getEffectiveKey("report_card_issue_place");
+            let placeVal = localStorage.getItem(currentPlaceKey);
+            if (!placeVal) placeVal = localStorage.getItem("report_card_issue_place") || "MUZAFFARPUR";
+            inputIssuePlace.value = placeVal;
+        }
+        if (inputIssueDate) {
+            const currentDateKey = getEffectiveKey("report_card_issue_date");
+            let dateVal = localStorage.getItem(currentDateKey);
+            if (!dateVal) dateVal = localStorage.getItem("report_card_issue_date") || new Date().toISOString().split("T")[0];
+            inputIssueDate.value = dateVal;
+        }
+    };
+
+    refreshIssuePlaceAndDate();
+    refreshAssetControls.push(refreshIssuePlaceAndDate);
+
+    // Unified Save Handler for Signatures, Rubber Stamp, Place & Issue Date
     const btnSaveAllAssets = document.querySelector("#btn-save-all-assets");
     if (btnSaveAllAssets) {
         btnSaveAllAssets.addEventListener("click", async () => {
@@ -162,8 +178,8 @@ export const initPortalControlView = async () => {
             const year = assetYearSelect ? assetYearSelect.value : "";
             const exam = assetExamSelect ? assetExamSelect.value : "";
             const payload = {};
-            let countSaved = 0;
 
+            // 1. Signatures & Stamp
             for (const ctrl of assetControls) {
                 if (!ctrl) continue;
                 const data = ctrl.getStagedData();
@@ -173,8 +189,27 @@ export const initPortalControlView = async () => {
                     localStorage.setItem(ctrl.storageKey, data);
                     payload[currentKey] = data;
                     payload[ctrl.storageKey] = data;
-                    countSaved++;
                 }
+            }
+
+            // 2. Issue Place & Date per session & exam
+            if (inputIssuePlace) {
+                const placeVal = (inputIssuePlace.value || "MUZAFFARPUR").trim().toUpperCase();
+                const placeKey = getEffectiveKey("report_card_issue_place");
+                localStorage.setItem(placeKey, placeVal);
+                localStorage.setItem("report_card_issue_place", placeVal);
+                payload[placeKey] = placeVal;
+                payload["report_card_issue_place"] = placeVal;
+            }
+
+            if (inputIssueDate) {
+                const todayStr = new Date().toISOString().split("T")[0];
+                const dateVal = inputIssueDate.value || todayStr;
+                const dateKey = getEffectiveKey("report_card_issue_date");
+                localStorage.setItem(dateKey, dateVal);
+                localStorage.setItem("report_card_issue_date", dateVal);
+                payload[dateKey] = dateVal;
+                payload["report_card_issue_date"] = dateVal;
             }
 
             if (Object.keys(payload).length > 0) {
@@ -184,17 +219,18 @@ export const initPortalControlView = async () => {
                         body: JSON.stringify(payload)
                     });
                     const sessionExamLabel = (year && exam) ? ` for ${year} (${exam})` : "";
-                    showToast(`Signatures & Rubber-Stamp saved & synced successfully${sessionExamLabel}!`, "success");
+                    showToast(`Report Card details (Signatures, Stamp, Place & Issue Date) saved & synced successfully${sessionExamLabel}!`, "success");
                 } catch (err) {
-                    console.error("Failed to sync assets to backend settings:", err);
-                    showToast("Signatures & Stamp saved locally on device.", "info");
+                    console.error("Failed to sync report card details to backend settings:", err);
+                    showToast("Report card details saved locally on device.", "info");
                 } finally {
                     hideLoader();
                     assetControls.forEach(ctrl => ctrl && ctrl.refreshPreview());
+                    refreshIssuePlaceAndDate();
                 }
             } else {
                 hideLoader();
-                showToast("All current signatures & stamp are already up to date.", "info");
+                showToast("All report card details are up to date.", "info");
             }
         });
     }
@@ -205,51 +241,6 @@ export const initPortalControlView = async () => {
 
     if (assetYearSelect) assetYearSelect.addEventListener("change", onFilterChange);
     if (assetExamSelect) assetExamSelect.addEventListener("change", onFilterChange);
-
-    // Issue Date & Place Controls
-    const inputIssueDate = document.querySelector("#input-issue-date");
-    const inputIssuePlace = document.querySelector("#input-issue-place");
-
-    if (inputIssuePlace) {
-        const savedPlace = localStorage.getItem("report_card_issue_place") || "MUZAFFARPUR";
-        inputIssuePlace.value = savedPlace;
-
-        inputIssuePlace.addEventListener("change", async () => {
-            const val = (inputIssuePlace.value || "MUZAFFARPUR").trim().toUpperCase();
-            localStorage.setItem("report_card_issue_place", val);
-            try {
-                await apiRequest("settings.save", {
-                    method: "POST",
-                    body: JSON.stringify({ "report_card_issue_place": val })
-                });
-                showToast("Report card place updated successfully.", "success");
-            } catch (err) {
-                console.error("Failed to save issue place to settings:", err);
-                showToast("Issue place saved locally.", "info");
-            }
-        });
-    }
-
-    if (inputIssueDate) {
-        const savedDate = localStorage.getItem("report_card_issue_date");
-        const todayStr = new Date().toISOString().split("T")[0];
-        inputIssueDate.value = savedDate || todayStr;
-
-        inputIssueDate.addEventListener("change", async () => {
-            const val = inputIssueDate.value || todayStr;
-            localStorage.setItem("report_card_issue_date", val);
-            try {
-                await apiRequest("settings.save", {
-                    method: "POST",
-                    body: JSON.stringify({ "report_card_issue_date": val })
-                });
-                showToast("Issue date updated successfully.", "success");
-            } catch (err) {
-                console.error("Failed to save issue date to settings:", err);
-                showToast("Issue date saved locally.", "info");
-            }
-        });
-    }
 
     function getEffectiveKey(baseKey) {
         const year = assetYearSelect ? assetYearSelect.value : "";
