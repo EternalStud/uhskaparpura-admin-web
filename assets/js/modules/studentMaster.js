@@ -2,7 +2,7 @@
 
 import { showToast } from "../../../components/toast.js";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=202608030450";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030500";
 
 const getDefaultAcademicYear = () => {
     const now = new Date();

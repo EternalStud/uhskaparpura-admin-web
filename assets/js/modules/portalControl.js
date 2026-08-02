@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030450";
+import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030500";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=202608030450";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030500";
 
 export const initPortalControlView = async () => {
     const navbarContainer = document.querySelector("#navbar-portal-control");
@@ -214,16 +214,19 @@ export const initPortalControlView = async () => {
             const exam = assetExamSelect ? assetExamSelect.value : "";
             const payload = {};
 
-            // 1. Signatures & Stamp
+            // 1. Signatures & Stamp — only send newly staged uploads/removals (avoid re-POSTing huge base64 every save)
             for (const ctrl of assetControls) {
                 if (!ctrl) continue;
-                const data = ctrl.getStagedData();
+                const data = ctrl.getPendingChange();
                 if (data !== null) {
                     const currentKey = ctrl.getEffectiveKey();
                     localStorage.setItem(currentKey, data);
-                    localStorage.setItem(ctrl.storageKey, data);
                     payload[currentKey] = data;
-                    payload[ctrl.storageKey] = data;
+                    // HM sig & stamp are session/exam scoped (not class); keep bare key too
+                    if (ctrl.storageKey === "report_card_hm_sig" || ctrl.storageKey === "report_card_school_stamp") {
+                        localStorage.setItem(ctrl.storageKey, data);
+                        payload[ctrl.storageKey] = data;
+                    }
                 }
             }
 
@@ -357,6 +360,8 @@ export const initPortalControlView = async () => {
         return {
             storageKey,
             getEffectiveKey: () => getEffectiveKey(storageKey),
+            /** Returns pending upload/removal only; null means unchanged this session */
+            getPendingChange: () => pendingBase64,
             getStagedData: () => {
                 if (pendingBase64 !== null) return pendingBase64;
                 const currentKey = getEffectiveKey(storageKey);

@@ -44,6 +44,34 @@ export function clearApiCache(prefixFilter = null) {
 }
 
 /**
+ * Parse API response text as JSON with actionable errors when GAS returns HTML.
+ */
+function parseApiJson(rawText, httpStatus) {
+    const text = String(rawText || "").trim();
+    if (!text) {
+        throw new Error(`School server returned an empty response (HTTP ${httpStatus}). Please try again.`);
+    }
+
+    try {
+        return JSON.parse(text);
+    } catch (parseErr) {
+        const preview = text.slice(0, 160).replace(/\s+/g, " ");
+        const looksHtml = /^</.test(text) || /<!DOCTYPE|<html|Error:|Exceeded maximum/i.test(text);
+
+        if (looksHtml) {
+            throw new Error(
+                "School server returned an invalid response (not JSON). " +
+                "This usually means the request timed out or the Settings sheet has oversized image data. " +
+                "Re-save report-card signatures in Portal Control (Drive URLs), then try again. " +
+                `Details: ${preview}`
+            );
+        }
+
+        throw new Error(`Invalid response from school server: ${preview}`);
+    }
+}
+
+/**
  * Sends a request to the Google Apps Script REST API with smart caching.
  * @param {string} path API path.
  * @param {RequestInit & { bypassCache?: boolean }} options Fetch options.
@@ -102,7 +130,7 @@ export async function apiRequest(path, options = {}) {
             response = await fetch(finalUrl, {
                 ...options,
                 headers: {
-                    "Content-Type": "text/plain",
+                    "Content-Type": "text/plain;charset=utf-8",
                     ...(options.headers ?? {})
                 }
             });
@@ -116,7 +144,8 @@ export async function apiRequest(path, options = {}) {
             throw new Error("Unable to connect to school server. Please check your internet connection.");
         }
 
-        const payload = await response.json();
+        const rawText = await response.text();
+        const payload = parseApiJson(rawText, response.status);
 
         if (!response.ok) {
             throw new Error(payload.error ?? payload.message ?? `API request failed with status ${response.status}`);
