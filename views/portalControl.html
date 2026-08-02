@@ -96,9 +96,36 @@
                                 <span class="material-symbols-rounded" style="font-size: 1.1rem; color: var(--color-primary);">event</span>
                                 स्थान एवं अंक पत्र जारी करने की तिथि (Place & Issue Date)
                             </h4>
-                            <p style="font-size: 0.78rem; color: var(--color-muted); margin: 2px 0 0 0;">चयनित सत्र एवं परीक्षा हेतु अंक पत्र पर अंकित होने वाला स्थान और तिथि।</p>
+                            <p style="font-size: 0.78rem; color: var(--color-muted); margin: 2px 0 0 0;">सत्र + परीक्षा + कक्षा के अनुसार अलग तिथि/स्थान सेट करें, फिर Save All Details दबाएँ।</p>
                         </div>
-                        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap;">
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-muted);">कक्षा (Class)</label>
+                                <select id="asset-class" class="form-control" style="min-width: 110px; padding: 6px 12px; font-weight: 600;">
+                                    <option value="9">Class 9</option>
+                                    <option value="10">Class 10</option>
+                                    <option value="11">Class 11</option>
+                                    <option value="12">Class 12</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-muted);">Stream</label>
+                                <select id="asset-stream" class="form-control" style="min-width: 110px; padding: 6px 12px; font-weight: 600; display: none;">
+                                    <option value="">No Stream</option>
+                                    <option value="Science">Science</option>
+                                    <option value="Arts">Arts</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <label style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-muted);">Section</label>
+                                <select id="asset-section" class="form-control" style="min-width: 90px; padding: 6px 12px; font-weight: 600;">
+                                    <option value="A">Sec A</option>
+                                    <option value="B">Sec B</option>
+                                    <option value="C">Sec C</option>
+                                    <option value="D">Sec D</option>
+                                    <option value="E">Sec E</option>
+                                </select>
+                            </div>
                             <div style="display: flex; flex-direction: column; gap: 4px;">
                                 <label style="font-size: 0.78rem; font-weight: 700; color: var(--color-text-muted);">स्थान (Place)</label>
                                 <input type="text" id="input-issue-place" class="form-control" placeholder="MUZAFFARPUR" style="min-width: 170px; padding: 6px 12px; font-weight: 600;">
@@ -116,28 +143,7 @@
                         <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 16px; background: var(--color-surface); text-align: center; display: flex; flex-direction: column; justify-content: space-between;">
                             <div>
                                 <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 4px;">वर्ग शिक्षक हस्ताक्षर (Teacher Sig)</h4>
-                                <p style="font-size: 0.75rem; color: var(--color-muted); margin-bottom: 8px;">Class & Section Specific</p>
-                                
-                                <div style="display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; justify-content: center; text-align: left;">
-                                    <select id="asset-class" class="form-control" style="padding: 4px 8px; font-size: 0.8rem; flex: 1; min-width: 70px;">
-                                        <option value="9">Class 9</option>
-                                        <option value="10">Class 10</option>
-                                        <option value="11">Class 11</option>
-                                        <option value="12">Class 12</option>
-                                    </select>
-                                    <select id="asset-stream" class="form-control" style="padding: 4px 8px; font-size: 0.8rem; flex: 1; min-width: 70px; display: none;">
-                                        <option value="">No Stream</option>
-                                        <option value="Science">Science</option>
-                                        <option value="Arts">Arts</option>
-                                    </select>
-                                    <select id="asset-section" class="form-control" style="padding: 4px 8px; font-size: 0.8rem; flex: 1; min-width: 70px;">
-                                        <option value="A">Sec A</option>
-                                        <option value="B">Sec B</option>
-                                        <option value="C">Sec C</option>
-                                        <option value="D">Sec D</option>
-                                        <option value="E">Sec E</option>
-                                    </select>
-                                </div>
+                                <p style="font-size: 0.75rem; color: var(--color-muted); margin-bottom: 8px;">Uses Class / Stream / Section selected above</p>
                                 <div id="preview-teacher-sig" style="height: 70px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--color-border); border-radius: 6px; margin-bottom: 12px; background: #fff; padding: 4px;">
                                     <span style="font-size: 0.8rem; color: var(--color-muted);">No Signature</span>
                                 </div>

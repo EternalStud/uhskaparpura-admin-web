@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=17892929155";
+import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=202608030450";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=17892929155";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030450";
 
 // Local state variables
 let dropdownSubjects = [];  // All available subjects for selected class & stream

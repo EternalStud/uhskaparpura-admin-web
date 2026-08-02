@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader } from "../../../components/loader.js?t=17892929190";
+import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030450";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=17892929190";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030450";
 
 export const initPortalControlView = async () => {
     const navbarContainer = document.querySelector("#navbar-portal-control");
@@ -148,20 +148,55 @@ export const initPortalControlView = async () => {
 
     const refreshAssetControls = [];
 
-    // Issue Date & Place Controls
+    // Issue Date & Place Controls + class/stream/section (shared with teacher sig keys)
     const inputIssueDate = document.querySelector("#input-issue-date");
     const inputIssuePlace = document.querySelector("#input-issue-place");
+    const assetClassSelect = document.querySelector("#asset-class");
+    const assetStreamSelect = document.querySelector("#asset-stream");
+    const assetSectionSelect = document.querySelector("#asset-section");
+
+    function getEffectiveKey(baseKey) {
+        const year = assetYearSelect ? assetYearSelect.value : "";
+        const exam = assetExamSelect ? assetExamSelect.value : "";
+        
+        let key = baseKey;
+        if (year && exam) {
+            const cleanExam = exam.trim().replace(/\s+/g, '_');
+            key = `${baseKey}_${year}_${cleanExam}`;
+        }
+
+        // Apply class/section/stream to teacher sig; class only to issue date/place
+        if (baseKey === "report_card_teacher_sig") {
+            const cls = assetClassSelect ? assetClassSelect.value : "9";
+            const stream = assetStreamSelect && assetStreamSelect.value ? assetStreamSelect.value : "ALL";
+            const sec = assetSectionSelect ? assetSectionSelect.value : "A";
+            key = `${key}_${cls}_${stream}_${sec}`;
+        } else if (baseKey === "report_card_issue_date" || baseKey === "report_card_issue_place") {
+            const cls = assetClassSelect ? assetClassSelect.value : "9";
+            key = `${key}_${cls}`;
+        }
+        
+        return key;
+    }
 
     const refreshIssuePlaceAndDate = () => {
+        const year = assetYearSelect ? assetYearSelect.value : "";
+        const exam = assetExamSelect ? assetExamSelect.value : "";
+        const cleanExam = exam ? exam.trim().replace(/\s+/g, '_') : "";
+        const yearExamPlace = (year && cleanExam) ? `report_card_issue_place_${year}_${cleanExam}` : "";
+        const yearExamDate = (year && cleanExam) ? `report_card_issue_date_${year}_${cleanExam}` : "";
+
         if (inputIssuePlace) {
             const currentPlaceKey = getEffectiveKey("report_card_issue_place");
             let placeVal = localStorage.getItem(currentPlaceKey);
+            if (!placeVal && yearExamPlace) placeVal = localStorage.getItem(yearExamPlace);
             if (!placeVal) placeVal = localStorage.getItem("report_card_issue_place") || "MUZAFFARPUR";
             inputIssuePlace.value = placeVal;
         }
         if (inputIssueDate) {
             const currentDateKey = getEffectiveKey("report_card_issue_date");
             let dateVal = localStorage.getItem(currentDateKey);
+            if (!dateVal && yearExamDate) dateVal = localStorage.getItem(yearExamDate);
             if (!dateVal) dateVal = localStorage.getItem("report_card_issue_date") || new Date().toISOString().split("T")[0];
             inputIssueDate.value = dateVal;
         }
@@ -192,14 +227,12 @@ export const initPortalControlView = async () => {
                 }
             }
 
-            // 2. Issue Place & Date per session & exam
+            // 2. Issue Place & Date per session, exam & class
             if (inputIssuePlace) {
                 const placeVal = (inputIssuePlace.value || "MUZAFFARPUR").trim().toUpperCase();
                 const placeKey = getEffectiveKey("report_card_issue_place");
                 localStorage.setItem(placeKey, placeVal);
-                localStorage.setItem("report_card_issue_place", placeVal);
                 payload[placeKey] = placeVal;
-                payload["report_card_issue_place"] = placeVal;
             }
 
             if (inputIssueDate) {
@@ -207,9 +240,7 @@ export const initPortalControlView = async () => {
                 const dateVal = inputIssueDate.value || todayStr;
                 const dateKey = getEffectiveKey("report_card_issue_date");
                 localStorage.setItem(dateKey, dateVal);
-                localStorage.setItem("report_card_issue_date", dateVal);
                 payload[dateKey] = dateVal;
-                payload["report_card_issue_date"] = dateVal;
             }
 
             if (Object.keys(payload).length > 0) {
@@ -218,8 +249,9 @@ export const initPortalControlView = async () => {
                         method: "POST",
                         body: JSON.stringify(payload)
                     });
-                    const sessionExamLabel = (year && exam) ? ` for ${year} (${exam})` : "";
-                    showToast(`Report Card details (Signatures, Stamp, Place & Issue Date) saved & synced successfully${sessionExamLabel}!`, "success");
+                    const clsLabel = assetClassSelect && assetClassSelect.value ? ` · Class ${assetClassSelect.value}` : "";
+                    const sessionExamLabel = (year && exam) ? ` for ${year} (${exam})${clsLabel}` : clsLabel;
+                    showToast(`Report Card details saved & synced successfully${sessionExamLabel}!`, "success");
                 } catch (err) {
                     console.error("Failed to sync report card details to backend settings:", err);
                     showToast("Report card details saved locally on device.", "info");
@@ -241,48 +273,26 @@ export const initPortalControlView = async () => {
 
     if (assetYearSelect) assetYearSelect.addEventListener("change", onFilterChange);
     if (assetExamSelect) assetExamSelect.addEventListener("change", onFilterChange);
-
-    const assetClassSelect = document.querySelector("#asset-class");
-    const assetStreamSelect = document.querySelector("#asset-stream");
-    const assetSectionSelect = document.querySelector("#asset-section");
-
     if (assetClassSelect) assetClassSelect.addEventListener("change", onFilterChange);
     if (assetStreamSelect) assetStreamSelect.addEventListener("change", onFilterChange);
     if (assetSectionSelect) assetSectionSelect.addEventListener("change", onFilterChange);
 
     // Toggle stream visibility based on class selection
+    const syncStreamVisibility = () => {
+        if (!assetStreamSelect) return;
+        const streamWrap = assetStreamSelect.closest("div");
+        if (parseInt(assetClassSelect && assetClassSelect.value, 10) >= 11) {
+            assetStreamSelect.style.display = "block";
+            if (streamWrap) streamWrap.style.display = "flex";
+        } else {
+            assetStreamSelect.style.display = "none";
+            assetStreamSelect.value = "";
+            if (streamWrap) streamWrap.style.display = "none";
+        }
+    };
     if (assetClassSelect) {
-        assetClassSelect.addEventListener("change", () => {
-            if (parseInt(assetClassSelect.value) >= 11) {
-                if (assetStreamSelect) assetStreamSelect.style.display = "block";
-            } else {
-                if (assetStreamSelect) {
-                    assetStreamSelect.style.display = "none";
-                    assetStreamSelect.value = "";
-                }
-            }
-        });
-    }
-
-    function getEffectiveKey(baseKey) {
-        const year = assetYearSelect ? assetYearSelect.value : "";
-        const exam = assetExamSelect ? assetExamSelect.value : "";
-        
-        let key = baseKey;
-        if (year && exam) {
-            const cleanExam = exam.trim().replace(/\s+/g, '_');
-            key = `${baseKey}_${year}_${cleanExam}`;
-        }
-
-        // Apply class/section/stream ONLY to teacher sig
-        if (baseKey === "report_card_teacher_sig") {
-            const cls = assetClassSelect ? assetClassSelect.value : "9";
-            const stream = assetStreamSelect && assetStreamSelect.value ? assetStreamSelect.value : "ALL";
-            const sec = assetSectionSelect ? assetSectionSelect.value : "A";
-            key = `${key}_${cls}_${stream}_${sec}`;
-        }
-        
-        return key;
+        assetClassSelect.addEventListener("change", syncStreamVisibility);
+        syncStreamVisibility();
     }
 
     function setupAssetControl(type, storageKey, label) {

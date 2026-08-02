@@ -60,13 +60,100 @@ const compressImage = (base64Str, maxWidth, maxHeight) => {
 import { QrCode } from "./qrcodegen.js";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader } from "../../../components/loader.js?t=17892929155";
+import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030450";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=17892929155";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030450";
 
 const BSEB_LOGO_B64 = '/assets/images/bseb_logo_hd_transparent2.png';
 const DEFAULT_HM_SIG_B64 = '/assets/images/hm_sig.png';
 const DEFAULT_SCHOOL_STAMP_B64 = '/assets/images/school_stamp.png';
+
+/**
+ * Normalize stream/faculty for BSEB report card display.
+ */
+const formatFacultyLabel = (raw) => {
+    const t = String(raw || "").trim().toLowerCase();
+    if (!t) return "";
+    if (t.startsWith("sci") || t.includes("विज्ञान")) return "SCIENCE";
+    if (t.startsWith("art") || t.includes("कला")) return "ARTS";
+    if (t.startsWith("com") || t.includes("वाणिज्य")) return "COMMERCE";
+    return String(raw).trim().toUpperCase();
+};
+
+/**
+ * Match portalControl teacher-sig key stream segment (Science / Arts / ALL).
+ */
+const streamKeyVariant = (raw) => {
+    const t = String(raw || "").trim().toLowerCase();
+    if (!t || t === "all") return "ALL";
+    if (t.startsWith("sci")) return "Science";
+    if (t.startsWith("art")) return "Arts";
+    if (t.startsWith("com")) return "Commerce";
+    return String(raw).trim();
+};
+
+/**
+ * Escape URL for use inside CSS url('...').
+ */
+const cssUrl = (url) => String(url || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+
+/**
+ * Resolve report-card asset from localStorage (year/exam/class scoped) with fallbacks.
+ */
+const resolveReportAsset = (baseKey, academicYear, examName, activeClassVal, streamHint, sectionHint, cachedAssets = null) => {
+    const cleanExamKey = examName ? examName.trim().replace(/\s+/g, '_') : "";
+    const section = sectionHint || "A";
+    const stream = streamKeyVariant(streamHint);
+
+    const tryGet = (key) => {
+        if (!key) return "";
+        let val = localStorage.getItem(key);
+        if (!val && cachedAssets && cachedAssets[key] !== undefined) val = cachedAssets[key];
+        if (val === "REMOVED") return "";
+        return val || "";
+    };
+
+    if (baseKey === "report_card_teacher_sig" && academicYear && cleanExamKey) {
+        const specific = tryGet(`${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}_${stream}_${section}`);
+        if (specific) return specific;
+        // Fallback: ALL stream key for class/section
+        if (stream !== "ALL") {
+            const allStream = tryGet(`${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}_ALL_${section}`);
+            if (allStream) return allStream;
+        }
+    }
+
+    // Issue date / place are scoped by session + exam + class
+    if ((baseKey === "report_card_issue_date" || baseKey === "report_card_issue_place") && academicYear && cleanExamKey && activeClassVal != null && activeClassVal !== "") {
+        const classScoped = tryGet(`${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}`);
+        if (classScoped) return classScoped;
+    }
+
+    if (academicYear && cleanExamKey) {
+        const yearExam = tryGet(`${baseKey}_${academicYear}_${cleanExamKey}`);
+        if (yearExam) return yearExam;
+    }
+
+    return tryGet(baseKey);
+};
+
+/**
+ * Sync Drive-backed report card assets into localStorage (from Settings sheet).
+ */
+const syncReportCardAssetsFromApi = async () => {
+    try {
+        const response = await apiRequest("settings.load");
+        if (response.success && response.settings) {
+            Object.keys(response.settings).forEach((key) => {
+                if (key.startsWith("report_card_")) {
+                    localStorage.setItem(key, response.settings[key]);
+                }
+            });
+        }
+    } catch (err) {
+        console.warn("Could not prefetch report card assets:", err);
+    }
+};
 
 let currentResults = [];
 let activeClassVal = null;
@@ -87,38 +174,13 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
-    // Stored Assets & Details per Academic Session & Exam Name
-    const cleanExamKey = examName ? examName.trim().replace(/\s+/g, '_') : "";
+
+    const secSel = document.querySelector("#filter-section");
+    const section = secSel && secSel.value ? secSel.value : "A";
+
     const getAsset = (baseKey, fallback) => {
-        let val = "";
-        
-        if (baseKey === "report_card_teacher_sig" && academicYear && cleanExamKey) {
-            const secSel = document.querySelector("#filter-section");
-            const strSel = document.querySelector("#filter-stream");
-            const section = secSel && secSel.value ? secSel.value : "A";
-            const stream = (activeClassVal >= 11 && strSel && strSel.value) ? strSel.value : "ALL";
-            
-            const specificKey = `${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}_${stream}_${section}`;
-            val = localStorage.getItem(specificKey);
-            if (!val && cachedAssets && cachedAssets[specificKey] !== undefined) val = cachedAssets[specificKey];
-        }
-
-        if (!val) {
-            if (academicYear && cleanExamKey) {
-                const yearExamKey = `${baseKey}_${academicYear}_${cleanExamKey}`;
-                val = localStorage.getItem(yearExamKey);
-                if (!val && cachedAssets && cachedAssets[yearExamKey] !== undefined) val = cachedAssets[yearExamKey];
-            }
-        }
-        
-        if (!val) {
-            val = localStorage.getItem(baseKey);
-            if (!val && cachedAssets && cachedAssets[baseKey] !== undefined) val = cachedAssets[baseKey];
-        }
-
-        if (val === "REMOVED") return "";
-        if (val) return val;
-        return fallback || "";
+        const val = resolveReportAsset(baseKey, academicYear, examName, activeClassVal, "ALL", section, cachedAssets);
+        return val || fallback || "";
     };
 
     let defaultDate = `${dd}/${mm}/${yyyy}`;
@@ -147,16 +209,17 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const hmSig = getAsset("report_card_hm_sig", "");
     const schoolStamp = getAsset("report_card_school_stamp", "");
 
+    // Inline backgrounds so print window does not depend on bare localStorage CSS keys
     const teacherSigHtml = teacherSig 
-        ? `<div class="teacher-sig-img" style="height: 44px; width: 150px; margin: 0 auto 2px auto;"></div>` 
+        ? `<div style="height: 44px; width: 150px; margin: 0 auto 2px auto; background-image: url('${cssUrl(teacherSig)}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
     const hmSigHtml = hmSig 
-        ? `<div class="hm-sig-img" style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; mix-blend-mode: multiply;"></div>` 
+        ? `<div style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; mix-blend-mode: multiply; background-image: url('${cssUrl(hmSig)}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
     const stampHtml = schoolStamp
-        ? `<div class="school-stamp-img" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; mix-blend-mode: multiply;"></div>`
+        ? `<div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; mix-blend-mode: multiply; background-image: url('${cssUrl(schoolStamp)}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>`
         : ``;
 
     const getSubObj = (subId) => {
@@ -454,38 +517,16 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const dd = String(today.getDate()).padStart(2, '0');
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
-    // Stored Assets & Details per Academic Session & Exam Name
-    const cleanExamKey = examName ? examName.trim().replace(/\s+/g, '_') : "";
+
+    const secSel = document.querySelector("#filter-section");
+    const section = secSel && secSel.value ? secSel.value : "A";
+    // Prefer per-student stream from API, then filter, for teacher-sig key + FACULTY
+    const facultyLabel = formatFacultyLabel(res.stream || streamName);
+    const streamHint = res.stream || streamName || "ALL";
+
     const getAsset = (baseKey, fallback) => {
-        let val = "";
-        
-        if (baseKey === "report_card_teacher_sig" && academicYear && cleanExamKey) {
-            const secSel = document.querySelector("#filter-section");
-            const strSel = document.querySelector("#filter-stream");
-            const section = secSel && secSel.value ? secSel.value : "A";
-            const stream = (activeClassVal >= 11 && strSel && strSel.value) ? strSel.value : "ALL";
-            
-            const specificKey = `${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}_${stream}_${section}`;
-            val = localStorage.getItem(specificKey);
-            if (!val && cachedAssets && cachedAssets[specificKey] !== undefined) val = cachedAssets[specificKey];
-        }
-
-        if (!val) {
-            if (academicYear && cleanExamKey) {
-                const yearExamKey = `${baseKey}_${academicYear}_${cleanExamKey}`;
-                val = localStorage.getItem(yearExamKey);
-                if (!val && cachedAssets && cachedAssets[yearExamKey] !== undefined) val = cachedAssets[yearExamKey];
-            }
-        }
-        
-        if (!val) {
-            val = localStorage.getItem(baseKey);
-            if (!val && cachedAssets && cachedAssets[baseKey] !== undefined) val = cachedAssets[baseKey];
-        }
-
-        if (val === "REMOVED") return "";
-        if (val) return val;
-        return fallback || "";
+        const val = resolveReportAsset(baseKey, academicYear, examName, activeClassVal, streamHint, section, cachedAssets);
+        return val || fallback || "";
     };
 
     let defaultDate = `${dd}/${mm}/${yyyy}`;
@@ -506,25 +547,25 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const issueDate = defaultDate;
     const issuePlace = (getAsset("report_card_issue_place", "MUZAFFARPUR")).toUpperCase();
 
-    // Document Certificate Number & QR Code
-    const cleanExam = examName.replace(/\s+/g, '_').toUpperCase();
-    const certNo = `Academic Session = ${academicYear} ,Exam Name = ${examName} ,class = ${activeClassVal} , Student Code = ${res.studentId || res.rollNo}`;
-
     const teacherSig = getAsset("report_card_teacher_sig", "");
     const hmSig = getAsset("report_card_hm_sig", "");
     const schoolStamp = getAsset("report_card_school_stamp", "");
 
     const teacherSigHtml = teacherSig 
-        ? `<div class="teacher-sig-img" style="height: 44px; width: 150px; margin: 0 auto 2px auto;"></div>` 
+        ? `<div style="height: 44px; width: 150px; margin: 0 auto 2px auto; background-image: url('${cssUrl(teacherSig)}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
     const hmSigHtml = hmSig 
-        ? `<div class="hm-sig-img" style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; mix-blend-mode: multiply;"></div>` 
+        ? `<div style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; mix-blend-mode: multiply; background-image: url('${cssUrl(hmSig)}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
     const stampHtml = schoolStamp
-        ? `<div class="school-stamp-img" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; mix-blend-mode: multiply;"></div>`
+        ? `<div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; mix-blend-mode: multiply; background-image: url('${cssUrl(schoolStamp)}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>`
         : ``;
+
+    // Document Certificate Number & QR Code
+    const cleanExam = examName.replace(/\s+/g, '_').toUpperCase();
+    const certNo = `Academic Session = ${academicYear} ,Exam Name = ${examName} ,class = ${activeClassVal} , Student Code = ${res.studentId || res.rollNo}`;
 
     const getSubDetails = (subId) => {
         if (!subId) return null;
@@ -651,7 +692,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
                     <tr>
                         <td style="padding: 2px 8px 2px 0; white-space: nowrap;">FACULTY</td>
                         <td style="padding: 2px 8px; font-weight: 700;">:</td>
-                        <td style="padding: 2px 0; font-weight: 700; text-transform: uppercase;">${res.stream || streamName || 'ARTS'}</td>
+                        <td style="padding: 2px 0; font-weight: 700; text-transform: uppercase;">${facultyLabel || '—'}</td>
                     </tr>
                 </table>
             </div>
@@ -762,23 +803,10 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
         return;
     }
 
-    const teacherSigRaw = localStorage.getItem("report_card_teacher_sig") || "";
-    let hmSigRaw = localStorage.getItem("report_card_hm_sig") || "";
-    if (hmSigRaw === "REMOVED") hmSigRaw = "";
-    let schoolStampRaw = localStorage.getItem("report_card_school_stamp") || "";
-    if (schoolStampRaw === "REMOVED") schoolStampRaw = "";
-
-    const logoB64Compressed = BSEB_LOGO_B64;
-    const teacherSig = teacherSigRaw;
-    const hmSig = hmSigRaw;
-    const schoolStamp = schoolStampRaw;
-
+    // Signatures/stamps are inlined on each card via resolveReportAsset — only logo CSS needed here
     const assetStyles = `
-        .bseb-logo-img { background-image: url("${logoB64Compressed}"); background-size: contain; background-repeat: no-repeat; background-position: center; }
-        .bseb-logo-circular { width: 110px; height: 110px; background-image: url("${logoB64Compressed}"); background-size: 90%; background-repeat: no-repeat; background-position: center; }
-        ${teacherSig && teacherSig !== "REMOVED" ? `.teacher-sig-img { background-image: url("${teacherSig}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
-        ${hmSig ? `.hm-sig-img { background-image: url("${hmSig}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
-        ${schoolStamp ? `.school-stamp-img { background-image: url("${schoolStamp}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
+        .bseb-logo-img { background-image: url("${BSEB_LOGO_B64}"); background-size: contain; background-repeat: no-repeat; background-position: center; }
+        .bseb-logo-circular { width: 110px; height: 110px; background-image: url("${BSEB_LOGO_B64}"); background-size: 90%; background-repeat: no-repeat; background-position: center; }
     `;
 
     hideLoader();
@@ -876,7 +904,7 @@ const handlePrintSingleReportCard = async (studentId) => {
 
     const year = yearSelect ? yearSelect.value : "";
     const examName = examSelect ? examSelect.value : "";
-    const streamName = streamSelect ? streamSelect.value : "ARTS";
+    const streamName = (streamSelect && streamSelect.value) ? streamSelect.value : (student.stream || "");
 
     const isSenior = (activeClassVal === 11 || activeClassVal === 12);
     const cardHtml = isSenior
@@ -902,39 +930,31 @@ const handlePrintAllReportCards = async () => {
 
     const year = yearSelect ? yearSelect.value : "";
     const examName = examSelect ? examSelect.value : "";
-    const streamName = streamSelect ? streamSelect.value : "ARTS";
+    const streamName = (streamSelect && streamSelect.value) ? streamSelect.value : "";
 
     const isSenior = (activeClassVal === 11 || activeClassVal === 12);
+    const secSel = document.querySelector("#filter-section");
+    const section = secSel && secSel.value ? secSel.value : "A";
 
-    const cleanExamKeyCache = examName ? examName.trim().replace(/\s+/g, '_') : '';
-    const getCachedAsset = (baseKey, fallback) => {
-        let val = '';
-        if (baseKey === 'report_card_teacher_sig' && year && cleanExamKeyCache) {
-            const secSel = document.querySelector("#filter-section");
-            const section = secSel && secSel.value ? secSel.value : "A";
-            const specificKey = `${baseKey}_${year}_${cleanExamKeyCache}_${activeClassVal}_${streamName}_${section}`;
-            val = localStorage.getItem(specificKey);
+    // Snapshot keys currently in localStorage for bulk print (avoids repeated DOM/storage churn)
+    const cachedAssets = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("report_card_")) {
+            cachedAssets[key] = localStorage.getItem(key);
         }
-        
-        if (!val && year && cleanExamKeyCache) {
-            val = localStorage.getItem(`${baseKey}_${year}_${cleanExamKeyCache}`);
-        }
-        if (!val) val = localStorage.getItem(baseKey);
-        if (val === 'REMOVED') return '';
-        return val || fallback || '';
-    };
-    const cachedAssets = {
-        report_card_teacher_sig: getCachedAsset('report_card_teacher_sig', ''),
-        report_card_hm_sig: getCachedAsset('report_card_hm_sig', ''),
-        report_card_school_stamp: getCachedAsset('report_card_school_stamp', ''),
-        report_card_issue_date: getCachedAsset('report_card_issue_date', ''),
-        report_card_issue_place: getCachedAsset('report_card_issue_place', 'MUZAFFARPUR')
-    };
+    }
+    // Ensure year/exam scoped fallbacks exist even if only bare keys were set
+    ["report_card_hm_sig", "report_card_school_stamp", "report_card_issue_date", "report_card_issue_place", "report_card_teacher_sig"].forEach((baseKey) => {
+        const resolved = resolveReportAsset(baseKey, year, examName, activeClassVal, streamName || "ALL", section, cachedAssets);
+        if (resolved) cachedAssets[baseKey] = resolved;
+    });
 
     let allCardsHtml = "";
     activeData.studentResults.forEach(student => {
+        const studentStream = student.stream || streamName;
         const cardHtml = isSenior
-            ? generateSeniorReportCardHtml(student, examName, year, activeClassVal, streamName, BSEB_LOGO_B64, cachedAssets)
+            ? generateSeniorReportCardHtml(student, examName, year, activeClassVal, studentStream, BSEB_LOGO_B64, cachedAssets)
             : generateJuniorReportCardHtml(student, examName, year, activeClassVal, BSEB_LOGO_B64, cachedAssets);
         allCardsHtml += cardHtml;
     });
@@ -1994,7 +2014,7 @@ export async function initResultGenerationView() {
             });
         }
 
-        // Initial setup - parallelize dropdown load and sections fetch
+        // Initial setup — parallelize exams, sections, and report-card asset sync
         updateStreamFilterVisibility();
         await Promise.all([
             (async () => {
@@ -2011,7 +2031,8 @@ export async function initResultGenerationView() {
                     }
                 }
             })(),
-            updateAvailableSections()
+            updateAvailableSections(),
+            syncReportCardAssetsFromApi()
         ]);
 
     } catch (error) {
