@@ -64,7 +64,7 @@ import { showLoader, hideLoader } from "../../../components/loader.js?t=17892929
 import { apiRequest } from "../../../services/api.js";
 import { renderNavbar } from "../../../components/navbar.js?t=17892929155";
 
-const BSEB_LOGO_B64 = '/assets/images/bseb_logo_hd.png';
+const BSEB_LOGO_B64 = '/assets/images/bseb_logo_hd_transparent2.png';
 const DEFAULT_HM_SIG_B64 = '/assets/images/hm_sig.png';
 const DEFAULT_SCHOOL_STAMP_B64 = '/assets/images/school_stamp.png';
 
@@ -79,7 +79,7 @@ let currentViewMode = window.innerWidth < 768 ? "cards" : "table";
 /**
  * Generates Class 9-10 individual BSEB Statement of Marks HTML.
  */
-const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVal, logoB64) => {
+const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVal, logoB64, cachedAssets = null) => {
     const classNumeral = activeClassVal === 10 ? 'X' : 'IX';
     
     // Today's date or custom issue date in DD/MM/YYYY format
@@ -91,10 +91,31 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const cleanExamKey = examName ? examName.trim().replace(/\s+/g, '_') : "";
     const getAsset = (baseKey, fallback) => {
         let val = "";
-        if (academicYear && cleanExamKey) {
-            val = localStorage.getItem(`${baseKey}_${academicYear}_${cleanExamKey}`);
+        
+        if (baseKey === "report_card_teacher_sig" && academicYear && cleanExamKey) {
+            const secSel = document.querySelector("#filter-section");
+            const strSel = document.querySelector("#filter-stream");
+            const section = secSel && secSel.value ? secSel.value : "A";
+            const stream = (activeClassVal >= 11 && strSel && strSel.value) ? strSel.value : "ALL";
+            
+            const specificKey = `${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}_${stream}_${section}`;
+            val = localStorage.getItem(specificKey);
+            if (!val && cachedAssets && cachedAssets[specificKey] !== undefined) val = cachedAssets[specificKey];
         }
-        if (!val) val = localStorage.getItem(baseKey);
+
+        if (!val) {
+            if (academicYear && cleanExamKey) {
+                const yearExamKey = `${baseKey}_${academicYear}_${cleanExamKey}`;
+                val = localStorage.getItem(yearExamKey);
+                if (!val && cachedAssets && cachedAssets[yearExamKey] !== undefined) val = cachedAssets[yearExamKey];
+            }
+        }
+        
+        if (!val) {
+            val = localStorage.getItem(baseKey);
+            if (!val && cachedAssets && cachedAssets[baseKey] !== undefined) val = cachedAssets[baseKey];
+        }
+
         if (val === "REMOVED") return "";
         if (val) return val;
         return fallback || "";
@@ -107,7 +128,12 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
         if (parts.length === 3) {
             defaultDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
         } else {
-            defaultDate = savedDate;
+            const parsed = new Date(savedDate);
+            if (!isNaN(parsed)) {
+                defaultDate = `${String(parsed.getDate()).padStart(2, '0')}/${String(parsed.getMonth() + 1).padStart(2, '0')}/${parsed.getFullYear()}`;
+            } else {
+                defaultDate = savedDate;
+            }
         }
     }
     const issueDate = defaultDate;
@@ -402,8 +428,11 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                     <div style="border-top: 1px solid #0f172a; padding-top: 4px;">Class Teacher's Signature</div>
                 </div>
 
-                <div style="text-align: center; width: 200px; position: relative; height: 160px; display: flex; flex-direction: column; justify-content: flex-end;">
+                <div style="text-align: center; width: 200px; position: relative; height: 160px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;">
                     ${stampHtml}
+                </div>
+
+                <div style="text-align: center; width: 200px; position: relative; height: 160px; display: flex; flex-direction: column; justify-content: flex-end;">
                     ${hmSigHtml}
                     <div style="border-top: 1px solid #0f172a; padding-top: 4px; position: relative; z-index: 3;">Principal's Signature</div>
                 </div>
@@ -417,7 +446,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     </div>`;
 };
 
-const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVal, streamName, logoB64) => {
+const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVal, streamName, logoB64, cachedAssets = null) => {
     const classNumeral = activeClassVal === 11 ? 'XI' : 'XII';
     
     // Today's date or custom issue date in DD/MM/YYYY format
@@ -429,10 +458,31 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const cleanExamKey = examName ? examName.trim().replace(/\s+/g, '_') : "";
     const getAsset = (baseKey, fallback) => {
         let val = "";
-        if (academicYear && cleanExamKey) {
-            val = localStorage.getItem(`${baseKey}_${academicYear}_${cleanExamKey}`);
+        
+        if (baseKey === "report_card_teacher_sig" && academicYear && cleanExamKey) {
+            const secSel = document.querySelector("#filter-section");
+            const strSel = document.querySelector("#filter-stream");
+            const section = secSel && secSel.value ? secSel.value : "A";
+            const stream = (activeClassVal >= 11 && strSel && strSel.value) ? strSel.value : "ALL";
+            
+            const specificKey = `${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}_${stream}_${section}`;
+            val = localStorage.getItem(specificKey);
+            if (!val && cachedAssets && cachedAssets[specificKey] !== undefined) val = cachedAssets[specificKey];
         }
-        if (!val) val = localStorage.getItem(baseKey);
+
+        if (!val) {
+            if (academicYear && cleanExamKey) {
+                const yearExamKey = `${baseKey}_${academicYear}_${cleanExamKey}`;
+                val = localStorage.getItem(yearExamKey);
+                if (!val && cachedAssets && cachedAssets[yearExamKey] !== undefined) val = cachedAssets[yearExamKey];
+            }
+        }
+        
+        if (!val) {
+            val = localStorage.getItem(baseKey);
+            if (!val && cachedAssets && cachedAssets[baseKey] !== undefined) val = cachedAssets[baseKey];
+        }
+
         if (val === "REMOVED") return "";
         if (val) return val;
         return fallback || "";
@@ -445,7 +495,12 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
         if (parts.length === 3) {
             defaultDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
         } else {
-            defaultDate = savedDate;
+            const parsed = new Date(savedDate);
+            if (!isNaN(parsed)) {
+                defaultDate = `${String(parsed.getDate()).padStart(2, '0')}/${String(parsed.getMonth() + 1).padStart(2, '0')}/${parsed.getFullYear()}`;
+            } else {
+                defaultDate = savedDate;
+            }
         }
     }
     const issueDate = defaultDate;
@@ -596,7 +651,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
                     <tr>
                         <td style="padding: 2px 8px 2px 0; white-space: nowrap;">FACULTY</td>
                         <td style="padding: 2px 8px; font-weight: 700;">:</td>
-                        <td style="padding: 2px 0; font-weight: 700; text-transform: uppercase;">${streamName || 'ARTS'}</td>
+                        <td style="padding: 2px 0; font-weight: 700; text-transform: uppercase;">${res.stream || streamName || 'ARTS'}</td>
                     </tr>
                 </table>
             </div>
@@ -680,8 +735,11 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
                     <div style="border-top: 1px solid #0f172a; padding-top: 4px;">Class Teacher's Signature</div>
                 </div>
 
-                <div style="text-align: center; width: 200px; position: relative; height: 160px; display: flex; flex-direction: column; justify-content: flex-end;">
+                <div style="text-align: center; width: 200px; position: relative; height: 160px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;">
                     ${stampHtml}
+                </div>
+
+                <div style="text-align: center; width: 200px; position: relative; height: 160px; display: flex; flex-direction: column; justify-content: flex-end;">
                     ${hmSigHtml}
                     <div style="border-top: 1px solid #0f172a; padding-top: 4px; position: relative; z-index: 3;">Principal's Signature</div>
                 </div>
@@ -710,16 +768,14 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
     let schoolStampRaw = localStorage.getItem("report_card_school_stamp") || "";
     if (schoolStampRaw === "REMOVED") schoolStampRaw = "";
 
-    const [logoB64Compressed, teacherSig, hmSig, schoolStamp] = await Promise.all([
-        compressImage(BSEB_LOGO_B64, 600, 600),
-        compressImage(teacherSigRaw, 300, 100),
-        compressImage(hmSigRaw, 320, 110),
-        compressImage(schoolStampRaw, 320, 160)
-    ]);
+    const logoB64Compressed = BSEB_LOGO_B64;
+    const teacherSig = teacherSigRaw;
+    const hmSig = hmSigRaw;
+    const schoolStamp = schoolStampRaw;
 
     const assetStyles = `
         .bseb-logo-img { background-image: url("${logoB64Compressed}"); background-size: contain; background-repeat: no-repeat; background-position: center; }
-        .bseb-logo-circular { width: 110px; height: 110px; border-radius: 50%; overflow: hidden; background-image: url("${logoB64Compressed}"); background-size: cover; background-repeat: no-repeat; background-position: center; border: 1px solid rgba(0,0,0,0.06); }
+        .bseb-logo-circular { width: 110px; height: 110px; background-image: url("${logoB64Compressed}"); background-size: 90%; background-repeat: no-repeat; background-position: center; }
         ${teacherSig && teacherSig !== "REMOVED" ? `.teacher-sig-img { background-image: url("${teacherSig}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
         ${hmSig ? `.hm-sig-img { background-image: url("${hmSig}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
         ${schoolStamp ? `.school-stamp-img { background-image: url("${schoolStamp}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
@@ -850,11 +906,36 @@ const handlePrintAllReportCards = async () => {
 
     const isSenior = (activeClassVal === 11 || activeClassVal === 12);
 
+    const cleanExamKeyCache = examName ? examName.trim().replace(/\s+/g, '_') : '';
+    const getCachedAsset = (baseKey, fallback) => {
+        let val = '';
+        if (baseKey === 'report_card_teacher_sig' && year && cleanExamKeyCache) {
+            const secSel = document.querySelector("#filter-section");
+            const section = secSel && secSel.value ? secSel.value : "A";
+            const specificKey = `${baseKey}_${year}_${cleanExamKeyCache}_${activeClassVal}_${streamName}_${section}`;
+            val = localStorage.getItem(specificKey);
+        }
+        
+        if (!val && year && cleanExamKeyCache) {
+            val = localStorage.getItem(`${baseKey}_${year}_${cleanExamKeyCache}`);
+        }
+        if (!val) val = localStorage.getItem(baseKey);
+        if (val === 'REMOVED') return '';
+        return val || fallback || '';
+    };
+    const cachedAssets = {
+        report_card_teacher_sig: getCachedAsset('report_card_teacher_sig', ''),
+        report_card_hm_sig: getCachedAsset('report_card_hm_sig', ''),
+        report_card_school_stamp: getCachedAsset('report_card_school_stamp', ''),
+        report_card_issue_date: getCachedAsset('report_card_issue_date', ''),
+        report_card_issue_place: getCachedAsset('report_card_issue_place', 'MUZAFFARPUR')
+    };
+
     let allCardsHtml = "";
     activeData.studentResults.forEach(student => {
         const cardHtml = isSenior
-            ? generateSeniorReportCardHtml(student, examName, year, activeClassVal, streamName, BSEB_LOGO_B64)
-            : generateJuniorReportCardHtml(student, examName, year, activeClassVal, BSEB_LOGO_B64);
+            ? generateSeniorReportCardHtml(student, examName, year, activeClassVal, streamName, BSEB_LOGO_B64, cachedAssets)
+            : generateJuniorReportCardHtml(student, examName, year, activeClassVal, BSEB_LOGO_B64, cachedAssets);
         allCardsHtml += cardHtml;
     });
 
@@ -1130,11 +1211,8 @@ const renderCardsView = (container, activeSubjects, filteredStudents) => {
         return;
     }
 
+    let cardsHtml = "";
     filteredStudents.forEach(stud => {
-        const card = document.createElement("div");
-        card.className = "mobile-student-card";
-        card.style.cssText = "background-color: #ffffff; border: 1px solid var(--color-border); border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 12px; transition: transform 0.2s, box-shadow 0.2s;";
-
         let divBg = "#f1f5f9";
         let divColor = "#475569";
         const divText = String(stud.division || "Incomplete").trim();
@@ -1160,7 +1238,8 @@ const renderCardsView = (container, activeSubjects, filteredStudents) => {
             `;
         });
 
-        card.innerHTML = `
+        cardsHtml += `
+        <div class="mobile-student-card" style="background-color: #ffffff; border: 1px solid var(--color-border); border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 12px; transition: transform 0.2s, box-shadow 0.2s;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
                 <div>
                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -1206,18 +1285,19 @@ const renderCardsView = (container, activeSubjects, filteredStudents) => {
                 <span class="material-symbols-rounded" style="font-size: 1.1rem; color: var(--color-primary);">print</span>
                 Print Official Report Card
             </button>
-        `;
-
-        const printBtn = card.querySelector(".print-single-card-btn");
-        if (printBtn) {
-            printBtn.addEventListener("click", (e) => {
-                e.stopPropagation();
-                handlePrintSingleReportCard(stud.studentId);
-            });
-        }
-
-        container.appendChild(card);
+        </div>`;
     });
+    
+    container.innerHTML = cardsHtml;
+
+    container.onclick = (e) => {
+        const btn = e.target.closest(".print-single-card-btn");
+        if (btn) {
+            e.stopPropagation();
+            const studentId = btn.getAttribute("data-studentid");
+            handlePrintSingleReportCard(studentId);
+        }
+    };
 };
 
 
@@ -1493,12 +1573,13 @@ const renderJuniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
     }).join("");
     tbody.innerHTML = rowsHtml;
 
-    tbody.querySelectorAll(".btn-print-card").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            const studentId = e.currentTarget.getAttribute("data-student-id");
+    tbody.onclick = (e) => {
+        const btn = e.target.closest(".btn-print-card");
+        if (btn) {
+            const studentId = btn.getAttribute("data-student-id");
             handlePrintSingleReportCard(studentId);
-        });
-    });
+        }
+    };
 };
 
 
@@ -1698,12 +1779,13 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
     }).join("");
     tbody.innerHTML = rowsHtml;
 
-    tbody.querySelectorAll(".btn-print-card").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-            const studentId = e.currentTarget.getAttribute("data-student-id");
+    tbody.onclick = (e) => {
+        const btn = e.target.closest(".btn-print-card");
+        if (btn) {
+            const studentId = btn.getAttribute("data-student-id");
             handlePrintSingleReportCard(studentId);
-        });
-    });
+        }
+    };
 };
 
 
@@ -1867,9 +1949,13 @@ export async function initResultGenerationView() {
         }
 
         if (searchInput) {
+            let searchTimeout;
             searchInput.addEventListener("input", (e) => {
-                searchQuery = e.target.value;
-                renderTable();
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchQuery = e.target.value;
+                    renderTable();
+                }, 300);
             });
         }
 

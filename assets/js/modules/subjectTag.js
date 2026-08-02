@@ -603,6 +603,9 @@ const renderWorkspaceData = () => {
     const l1Label = isSrSec ? "Language 1" : "MIL";
     const l2Label = isSrSec ? "Language 2" : "SIL";
 
+    const desktopFragment = document.createDocumentFragment();
+    const mobileFragment = document.createDocumentFragment();
+
     studentsState.forEach((student) => {
         // Build Desktop Table Row
         const tr = document.createElement("tr");
@@ -631,7 +634,7 @@ const renderWorkspaceData = () => {
 
         tr.innerHTML = rowHtml;
 
-        desktopTbody.appendChild(tr);
+        desktopFragment.appendChild(tr);
 
         // Initialize Desktop Select Triggers
         renderSelectTrigger(tr.querySelector(".td-l1"), student, "l1", classNum);
@@ -688,7 +691,7 @@ const renderWorkspaceData = () => {
             </div>
         `;
 
-        mobileWorkspace.appendChild(card);
+        mobileFragment.appendChild(card);
 
         // Initialize Mobile Select Triggers
         renderSelectTrigger(card.querySelector(".mc-l1"), student, "l1", classNum);
@@ -705,6 +708,9 @@ const renderWorkspaceData = () => {
         updateStatusBadge(tr.querySelector(".row-status"), student);
         updateStatusBadge(card.querySelector(".row-status"), student);
     });
+
+    desktopTbody.appendChild(desktopFragment);
+    mobileWorkspace.appendChild(mobileFragment);
 
     updateStatsAndProgress();
 };
@@ -768,11 +774,15 @@ const handleLoadStudents = async () => {
         currentFilters = { academicYear, classNum, section, stream };
 
         // 1. Fetch valid subjects for the dropdowns
-        const dropResponse = await apiRequest(`subject.tag.getDropdowns?classNum=${classNum}&stream=${stream}`);
-        if (!dropResponse.success) {
-            throw new Error(dropResponse.error || "Failed to load subjects configuration.");
+        const cacheKey = `${classNum}_${stream}`;
+        if (!metadataCache[cacheKey]) {
+            const dropResponse = await apiRequest(`subject.tag.getDropdowns?classNum=${classNum}&stream=${stream}`);
+            if (!dropResponse.success) {
+                throw new Error(dropResponse.error || "Failed to load subjects configuration.");
+            }
+            metadataCache[cacheKey] = dropResponse.subjects || [];
         }
-        dropdownSubjects = dropResponse.subjects || [];
+        dropdownSubjects = metadataCache[cacheKey];
 
         // 2. Fetch student list with saved subject tags
         const queryParams = new URLSearchParams({
@@ -945,25 +955,29 @@ export async function initSubjectTagView() {
         document.querySelector("#load-students-btn")?.addEventListener("click", handleLoadStudents);
         document.querySelector("#save-all-btn")?.addEventListener("click", handleSaveAll);
 
-        // Search input binding
+        // Search input binding with debounce
+        let searchTimeout;
         document.querySelector("#student-search-input")?.addEventListener("input", (e) => {
-            const query = String(e.target.value || "").trim().toLowerCase();
-            const rows = document.querySelectorAll("#desktop-table-body tr");
-            const cards = document.querySelectorAll("#mobile-workspace .student-mobile-card");
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const query = String(e.target.value || "").trim().toLowerCase();
+                const rows = document.querySelectorAll("#desktop-table-body tr");
+                const cards = document.querySelectorAll("#mobile-workspace .student-mobile-card");
 
-            rows.forEach(row => {
-                const name = String(row.querySelector(".col-name")?.textContent || "").toLowerCase();
-                const roll = String(row.querySelector(".col-roll")?.textContent || "").toLowerCase();
-                const matches = name.includes(query) || roll.includes(query);
-                row.style.display = matches ? "" : "none";
-            });
+                rows.forEach(row => {
+                    const name = String(row.querySelector(".col-name")?.textContent || "").toLowerCase();
+                    const roll = String(row.querySelector(".col-roll")?.textContent || "").toLowerCase();
+                    const matches = name.includes(query) || roll.includes(query);
+                    row.style.display = matches ? "" : "none";
+                });
 
-            cards.forEach(card => {
-                const name = String(card.querySelector(".mobile-card-name")?.textContent || "").toLowerCase();
-                const roll = String(card.querySelector(".mobile-card-roll")?.textContent || "").toLowerCase();
-                const matches = name.includes(query) || roll.includes(query);
-                card.style.display = matches ? "" : "none";
-            });
+                cards.forEach(card => {
+                    const name = String(card.querySelector(".mobile-card-name")?.textContent || "").toLowerCase();
+                    const roll = String(card.querySelector(".mobile-card-roll")?.textContent || "").toLowerCase();
+                    const matches = name.includes(query) || roll.includes(query);
+                    card.style.display = matches ? "" : "none";
+                });
+            }, 300);
         });
 
         // Mobile show table view toggle binding

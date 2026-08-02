@@ -110,13 +110,13 @@ export const initPortalControlView = async () => {
     const assetExamSelect = document.querySelector("#asset-exam-name");
 
     const getAcademicYears = () => {
-        const currentYear = new Date().getFullYear();
-        const month = new Date().getMonth() + 1;
-        let startYear = month >= 4 ? currentYear : currentYear - 1;
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const startYear = (currentMonth < 3) ? currentYear - 1 : currentYear;
         const current = `${startYear}-${String(startYear + 1).slice(-2)}`;
         const next = `${startYear + 1}-${String(startYear + 2).slice(-2)}`;
-        const prev = `${startYear - 1}-${String(startYear).slice(-2)}`;
-        return [current, next, prev];
+        return [current, next];
     };
 
     if (assetYearSelect) {
@@ -242,48 +242,48 @@ export const initPortalControlView = async () => {
     if (assetYearSelect) assetYearSelect.addEventListener("change", onFilterChange);
     if (assetExamSelect) assetExamSelect.addEventListener("change", onFilterChange);
 
+    const assetClassSelect = document.querySelector("#asset-class");
+    const assetStreamSelect = document.querySelector("#asset-stream");
+    const assetSectionSelect = document.querySelector("#asset-section");
+
+    if (assetClassSelect) assetClassSelect.addEventListener("change", onFilterChange);
+    if (assetStreamSelect) assetStreamSelect.addEventListener("change", onFilterChange);
+    if (assetSectionSelect) assetSectionSelect.addEventListener("change", onFilterChange);
+
+    // Toggle stream visibility based on class selection
+    if (assetClassSelect) {
+        assetClassSelect.addEventListener("change", () => {
+            if (parseInt(assetClassSelect.value) >= 11) {
+                if (assetStreamSelect) assetStreamSelect.style.display = "block";
+            } else {
+                if (assetStreamSelect) {
+                    assetStreamSelect.style.display = "none";
+                    assetStreamSelect.value = "";
+                }
+            }
+        });
+    }
+
     function getEffectiveKey(baseKey) {
         const year = assetYearSelect ? assetYearSelect.value : "";
         const exam = assetExamSelect ? assetExamSelect.value : "";
+        
+        let key = baseKey;
         if (year && exam) {
             const cleanExam = exam.trim().replace(/\s+/g, '_');
-            return `${baseKey}_${year}_${cleanExam}`;
+            key = `${baseKey}_${year}_${cleanExam}`;
         }
-        return baseKey;
-    }
 
-const compressImage = (base64Str, maxWidth, maxHeight) => {
-    return new Promise((resolve) => {
-        if (!base64Str || !base64Str.startsWith("data:image")) {
-            resolve(base64Str);
-            return;
+        // Apply class/section/stream ONLY to teacher sig
+        if (baseKey === "report_card_teacher_sig") {
+            const cls = assetClassSelect ? assetClassSelect.value : "9";
+            const stream = assetStreamSelect && assetStreamSelect.value ? assetStreamSelect.value : "ALL";
+            const sec = assetSectionSelect ? assetSectionSelect.value : "A";
+            key = `${key}_${cls}_${stream}_${sec}`;
         }
-        const img = new Image();
-        img.onload = () => {
-            let width = img.width;
-            let height = img.height;
-            if (width > maxWidth || height > maxHeight) {
-                if (width / maxWidth > height / maxHeight) {
-                    height = Math.round((height * maxWidth) / width);
-                    width = maxWidth;
-                } else {
-                    width = Math.round((width * maxHeight) / height);
-                    height = maxHeight;
-                }
-            }
-            const canvas = document.createElement("canvas");
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL("image/png"));
-        };
-        img.onerror = () => {
-            resolve(base64Str);
-        };
-        img.src = base64Str;
-    });
-};
+        
+        return key;
+    }
 
     function setupAssetControl(type, storageKey, label) {
         const btnUpload = document.querySelector(`#btn-upload-${type}`);
@@ -323,20 +323,12 @@ const compressImage = (base64Str, maxWidth, maxHeight) => {
                 return;
             }
             const reader = new FileReader();
-            reader.onload = async (evt) => {
+            reader.onload = (evt) => {
                 showLoader();
                 let b64 = evt.target.result;
-                const isStamp = type.includes("stamp");
-                const isHm = type.includes("hm");
                 
-                // Predefined Dimensions:
-                // Stamp: 320x160 px (Rectangular)
-                // HM Sig: 320x110 px
-                // Teacher Sig: 300x100 px
-                const maxW = isStamp ? 320 : (isHm ? 320 : 300);
-                const maxH = isStamp ? 160 : (isHm ? 110 : 100);
-
-                pendingBase64 = await compressImage(b64, maxW, maxH);
+                // Use raw uncompressed image for premium print quality
+                pendingBase64 = b64;
                 hideLoader();
 
                 previewEl.innerHTML = `<img src="${pendingBase64}" style="max-height: 60px; max-width: 100%; object-fit: contain; border: 2px solid var(--color-primary); border-radius: 4px;">`;
@@ -374,4 +366,10 @@ const compressImage = (base64Str, maxWidth, maxHeight) => {
             el.className = "status-indicator-text status-closed";
         }
     }
+
+    const assetControls = [
+        setupAssetControl("teacher-sig", "report_card_teacher_sig", "Teacher Signature"),
+        setupAssetControl("school-stamp", "report_card_school_stamp", "School Stamp"),
+        setupAssetControl("hm-sig", "report_card_hm_sig", "HM Signature")
+    ];
 };

@@ -282,14 +282,21 @@ export async function initStudentMasterView() {
                 if (isLoaded) applyFiltersAndRender();
             });
         }
+        let searchTimeout;
         if (nameInput) {
             nameInput.addEventListener("input", () => {
-                if (isLoaded) applyFiltersAndRender();
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    if (isLoaded) applyFiltersAndRender();
+                }, 300);
             });
         }
         if (rollInput) {
             rollInput.addEventListener("input", () => {
-                if (isLoaded) applyFiltersAndRender();
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    if (isLoaded) applyFiltersAndRender();
+                }, 300);
             });
         }
 

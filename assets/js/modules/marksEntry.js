@@ -989,17 +989,21 @@ export async function initMarksEntryView() {
         }
 
         // Section dropdown updates on year input change
+        let yearInputTimeout;
         if (yearInput) {
-            yearInput.addEventListener("input", async () => {
-                const classVal = classSelect ? classSelect.value : "";
-                if (classVal === "11" || classVal === "12") {
-                    if (streamSelect) streamSelect.value = "";
-                    if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
-                    if (subjectSelect) subjectSelect.innerHTML = '<option value="">Select Subject</option>';
-                } else {
-                    await updateAvailableSections();
-                    await updateSubjectsDropdown();
-                }
+            yearInput.addEventListener("input", () => {
+                clearTimeout(yearInputTimeout);
+                yearInputTimeout = setTimeout(async () => {
+                    const classVal = classSelect ? classSelect.value : "";
+                    if (classVal === "11" || classVal === "12") {
+                        if (streamSelect) streamSelect.value = "";
+                        if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                        if (subjectSelect) subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                    } else {
+                        await updateAvailableSections();
+                        await updateSubjectsDropdown();
+                    }
+                }, 300);
             });
         }
 
