@@ -134,7 +134,14 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
 
     const getSubObj = (subId) => {
         if (!subId) return {};
-        return (res.subjectDetails || []).find(s => String(s.subjectId) === String(subId)) || {};
+        const found = (res.subjectDetails || []).find(s => String(s.subjectId) === String(subId));
+        const subObj = found ? { ...found } : {};
+        const sId = String(subId || "").toUpperCase();
+        if (sId.endsWith("_SCI")) subObj.code = "112";
+        if (sId.endsWith("_SST")) subObj.code = "111";
+        if (sId.endsWith("_MAT")) subObj.code = "110";
+        if (sId.endsWith("_ENG")) subObj.code = "113";
+        return subObj;
     };
 
     const l1 = getSubObj(res.language1);
@@ -304,7 +311,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                         <td style="border: 1px solid #0f172a; padding: 6px; font-weight: 700;">${getScoreVal(res.language2)}</td>
                     </tr>
                     <tr style="height: 34px;">
-                        <td style="border: 1px solid #0f172a; padding: 6px;">${mat.code || '110'}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${mat.code}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px 12px; text-align: left; text-transform: uppercase;">${mat.name || 'MATHEMATICS'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${matFull}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${matPass}</td>
@@ -313,7 +320,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                         <td style="border: 1px solid #0f172a; padding: 6px; font-weight: 700;">${getScoreVal(`${activeClassVal}_MAT`)}</td>
                     </tr>
                     <tr style="height: 34px;">
-                        <td style="border: 1px solid #0f172a; padding: 6px;">${sci.code || '112'}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${sci.code}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px 12px; text-align: left; text-transform: uppercase;">${sci.name || 'SCIENCE'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${sciFull}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${sciPass}</td>
@@ -322,7 +329,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                         <td style="border: 1px solid #0f172a; padding: 6px; font-weight: 700;">${getScoreVal(`${activeClassVal}_SCI`)}</td>
                     </tr>
                     <tr style="height: 34px;">
-                        <td style="border: 1px solid #0f172a; padding: 6px;">${ssc.code || '111'}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${ssc.code}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px 12px; text-align: left; text-transform: uppercase;">${ssc.name || 'SOCIAL SCIENCE'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${sscFull}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${sscPass}</td>
