@@ -160,8 +160,30 @@ export const initPortalControlView = async () => {
     if (assetYearSelect) assetYearSelect.addEventListener("change", onFilterChange);
     if (assetExamSelect) assetExamSelect.addEventListener("change", onFilterChange);
 
-    // Issue Date Control
+    // Issue Date & Place Controls
     const inputIssueDate = document.querySelector("#input-issue-date");
+    const inputIssuePlace = document.querySelector("#input-issue-place");
+
+    if (inputIssuePlace) {
+        const savedPlace = localStorage.getItem("report_card_issue_place") || "MUZAFFARPUR";
+        inputIssuePlace.value = savedPlace;
+
+        inputIssuePlace.addEventListener("change", async () => {
+            const val = (inputIssuePlace.value || "MUZAFFARPUR").trim().toUpperCase();
+            localStorage.setItem("report_card_issue_place", val);
+            try {
+                await apiRequest("settings.save", {
+                    method: "POST",
+                    body: JSON.stringify({ "report_card_issue_place": val })
+                });
+                showToast("Report card place updated successfully.", "success");
+            } catch (err) {
+                console.error("Failed to save issue place to settings:", err);
+                showToast("Issue place saved locally.", "info");
+            }
+        });
+    }
+
     if (inputIssueDate) {
         const savedDate = localStorage.getItem("report_card_issue_date");
         const todayStr = new Date().toISOString().split("T")[0];
@@ -204,7 +226,7 @@ const compressImage = (base64Str, maxWidth, maxHeight) => {
             let width = img.width;
             let height = img.height;
             if (width > maxWidth || height > maxHeight) {
-                if (width > height) {
+                if (width / maxWidth > height / maxHeight) {
                     height = Math.round((height * maxWidth) / width);
                     width = maxWidth;
                 } else {
@@ -228,19 +250,24 @@ const compressImage = (base64Str, maxWidth, maxHeight) => {
 
     function setupAssetControl(type, storageKey, label) {
         const btnUpload = document.querySelector(`#btn-upload-${type}`);
+        const btnSave = document.querySelector(`#btn-save-${type}`);
         const fileInput = document.querySelector(`#file-${type}`);
         const previewEl = document.querySelector(`#preview-${type}`);
         const btnRemove = document.querySelector(`#btn-remove-${type}`);
 
         if (!btnUpload || !fileInput || !previewEl || !btnRemove) return;
 
+        let pendingBase64 = null;
+
         const refreshPreview = () => {
+            pendingBase64 = null;
+            if (btnSave) btnSave.disabled = true;
             const currentKey = getEffectiveKey(storageKey);
             let savedData = localStorage.getItem(currentKey);
             if (!savedData) savedData = localStorage.getItem(storageKey);
 
             if (savedData && savedData !== "REMOVED") {
-                previewEl.innerHTML = `<img src="${savedData}" style="max-height: 55px; max-width: 100%; object-fit: contain;">`;
+                previewEl.innerHTML = `<img src="${savedData}" style="max-height: 60px; max-width: 100%; object-fit: contain;">`;
                 btnRemove.style.display = "inline-block";
             } else {
                 previewEl.innerHTML = `<span style="font-size: 0.8rem; color: var(--color-muted);">No ${label}</span>`;
@@ -256,8 +283,8 @@ const compressImage = (base64Str, maxWidth, maxHeight) => {
         fileInput.addEventListener("change", (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            if (file.size > 2 * 1024 * 1024) {
-                showToast("File size must be under 2MB.", "error");
+            if (file.size > 3 * 1024 * 1024) {
+                showToast("File size must be under 3MB.", "error");
                 return;
             }
             const reader = new FileReader();
@@ -265,26 +292,53 @@ const compressImage = (base64Str, maxWidth, maxHeight) => {
                 showLoader();
                 let b64 = evt.target.result;
                 const isStamp = type.includes("stamp");
-                b64 = await compressImage(b64, isStamp ? 250 : 300, isStamp ? 250 : 150);
-                const currentKey = getEffectiveKey(storageKey);
-                localStorage.setItem(currentKey, b64);
-                localStorage.setItem(storageKey, b64);
-                refreshPreview();
+                const isHm = type.includes("hm");
+                
+                // Predefined Dimensions:
+                // Stamp: 320x160 px (Rectangular)
+                // HM Sig: 320x110 px
+                // Teacher Sig: 300x100 px
+                const maxW = isStamp ? 320 : (isHm ? 320 : 300);
+                const maxH = isStamp ? 160 : (isHm ? 110 : 100);
 
-                try {
-                    await apiRequest("settings.save", {
-                        method: "POST",
-                        body: JSON.stringify({ [currentKey]: b64, [storageKey]: b64 })
-                    });
-                } catch (err) {
-                    console.error("Failed to sync asset to backend settings:", err);
-                } finally {
-                    hideLoader();
-                }
-                showToast(`${label} uploaded successfully!`, "success");
+                pendingBase64 = await compressImage(b64, maxW, maxH);
+                hideLoader();
+
+                previewEl.innerHTML = `<img src="${pendingBase64}" style="max-height: 60px; max-width: 100%; object-fit: contain; border: 1px solid var(--color-primary);">`;
+                if (btnSave) btnSave.disabled = false;
+                showToast(`${label} selected. Click 'Save' to apply & sync with report cards!`, "info");
             };
             reader.readAsDataURL(file);
         });
+
+        const saveAssetAction = async () => {
+            if (!pendingBase64) {
+                showToast("No new image selected to save.", "info");
+                return;
+            }
+            showLoader();
+            const currentKey = getEffectiveKey(storageKey);
+            localStorage.setItem(currentKey, pendingBase64);
+            localStorage.setItem(storageKey, pendingBase64);
+
+            try {
+                await apiRequest("settings.save", {
+                    method: "POST",
+                    body: JSON.stringify({ [currentKey]: pendingBase64, [storageKey]: pendingBase64 })
+                });
+                showToast(`${label} saved & synced with report cards successfully!`, "success");
+            } catch (err) {
+                console.error("Failed to sync asset to backend settings:", err);
+                showToast(`${label} saved locally on device.`, "info");
+            } finally {
+                hideLoader();
+                refreshPreview();
+            }
+        };
+
+        if (btnSave) {
+            btnSave.addEventListener("click", saveAssetAction);
+        }
 
         btnRemove.addEventListener("click", async () => {
             const currentKey = getEffectiveKey(storageKey);

@@ -97,6 +97,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
         }
     }
     const issueDate = defaultDate;
+    const issuePlace = (localStorage.getItem("report_card_issue_place") || "MUZAFFARPUR").toUpperCase();
 
     // Document Certificate Number & QR Code
     const cleanExam = examName.replace(/\s+/g, '_').toUpperCase();
@@ -120,15 +121,15 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const schoolStamp = getAsset("report_card_school_stamp", "");
 
     const teacherSigHtml = teacherSig 
-        ? `<div class="teacher-sig-img" style="height: 42px; width: 150px; margin: 0 auto 2px auto;"></div>` 
+        ? `<div class="teacher-sig-img" style="height: 44px; width: 150px; margin: 0 auto 2px auto;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
     const hmSigHtml = hmSig 
-        ? `<div class="hm-sig-img" style="position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%); height: 55px; width: 160px; z-index: 2; mix-blend-mode: multiply;"></div>` 
+        ? `<div class="hm-sig-img" style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; mix-blend-mode: multiply;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
     const stampHtml = schoolStamp
-        ? `<div class="school-stamp-img" style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 80mm; height: 76mm; z-index: 1; opacity: 0.90;"></div>`
+        ? `<div class="school-stamp-img" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; mix-blend-mode: multiply;"></div>`
         : ``;
 
     const getSubObj = (subId) => {
@@ -208,7 +209,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
             <!-- Header Container -->
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                 <div style="width: 120px; text-align: left; display: flex; align-items: center;">
-                    <div class="bseb-logo-img" style="width: 120px; height: 120px;"></div>
+                    <div class="bseb-logo-circular"></div>
                 </div>
                 <div style="flex: 1; text-align: center; padding: 0 10px;">
                     <h1 style="font-size: 24px; font-weight: 700; margin: 0; color: #1e3a8a; letter-spacing: 0.5px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1);">बिहार विद्यालय परीक्षा समिति, पटना</h1>
@@ -312,7 +313,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                         <td style="border: 1px solid #0f172a; padding: 6px; font-weight: 700;">${getScoreVal(`${activeClassVal}_MAT`)}</td>
                     </tr>
                     <tr style="height: 34px;">
-                        <td style="border: 1px solid #0f172a; padding: 6px;">${sci.code || '111'}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${sci.code || '112'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px 12px; text-align: left; text-transform: uppercase;">${sci.name || 'SCIENCE'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${sciFull}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${sciPass}</td>
@@ -321,7 +322,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
                         <td style="border: 1px solid #0f172a; padding: 6px; font-weight: 700;">${getScoreVal(`${activeClassVal}_SCI`)}</td>
                     </tr>
                     <tr style="height: 34px;">
-                        <td style="border: 1px solid #0f172a; padding: 6px;">${ssc.code || '112'}</td>
+                        <td style="border: 1px solid #0f172a; padding: 6px;">${ssc.code || '111'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px 12px; text-align: left; text-transform: uppercase;">${ssc.name || 'SOCIAL SCIENCE'}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${sscFull}</td>
                         <td style="border: 1px solid #0f172a; padding: 6px;">${sscPass}</td>
@@ -372,8 +373,8 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
             <!-- Footer Details & Centered QR Code -->
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; font-size: 11.5px; color: #0f172a;">
                 <div>
-                    <div>📍 PLACE : MUZAFFARPUR</div>
-                    <div style="margin-top: 4px;">📅 ISSUE DATE : ${issueDate}</div>
+                    <div style="font-weight: 700;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2.5" style="vertical-align: -1px; margin-right: 4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>PLACE : ${issuePlace}</div>
+                    <div style="margin-top: 4px; font-weight: 700;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2.5" style="vertical-align: -1px; margin-right: 4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>ISSUE DATE : ${issueDate}</div>
                 </div>
 
                 <!-- Centered QR Code Stamp -->
@@ -426,6 +427,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
         }
     }
     const issueDate = defaultDate;
+    const issuePlace = (localStorage.getItem("report_card_issue_place") || "MUZAFFARPUR").toUpperCase();
 
     // Document Certificate Number & QR Code
     const cleanExam = examName.replace(/\s+/g, '_').toUpperCase();
@@ -449,15 +451,15 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const schoolStamp = getAsset("report_card_school_stamp", "");
 
     const teacherSigHtml = teacherSig 
-        ? `<div class="teacher-sig-img" style="height: 42px; width: 150px; margin: 0 auto 2px auto;"></div>` 
+        ? `<div class="teacher-sig-img" style="height: 44px; width: 150px; margin: 0 auto 2px auto;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
     const hmSigHtml = hmSig 
-        ? `<div class="hm-sig-img" style="position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%); height: 55px; width: 160px; z-index: 2; mix-blend-mode: multiply;"></div>` 
+        ? `<div class="hm-sig-img" style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; mix-blend-mode: multiply;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
     const stampHtml = schoolStamp
-        ? `<div class="school-stamp-img" style="position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 80mm; height: 76mm; z-index: 1; opacity: 0.90;"></div>`
+        ? `<div class="school-stamp-img" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; mix-blend-mode: multiply;"></div>`
         : ``;
 
     const getSubDetails = (subId) => {
@@ -523,7 +525,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
             <!-- Header Container -->
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                 <div style="width: 120px; text-align: left; display: flex; align-items: center;">
-                    <div class="bseb-logo-img" style="width: 120px; height: 120px;"></div>
+                    <div class="bseb-logo-circular"></div>
                 </div>
                 <div style="flex: 1; text-align: center; padding: 0 10px;">
                     <h1 style="font-size: 24px; font-weight: 700; margin: 0; color: #1e3a8a; letter-spacing: 0.5px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1);">बिहार विद्यालय परीक्षा समिति, पटना</h1>
@@ -648,8 +650,8 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
             <!-- Footer Details & Centered QR Code -->
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; font-size: 11.5px; color: #0f172a;">
                 <div>
-                    <div>📍 PLACE : MUZAFFARPUR</div>
-                    <div style="margin-top: 4px;">📅 ISSUE DATE : ${issueDate}</div>
+                    <div style="font-weight: 700;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2.5" style="vertical-align: -1px; margin-right: 4px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>PLACE : ${issuePlace}</div>
+                    <div style="margin-top: 4px; font-weight: 700;"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" stroke-width="2.5" style="vertical-align: -1px; margin-right: 4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>ISSUE DATE : ${issueDate}</div>
                 </div>
 
                 <!-- Centered QR Code Stamp -->
@@ -701,13 +703,14 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
 
     const [logoB64Compressed, teacherSig, hmSig, schoolStamp] = await Promise.all([
         compressImage(BSEB_LOGO_B64, 600, 600),
-        compressImage(teacherSigRaw, 250, 100),
-        compressImage(hmSigRaw, 250, 100),
-        compressImage(schoolStampRaw, 250, 250)
+        compressImage(teacherSigRaw, 300, 100),
+        compressImage(hmSigRaw, 320, 110),
+        compressImage(schoolStampRaw, 320, 160)
     ]);
 
     const assetStyles = `
         .bseb-logo-img { background-image: url("${logoB64Compressed}"); background-size: contain; background-repeat: no-repeat; background-position: center; }
+        .bseb-logo-circular { width: 110px; height: 110px; border-radius: 50%; overflow: hidden; background-image: url("${logoB64Compressed}"); background-size: cover; background-repeat: no-repeat; background-position: center; border: 1px solid rgba(0,0,0,0.06); }
         ${teacherSig && teacherSig !== "REMOVED" ? `.teacher-sig-img { background-image: url("${teacherSig}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
         ${hmSig ? `.hm-sig-img { background-image: url("${hmSig}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
         ${schoolStamp ? `.school-stamp-img { background-image: url("${schoolStamp}"); background-size: contain; background-repeat: no-repeat; background-position: center; }` : ''}
