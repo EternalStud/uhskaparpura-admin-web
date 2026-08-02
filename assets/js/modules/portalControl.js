@@ -148,10 +148,56 @@ export const initPortalControlView = async () => {
 
     const refreshAssetControls = [];
 
-    // Signatures and Stamp Asset Management
-    setupAssetControl("teacher-sig", "report_card_teacher_sig", "Teacher Signature");
-    setupAssetControl("school-stamp", "report_card_school_stamp", "School Rubber-Stamp");
-    setupAssetControl("hm-sig", "report_card_hm_sig", "Headmaster Signature");
+    // Signatures and Stamp Asset Management (Unified Save Button)
+    const assetControls = [
+        setupAssetControl("teacher-sig", "report_card_teacher_sig", "Teacher Signature"),
+        setupAssetControl("school-stamp", "report_card_school_stamp", "School Rubber-Stamp"),
+        setupAssetControl("hm-sig", "report_card_hm_sig", "Headmaster Signature")
+    ];
+
+    const btnSaveAllAssets = document.querySelector("#btn-save-all-assets");
+    if (btnSaveAllAssets) {
+        btnSaveAllAssets.addEventListener("click", async () => {
+            showLoader();
+            const year = assetYearSelect ? assetYearSelect.value : "";
+            const exam = assetExamSelect ? assetExamSelect.value : "";
+            const payload = {};
+            let countSaved = 0;
+
+            for (const ctrl of assetControls) {
+                if (!ctrl) continue;
+                const data = ctrl.getStagedData();
+                if (data !== null) {
+                    const currentKey = ctrl.getEffectiveKey();
+                    localStorage.setItem(currentKey, data);
+                    localStorage.setItem(ctrl.storageKey, data);
+                    payload[currentKey] = data;
+                    payload[ctrl.storageKey] = data;
+                    countSaved++;
+                }
+            }
+
+            if (Object.keys(payload).length > 0) {
+                try {
+                    await apiRequest("settings.save", {
+                        method: "POST",
+                        body: JSON.stringify(payload)
+                    });
+                    const sessionExamLabel = (year && exam) ? ` for ${year} (${exam})` : "";
+                    showToast(`Signatures & Rubber-Stamp saved & synced successfully${sessionExamLabel}!`, "success");
+                } catch (err) {
+                    console.error("Failed to sync assets to backend settings:", err);
+                    showToast("Signatures & Stamp saved locally on device.", "info");
+                } finally {
+                    hideLoader();
+                    assetControls.forEach(ctrl => ctrl && ctrl.refreshPreview());
+                }
+            } else {
+                hideLoader();
+                showToast("All current signatures & stamp are already up to date.", "info");
+            }
+        });
+    }
 
     const onFilterChange = () => {
         refreshAssetControls.forEach(fn => fn());
@@ -250,18 +296,16 @@ const compressImage = (base64Str, maxWidth, maxHeight) => {
 
     function setupAssetControl(type, storageKey, label) {
         const btnUpload = document.querySelector(`#btn-upload-${type}`);
-        const btnSave = document.querySelector(`#btn-save-${type}`);
         const fileInput = document.querySelector(`#file-${type}`);
         const previewEl = document.querySelector(`#preview-${type}`);
         const btnRemove = document.querySelector(`#btn-remove-${type}`);
 
-        if (!btnUpload || !fileInput || !previewEl || !btnRemove) return;
+        if (!btnUpload || !fileInput || !previewEl || !btnRemove) return null;
 
         let pendingBase64 = null;
 
         const refreshPreview = () => {
             pendingBase64 = null;
-            if (btnSave) btnSave.disabled = true;
             const currentKey = getEffectiveKey(storageKey);
             let savedData = localStorage.getItem(currentKey);
             if (!savedData) savedData = localStorage.getItem(storageKey);
@@ -304,59 +348,29 @@ const compressImage = (base64Str, maxWidth, maxHeight) => {
                 pendingBase64 = await compressImage(b64, maxW, maxH);
                 hideLoader();
 
-                previewEl.innerHTML = `<img src="${pendingBase64}" style="max-height: 60px; max-width: 100%; object-fit: contain; border: 1px solid var(--color-primary);">`;
-                if (btnSave) btnSave.disabled = false;
-                showToast(`${label} selected. Click 'Save' to apply & sync with report cards!`, "info");
+                previewEl.innerHTML = `<img src="${pendingBase64}" style="max-height: 60px; max-width: 100%; object-fit: contain; border: 2px solid var(--color-primary); border-radius: 4px;">`;
+                showToast(`${label} selected. Click 'Save All Assets' below to apply changes!`, "info");
             };
             reader.readAsDataURL(file);
         });
 
-        const saveAssetAction = async () => {
-            if (!pendingBase64) {
-                showToast("No new image selected to save.", "info");
-                return;
-            }
-            showLoader();
-            const currentKey = getEffectiveKey(storageKey);
-            localStorage.setItem(currentKey, pendingBase64);
-            localStorage.setItem(storageKey, pendingBase64);
-
-            try {
-                await apiRequest("settings.save", {
-                    method: "POST",
-                    body: JSON.stringify({ [currentKey]: pendingBase64, [storageKey]: pendingBase64 })
-                });
-                showToast(`${label} saved & synced with report cards successfully!`, "success");
-            } catch (err) {
-                console.error("Failed to sync asset to backend settings:", err);
-                showToast(`${label} saved locally on device.`, "info");
-            } finally {
-                hideLoader();
-                refreshPreview();
-            }
-        };
-
-        if (btnSave) {
-            btnSave.addEventListener("click", saveAssetAction);
-        }
-
-        btnRemove.addEventListener("click", async () => {
-            const currentKey = getEffectiveKey(storageKey);
-            localStorage.setItem(currentKey, "REMOVED");
-            localStorage.setItem(storageKey, "REMOVED");
+        btnRemove.addEventListener("click", () => {
+            pendingBase64 = "REMOVED";
             fileInput.value = "";
-            refreshPreview();
-
-            try {
-                await apiRequest("settings.save", {
-                    method: "POST",
-                    body: JSON.stringify({ [currentKey]: "REMOVED", [storageKey]: "REMOVED" })
-                });
-            } catch (err) {
-                console.error("Failed to sync asset removal to backend settings:", err);
-            }
-            showToast(`${label} removed successfully!`, "info");
+            previewEl.innerHTML = `<span style="font-size: 0.8rem; color: var(--color-danger); font-weight: 600;">[Marked for Removal]</span>`;
+            showToast(`${label} marked for removal. Click 'Save All Assets' below to confirm!`, "info");
         });
+
+        return {
+            storageKey,
+            getEffectiveKey: () => getEffectiveKey(storageKey),
+            getStagedData: () => {
+                if (pendingBase64 !== null) return pendingBase64;
+                const currentKey = getEffectiveKey(storageKey);
+                return localStorage.getItem(currentKey) || localStorage.getItem(storageKey) || "";
+            },
+            refreshPreview
+        };
     }
 
     function updateStatusText(el, checked) {
