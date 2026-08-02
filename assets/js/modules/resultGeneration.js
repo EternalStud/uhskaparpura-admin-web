@@ -60,13 +60,11 @@ const compressImage = (base64Str, maxWidth, maxHeight) => {
 import { QrCode } from "./qrcodegen.js";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030500";
+import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030530";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=202608030500";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030530";
 
 const BSEB_LOGO_B64 = '/assets/images/bseb_logo_hd_transparent2.png';
-const DEFAULT_HM_SIG_B64 = '/assets/images/hm_sig.png';
-const DEFAULT_SCHOOL_STAMP_B64 = '/assets/images/school_stamp.png';
 
 /**
  * Normalize stream/faculty for BSEB report card display.
@@ -99,56 +97,123 @@ const cssUrl = (url) => String(url || "").replace(/\\/g, "\\\\").replace(/'/g, "
 
 /**
  * Resolve report-card asset from localStorage (year/exam/class scoped) with fallbacks.
+ * Explicit REMOVED / empty at a scoped key wins (no fallback to older bare keys).
  */
 const resolveReportAsset = (baseKey, academicYear, examName, activeClassVal, streamHint, sectionHint, cachedAssets = null) => {
     const cleanExamKey = examName ? examName.trim().replace(/\s+/g, '_') : "";
     const section = sectionHint || "A";
     const stream = streamKeyVariant(streamHint);
 
-    const tryGet = (key) => {
-        if (!key) return "";
+    const peek = (key) => {
+        if (!key) return { found: false, value: "" };
         let val = localStorage.getItem(key);
-        if (!val && cachedAssets && cachedAssets[key] !== undefined) val = cachedAssets[key];
-        if (val === "REMOVED") return "";
-        return val || "";
+        if ((val === null || val === undefined) && cachedAssets && Object.prototype.hasOwnProperty.call(cachedAssets, key)) {
+            val = cachedAssets[key];
+        }
+        if (val === null || val === undefined) return { found: false, value: "" };
+        if (val === "REMOVED") return { found: true, value: "" };
+        return { found: true, value: String(val) };
     };
 
+    // Teacher signature: class + stream + section scoped
     if (baseKey === "report_card_teacher_sig" && academicYear && cleanExamKey) {
-        const specific = tryGet(`${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}_${stream}_${section}`);
-        if (specific) return specific;
-        // Fallback: ALL stream key for class/section
+        const specific = peek(`${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}_${stream}_${section}`);
+        if (specific.found) return specific.value;
         if (stream !== "ALL") {
-            const allStream = tryGet(`${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}_ALL_${section}`);
-            if (allStream) return allStream;
+            const allStream = peek(`${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}_ALL_${section}`);
+            if (allStream.found) return allStream.value;
         }
+        const yearExam = peek(`${baseKey}_${academicYear}_${cleanExamKey}`);
+        if (yearExam.found) return yearExam.value;
+        const bare = peek(baseKey);
+        return bare.found ? bare.value : "";
     }
 
-    // Issue date / place are scoped by session + exam + class
-    if ((baseKey === "report_card_issue_date" || baseKey === "report_card_issue_place") && academicYear && cleanExamKey && activeClassVal != null && activeClassVal !== "") {
-        const classScoped = tryGet(`${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}`);
-        if (classScoped) return classScoped;
+    // Issue date: class-scoped only — missing means "use today's date" at print time
+    if (baseKey === "report_card_issue_date" && academicYear && cleanExamKey && activeClassVal != null && activeClassVal !== "") {
+        const classScoped = peek(`${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}`);
+        if (classScoped.found) return classScoped.value;
+        return "";
+    }
+
+    // Issue place / HM sig / stamp: prefer class or year-exam scope, honor REMOVED
+    if (academicYear && cleanExamKey && activeClassVal != null && activeClassVal !== "" &&
+        (baseKey === "report_card_issue_place")) {
+        const classScoped = peek(`${baseKey}_${academicYear}_${cleanExamKey}_${activeClassVal}`);
+        if (classScoped.found) return classScoped.value;
     }
 
     if (academicYear && cleanExamKey) {
-        const yearExam = tryGet(`${baseKey}_${academicYear}_${cleanExamKey}`);
-        if (yearExam) return yearExam;
+        const yearExam = peek(`${baseKey}_${academicYear}_${cleanExamKey}`);
+        if (yearExam.found) return yearExam.value;
     }
 
-    return tryGet(baseKey);
+    const bare = peek(baseKey);
+    return bare.found ? bare.value : "";
+};
+
+/**
+ * Format stored issue date (YYYY-MM-DD / Date / DD/MM/YYYY) → DD/MM/YYYY.
+ * Empty / missing → today's date.
+ */
+const formatIssueDateDisplay = (savedDate) => {
+    const today = new Date();
+    const todayStr = `${String(today.getDate()).padStart(2, "0")}/${String(today.getMonth() + 1).padStart(2, "0")}/${today.getFullYear()}`;
+    if (!savedDate || !String(savedDate).trim()) return todayStr;
+
+    const raw = String(savedDate).trim();
+    const isoParts = raw.split("-");
+    if (isoParts.length === 3 && isoParts[0].length === 4) {
+        return `${isoParts[2]}/${isoParts[1]}/${isoParts[0]}`;
+    }
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) return raw;
+
+    const parsed = new Date(raw);
+    if (!isNaN(parsed.getTime())) {
+        return `${String(parsed.getDate()).padStart(2, "0")}/${String(parsed.getMonth() + 1).padStart(2, "0")}/${parsed.getFullYear()}`;
+    }
+    return todayStr;
 };
 
 /**
  * Sync Drive-backed report card assets into localStorage (from Settings sheet).
+ * Non-blocking friendly: uses sessionStorage cache and optional prefix filter.
  */
-const syncReportCardAssetsFromApi = async () => {
+const REPORT_ASSET_CACHE_KEY = "uhs_report_card_settings_v2";
+
+const applyReportCardSettings = (settings) => {
+    if (!settings) return;
+    Object.keys(settings).forEach((key) => {
+        if (key.startsWith("report_card_")) {
+            localStorage.setItem(key, settings[key]);
+        }
+    });
+};
+
+const syncReportCardAssetsFromApi = async ({ force = false } = {}) => {
     try {
-        const response = await apiRequest("settings.load");
-        if (response.success && response.settings) {
-            Object.keys(response.settings).forEach((key) => {
-                if (key.startsWith("report_card_")) {
-                    localStorage.setItem(key, response.settings[key]);
+        if (!force) {
+            const cached = sessionStorage.getItem(REPORT_ASSET_CACHE_KEY);
+            if (cached) {
+                const parsed = JSON.parse(cached);
+                if (parsed && parsed.ts && Date.now() - parsed.ts < 10 * 60 * 1000 && parsed.settings) {
+                    applyReportCardSettings(parsed.settings);
+                    // Refresh quietly in background
+                    setTimeout(() => syncReportCardAssetsFromApi({ force: true }), 50);
+                    return;
                 }
-            });
+            }
+        }
+
+        const response = await apiRequest("settings.load?prefix=report_card_");
+        if (response.success && response.settings) {
+            applyReportCardSettings(response.settings);
+            try {
+                sessionStorage.setItem(REPORT_ASSET_CACHE_KEY, JSON.stringify({
+                    ts: Date.now(),
+                    settings: response.settings
+                }));
+            } catch (_) { /* quota */ }
         }
     } catch (err) {
         console.warn("Could not prefetch report card assets:", err);
@@ -168,12 +233,6 @@ let currentViewMode = window.innerWidth < 768 ? "cards" : "table";
  */
 const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVal, logoB64, cachedAssets = null) => {
     const classNumeral = activeClassVal === 10 ? 'X' : 'IX';
-    
-    // Today's date or custom issue date in DD/MM/YYYY format
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const yyyy = today.getFullYear();
 
     const secSel = document.querySelector("#filter-section");
     const section = secSel && secSel.value ? secSel.value : "A";
@@ -183,23 +242,9 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
         return val || fallback || "";
     };
 
-    let defaultDate = `${dd}/${mm}/${yyyy}`;
-    const savedDate = getAsset("report_card_issue_date", "");
-    if (savedDate) {
-        const parts = savedDate.split('-');
-        if (parts.length === 3) {
-            defaultDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        } else {
-            const parsed = new Date(savedDate);
-            if (!isNaN(parsed)) {
-                defaultDate = `${String(parsed.getDate()).padStart(2, '0')}/${String(parsed.getMonth() + 1).padStart(2, '0')}/${parsed.getFullYear()}`;
-            } else {
-                defaultDate = savedDate;
-            }
-        }
-    }
-    const issueDate = defaultDate;
-    const issuePlace = (getAsset("report_card_issue_place", "MUZAFFARPUR")).toUpperCase();
+    // Missing issue date → today; missing signatures/stamp → blank spacer
+    const issueDate = formatIssueDateDisplay(getAsset("report_card_issue_date", ""));
+    const issuePlace = (getAsset("report_card_issue_place", "MUZAFFARPUR") || "MUZAFFARPUR").toUpperCase();
 
     // Document Certificate Number & QR Code
     const cleanExam = examName.replace(/\s+/g, '_').toUpperCase();
@@ -511,12 +556,6 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
 
 const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVal, streamName, logoB64, cachedAssets = null) => {
     const classNumeral = activeClassVal === 11 ? 'XI' : 'XII';
-    
-    // Today's date or custom issue date in DD/MM/YYYY format
-    const today = new Date();
-    const dd = String(today.getDate()).padStart(2, '0');
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const yyyy = today.getFullYear();
 
     const secSel = document.querySelector("#filter-section");
     const section = secSel && secSel.value ? secSel.value : "A";
@@ -529,23 +568,9 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
         return val || fallback || "";
     };
 
-    let defaultDate = `${dd}/${mm}/${yyyy}`;
-    const savedDate = getAsset("report_card_issue_date", "");
-    if (savedDate) {
-        const parts = savedDate.split('-');
-        if (parts.length === 3) {
-            defaultDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        } else {
-            const parsed = new Date(savedDate);
-            if (!isNaN(parsed)) {
-                defaultDate = `${String(parsed.getDate()).padStart(2, '0')}/${String(parsed.getMonth() + 1).padStart(2, '0')}/${parsed.getFullYear()}`;
-            } else {
-                defaultDate = savedDate;
-            }
-        }
-    }
-    const issueDate = defaultDate;
-    const issuePlace = (getAsset("report_card_issue_place", "MUZAFFARPUR")).toUpperCase();
+    // Missing issue date → today; missing signatures/stamp → blank spacer
+    const issueDate = formatIssueDateDisplay(getAsset("report_card_issue_date", ""));
+    const issuePlace = (getAsset("report_card_issue_place", "MUZAFFARPUR") || "MUZAFFARPUR").toUpperCase();
 
     const teacherSig = getAsset("report_card_teacher_sig", "");
     const hmSig = getAsset("report_card_hm_sig", "");
@@ -892,6 +917,11 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
  * Print individual report card for a single student.
  */
 const handlePrintSingleReportCard = async (studentId) => {
+    // Ensure assets are ready (uses cache if warm; otherwise one fast prefixed fetch)
+    if (!sessionStorage.getItem(REPORT_ASSET_CACHE_KEY)) {
+        await syncReportCardAssetsFromApi({ force: true });
+    }
+
     const activeData = currentResults.find(r => r.classVal === activeClassVal);
     if (!activeData) return;
 
@@ -918,6 +948,10 @@ const handlePrintSingleReportCard = async (studentId) => {
  * Batch print all report cards for current class selection.
  */
 const handlePrintAllReportCards = async () => {
+    if (!sessionStorage.getItem(REPORT_ASSET_CACHE_KEY)) {
+        await syncReportCardAssetsFromApi({ force: true });
+    }
+
     const activeData = currentResults.find(r => r.classVal === activeClassVal);
     if (!activeData || !activeData.studentResults || !activeData.studentResults.length) {
         showToast("No student results available to print.", "error");
@@ -2018,8 +2052,9 @@ export async function initResultGenerationView() {
             });
         }
 
-        // Initial setup — parallelize exams, sections, and report-card asset sync
+        // Fast path: exams + sections only (blocks loader). Assets sync in background.
         updateStreamFilterVisibility();
+        void syncReportCardAssetsFromApi();
         await Promise.all([
             (async () => {
                 const examSelect = document.querySelector("#filter-exam");
@@ -2035,8 +2070,7 @@ export async function initResultGenerationView() {
                     }
                 }
             })(),
-            updateAvailableSections(),
-            syncReportCardAssetsFromApi()
+            updateAvailableSections()
         ]);
 
     } catch (error) {

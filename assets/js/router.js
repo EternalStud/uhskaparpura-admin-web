@@ -1,16 +1,16 @@
 "use strict";
 
-import { initLoginView } from "./login.js?t=202608030500";
-import { initDashboardView } from "./dashboard.js?t=202608030500";
-import { initSubjectTagView } from "./modules/subjectTag.js?t=202608030500";
-import { initMarksEntryView } from "./modules/marksEntry.js?t=202608030500";
-import { initResultGenerationView } from "./modules/resultGeneration.js?t=202608030500";
-import { initStudentMasterView } from "./modules/studentMaster.js?t=202608030500";
-import { initSyncSchoolDBView } from "./modules/syncSchoolDB.js?t=202608030500";
-import { init as initExamControlView } from "./modules/examControl.js?t=202608030500";
-import { initPortalControlView } from "./modules/portalControl.js?t=202608030500";
+import { initLoginView } from "./login.js?t=202608030530";
+import { initDashboardView } from "./dashboard.js?t=202608030530";
+import { initSubjectTagView } from "./modules/subjectTag.js?t=202608030530";
+import { initMarksEntryView } from "./modules/marksEntry.js?t=202608030530";
+import { initResultGenerationView } from "./modules/resultGeneration.js?t=202608030530";
+import { initStudentMasterView } from "./modules/studentMaster.js?t=202608030530";
+import { initSyncSchoolDBView } from "./modules/syncSchoolDB.js?t=202608030530";
+import { init as initExamControlView } from "./modules/examControl.js?t=202608030530";
+import { initPortalControlView } from "./modules/portalControl.js?t=202608030530";
 import { getSession, clearSession } from "../../services/session.js";
-import { hideLoader, showLoader } from "../../components/loader.js?t=202608030500";
+import { hideLoader, showLoader } from "../../components/loader.js?t=202608030530";
 import { showToast } from "../../components/toast.js";
 
 

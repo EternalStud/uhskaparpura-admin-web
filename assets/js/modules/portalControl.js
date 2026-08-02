@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030500";
+import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030530";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=202608030500";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030530";
 
 export const initPortalControlView = async () => {
     const navbarContainer = document.querySelector("#navbar-portal-control");
@@ -196,8 +196,8 @@ export const initPortalControlView = async () => {
         if (inputIssueDate) {
             const currentDateKey = getEffectiveKey("report_card_issue_date");
             let dateVal = localStorage.getItem(currentDateKey);
-            if (!dateVal && yearExamDate) dateVal = localStorage.getItem(yearExamDate);
-            if (!dateVal) dateVal = localStorage.getItem("report_card_issue_date") || new Date().toISOString().split("T")[0];
+            // Do not inherit stale bare/global dates — blank means "today on print"
+            if (dateVal === null || dateVal === undefined) dateVal = "";
             inputIssueDate.value = dateVal;
         }
     };
@@ -230,7 +230,7 @@ export const initPortalControlView = async () => {
                 }
             }
 
-            // 2. Issue Place & Date per session, exam & class
+            // 2. Issue Place & Date per session, exam & class (optional — blank date = use today on print)
             if (inputIssuePlace) {
                 const placeVal = (inputIssuePlace.value || "MUZAFFARPUR").trim().toUpperCase();
                 const placeKey = getEffectiveKey("report_card_issue_place");
@@ -239,9 +239,9 @@ export const initPortalControlView = async () => {
             }
 
             if (inputIssueDate) {
-                const todayStr = new Date().toISOString().split("T")[0];
-                const dateVal = inputIssueDate.value || todayStr;
+                const dateVal = (inputIssueDate.value || "").trim();
                 const dateKey = getEffectiveKey("report_card_issue_date");
+                // Empty means "use today's date when printing" — clear any previous class-scoped date
                 localStorage.setItem(dateKey, dateVal);
                 payload[dateKey] = dateVal;
             }
@@ -252,6 +252,7 @@ export const initPortalControlView = async () => {
                         method: "POST",
                         body: JSON.stringify(payload)
                     });
+                    try { sessionStorage.removeItem("uhs_report_card_settings_v2"); } catch (_) {}
                     const clsLabel = assetClassSelect && assetClassSelect.value ? ` · Class ${assetClassSelect.value}` : "";
                     const sessionExamLabel = (year && exam) ? ` for ${year} (${exam})${clsLabel}` : clsLabel;
                     showToast(`Report Card details saved & synced successfully${sessionExamLabel}!`, "success");
@@ -312,9 +313,20 @@ export const initPortalControlView = async () => {
             pendingBase64 = null;
             const currentKey = getEffectiveKey(storageKey);
             let savedData = localStorage.getItem(currentKey);
-            if (!savedData) savedData = localStorage.getItem(storageKey);
 
-            if (savedData && savedData !== "REMOVED") {
+            // Explicit removal at this scope must not fall back to an older bare key
+            if (savedData === "REMOVED") {
+                previewEl.innerHTML = `<span style="font-size: 0.8rem; color: var(--color-muted);">No ${label}</span>`;
+                btnRemove.style.display = "none";
+                return;
+            }
+
+            if (!savedData) {
+                savedData = localStorage.getItem(storageKey);
+                if (savedData === "REMOVED") savedData = "";
+            }
+
+            if (savedData) {
                 previewEl.innerHTML = `<img src="${savedData}" style="max-height: 60px; max-width: 100%; object-fit: contain;">`;
                 btnRemove.style.display = "inline-block";
             } else {
