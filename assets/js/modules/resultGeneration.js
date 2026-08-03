@@ -60,9 +60,9 @@ const compressImage = (base64Str, maxWidth, maxHeight) => {
 import { QrCode } from "./qrcodegen.js";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030610";
+import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030555";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=202608030610";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030555";
 
 const BSEB_LOGO_B64 = '/assets/images/bseb_logo_hd_transparent2.png';
 

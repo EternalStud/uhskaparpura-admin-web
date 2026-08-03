@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=202608030610";
+import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=202608030555";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=202608030610";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030555";
 
 // Local state variables
 let dropdownSubjects = [];  // All available subjects for selected class & stream
@@ -51,23 +51,32 @@ const updateStreamFilterVisibility = (classVal) => {
 
 /**
  * Dynamically queries available sections for the selected year and class.
+ * Class 11/12 require Stream first; Class 9/10 load sections immediately after Class.
  */
 const updateAvailableSections = async () => {
     const yearInput = document.querySelector("#filter-academic-year");
     const classSelect = document.querySelector("#filter-class");
     const sectionSelect = document.querySelector("#filter-section");
+    const streamSelect = document.querySelector("#filter-stream");
 
     if (!yearInput || !classSelect || !sectionSelect) return;
 
     const year = String(yearInput.value || "").trim();
     const classNum = String(classSelect.value || "").trim();
+    const stream = String(streamSelect?.value || "").trim();
+    const isSrSec = classNum === "11" || classNum === "12";
 
     if (!year || !classNum) {
         sectionSelect.innerHTML = '<option value="">Select Section</option>';
         return;
     }
 
-    const cacheKey = `${year}_${classNum}`;
+    if (isSrSec && !stream) {
+        sectionSelect.innerHTML = '<option value="">Select Section</option>';
+        return;
+    }
+
+    const cacheKey = isSrSec ? `${year}_${classNum}_${stream}` : `${year}_${classNum}`;
     if (metadataCache.sections[cacheKey]) {
         renderSections(metadataCache.sections[cacheKey]);
         return;
@@ -75,7 +84,9 @@ const updateAvailableSections = async () => {
 
     showLocalLoader('#filter-section');
     try {
-        const response = await apiRequest(`subject.tag.getSections?academicYear=${year}&classNum=${classNum}`);
+        const params = new URLSearchParams({ academicYear: year, classNum });
+        if (isSrSec && stream) params.set("stream", stream);
+        const response = await apiRequest(`subject.tag.getSections?${params.toString()}`);
         if (response.success && response.sections) {
             metadataCache.sections[cacheKey] = response.sections;
             renderSections(response.sections);
@@ -943,17 +954,46 @@ export async function initSubjectTagView() {
             yearInput.value = getDefaultAcademicYear();
         }
 
-        // Dropdown listeners to dynamically query sections
+        // Dropdown listeners: 9/10 load sections on class; 11/12 wait for stream
         const classSelect = document.querySelector("#filter-class");
+        const streamSelect = document.querySelector("#filter-stream");
+        const sectionSelect = document.querySelector("#filter-section");
+
         if (classSelect) {
-            classSelect.addEventListener("change", (e) => {
-                updateStreamFilterVisibility(e.target.value);
-                updateAvailableSections();
+            classSelect.addEventListener("change", async (e) => {
+                const val = e.target.value;
+                updateStreamFilterVisibility(val);
+                if (val === "11" || val === "12") {
+                    if (streamSelect) streamSelect.value = "";
+                    if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                } else {
+                    await updateAvailableSections();
+                }
             });
         }
+
+        if (streamSelect) {
+            streamSelect.addEventListener("change", async () => {
+                const classVal = classSelect ? classSelect.value : "";
+                if (classVal === "11" || classVal === "12") {
+                    if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                    if (streamSelect.value) {
+                        await updateAvailableSections();
+                    }
+                }
+            });
+        }
+
         if (yearInput) {
-            yearInput.addEventListener("change", updateAvailableSections);
-            yearInput.addEventListener("blur", updateAvailableSections);
+            yearInput.addEventListener("change", async () => {
+                const classVal = classSelect ? classSelect.value : "";
+                if (classVal === "11" || classVal === "12") {
+                    if (streamSelect) streamSelect.value = "";
+                    if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                } else {
+                    await updateAvailableSections();
+                }
+            });
         }
 
         // Button click bindings
@@ -1001,8 +1041,7 @@ export async function initSubjectTagView() {
             }
         });
 
-        // Run section lookup initially
-        updateAvailableSections();
+        // No initial section lookup — wait for Class (and Stream for 11/12)
 
         // SPA Navigation cleanup to prevent memory leaks from global click listeners
         window.addEventListener("hashchange", () => {

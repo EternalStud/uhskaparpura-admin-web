@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=202608030610";
+import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=202608030555";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=202608030610";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030555";
 import { getSession } from "../../../services/session.js";
 
 // Local state variables
@@ -161,23 +161,32 @@ const updateStreamFilterVisibility = (classVal) => {
 
 /**
  * Dynamically queries available sections for the selected year and class.
+ * Class 11/12 require Stream first; Class 9/10 load sections immediately after Class.
  */
 const updateAvailableSections = async () => {
     const yearInput = document.querySelector("#filter-academic-year");
     const classSelect = document.querySelector("#filter-class");
     const sectionSelect = document.querySelector("#filter-section");
+    const streamSelect = document.querySelector("#filter-stream");
 
     if (!yearInput || !classSelect || !sectionSelect) return;
 
     const year = String(yearInput.value || "").trim();
     const classNum = String(classSelect.value || "").trim();
+    const stream = String(streamSelect?.value || "").trim();
+    const isSrSec = classNum === "11" || classNum === "12";
 
     if (!year || !classNum) {
         sectionSelect.innerHTML = '<option value="">Select Section</option>';
         return;
     }
 
-    const cacheKey = `${year}_${classNum}`;
+    if (isSrSec && !stream) {
+        sectionSelect.innerHTML = '<option value="">Select Section</option>';
+        return;
+    }
+
+    const cacheKey = isSrSec ? `${year}_${classNum}_${stream}` : `${year}_${classNum}`;
     if (metadataCache.sections[cacheKey]) {
         renderSections(metadataCache.sections[cacheKey]);
         return;
@@ -185,7 +194,9 @@ const updateAvailableSections = async () => {
 
     showLocalLoader('#filter-section');
     try {
-        const response = await apiRequest(`subject.tag.getSections?academicYear=${year}&classNum=${classNum}`);
+        const params = new URLSearchParams({ academicYear: year, classNum });
+        if (isSrSec && stream) params.set("stream", stream);
+        const response = await apiRequest(`subject.tag.getSections?${params.toString()}`);
         if (response.success && response.sections) {
             metadataCache.sections[cacheKey] = response.sections;
             renderSections(response.sections);
