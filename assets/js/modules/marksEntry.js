@@ -41,7 +41,8 @@ const enforceMarkInputRules = (input, max) => {
 
     input.addEventListener("keydown", (e) => {
         if (e.key === "Backspace" || e.key === "Delete" || e.key === "Tab" || e.key === "Escape" || e.key === "Enter" || 
-            e.key === "ArrowLeft" || e.key === "ArrowRight" || e.ctrlKey || e.metaKey) {
+            e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "ArrowUp" || e.key === "ArrowDown" || 
+            e.ctrlKey || e.metaKey) {
             return;
         }
 
@@ -326,15 +327,16 @@ const validateStudentMarks = (student) => {
     
     // Compute total
     let total = 0;
-    let allAbsent = true;
+    let anyAbsent = false;
     let hasEntry = false;
 
     const addVal = (res) => {
         if (res.val !== "") {
             hasEntry = true;
-            if (res.val !== "A") {
+            if (res.val === "A") {
+                anyAbsent = true;
+            } else {
                 total += res.val;
-                allAbsent = false;
             }
         }
     };
@@ -343,7 +345,7 @@ const validateStudentMarks = (student) => {
     if (maxMarks.practical > 0) addVal(practicalRes);
     if (maxMarks.internal > 0) addVal(internalRes);
 
-    student.current.total = hasEntry ? (allAbsent ? "A" : total) : "";
+    student.current.total = hasEntry ? (anyAbsent ? "A" : total) : "";
 
     // Complete state (all active inputs filled)
     const theoryDone = maxMarks.theory === 0 || theoryRes.val !== "";
