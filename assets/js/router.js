@@ -1,11 +1,11 @@
 "use strict";
 
 import { getSession, clearSession } from "../../services/session.js";
-import { hideLoader, showLoader } from "../../components/loader.js?t=202608030545";
+import { hideLoader, showLoader } from "../../components/loader.js?t=202608030610";
 import { showToast } from "../../components/toast.js";
 
 /** Cache-bust for lazy-loaded feature modules (keep in sync with index.html). */
-const MODULE_T = "202608030545";
+const MODULE_T = "202608030610";
 
 /**
  * Route table — modules are dynamically imported so login/dashboard

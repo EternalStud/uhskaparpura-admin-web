@@ -60,9 +60,9 @@ const compressImage = (base64Str, maxWidth, maxHeight) => {
 import { QrCode } from "./qrcodegen.js";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030545";
+import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030610";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=202608030545";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030610";
 
 const BSEB_LOGO_B64 = '/assets/images/bseb_logo_hd_transparent2.png';
 
@@ -1872,10 +1872,15 @@ const handleGenerateResults = async () => {
     showLoader();
 
     try {
-        // POST keeps filters/auth out of a huge query string and avoids HTML error pages
-        const response = await apiRequest("exam.results.generate", {
-            method: "POST",
-            body: JSON.stringify(filters),
+        // GET is reliable with Apps Script redirects; POST can yield HTML "Page not found" in some browsers
+        const query = new URLSearchParams({
+            academicYear: filters.academicYear,
+            examName: filters.examName,
+            classes: filters.classes,
+            section: filters.section,
+            stream: filters.stream || ""
+        }).toString();
+        const response = await apiRequest(`exam.results.generate?${query}`, {
             bypassCache: true
         });
 

@@ -112,13 +112,12 @@ function parseApiJson(rawText, httpStatus) {
         return JSON.parse(text);
     } catch (parseErr) {
         const preview = text.slice(0, 160).replace(/\s+/g, " ");
-        const looksHtml = /^</.test(text) || /<!DOCTYPE|<html|Error:|Exceeded maximum/i.test(text);
+        const looksHtml = /^</.test(text) || /<!DOCTYPE|<html|Error:|Exceeded maximum|Page not found/i.test(text);
 
         if (looksHtml) {
             throw new Error(
                 "School server returned an invalid response (not JSON). " +
-                "This usually means the request timed out or the Settings sheet has oversized image data. " +
-                "Re-save report-card signatures in Portal Control (Drive URLs), then try again. " +
+                "Please refresh and try again. If this continues, sign out and sign back in. " +
                 `Details: ${preview}`
             );
         }
@@ -127,6 +126,56 @@ function parseApiJson(rawText, httpStatus) {
     }
 }
 
+function isGoogleAppsScriptHtmlError(text) {
+    const t = String(text || "");
+    return (
+        t.includes("<!DOCTYPE html>") ||
+        t.includes("Page not found") ||
+        t.includes("Moved Temporarily") ||
+        t.includes("Web word processing, spreadsheets and presentations")
+    );
+}
+
+/**
+ * Apps Script web apps 302 to googleusercontent.com. Some browsers re-POST that
+ * URL and get HTML "Page not found". Prefer GET; for POST, fall back to GET+payload.
+ */
+async function fetchAppsScript(urlString, options = {}) {
+    const method = String(options.method || "GET").toUpperCase();
+    const body = options.body != null ? String(options.body) : "";
+
+    const doFetch = async (url, opts) => {
+        const response = await fetch(url, {
+            ...opts,
+            redirect: "follow",
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8",
+                ...(opts.headers ?? {})
+            }
+        });
+        const text = await response.text();
+        return { response, text };
+    };
+
+    // Primary attempt
+    let result = await doFetch(urlString, options);
+
+    // POST redirect quirk → retry as GET with payload= (controllers already support it)
+    if (
+        method === "POST" &&
+        body &&
+        isGoogleAppsScriptHtmlError(result.text) &&
+        body.length <= 6000
+    ) {
+        const retryUrl = new URL(urlString);
+        retryUrl.searchParams.set("payload", body);
+        result = await doFetch(retryUrl.toString().replace(/\+/g, "%20"), {
+            method: "GET"
+        });
+    }
+
+    return result;
+}
 /**
  * Sends a request to the Google Apps Script REST API with smart caching.
  * @param {string} path API path.
@@ -189,14 +238,11 @@ export async function apiRequest(path, options = {}) {
 
         const finalUrl = url.toString().replace(/\+/g, "%20");
         let response;
+        let rawText;
         try {
-            response = await fetch(finalUrl, {
-                ...options,
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8",
-                    ...(options.headers ?? {})
-                }
-            });
+            const fetched = await fetchAppsScript(finalUrl, options);
+            response = fetched.response;
+            rawText = fetched.text;
         } catch (netErr) {
             console.error("API Fetch Error:", netErr);
             if (!session || !session.user?.email) {
@@ -207,7 +253,6 @@ export async function apiRequest(path, options = {}) {
             throw new Error("Unable to connect to school server. Please check your internet connection.");
         }
 
-        const rawText = await response.text();
         const payload = parseApiJson(rawText, response.status);
 
         if (!response.ok) {
