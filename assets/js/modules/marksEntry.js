@@ -239,7 +239,12 @@ const updateSubjectsDropdown = async () => {
     const section = sectionSelect ? sectionSelect.value : "";
     const academicYear = yearInput ? yearInput.value : "";
 
-    if (!classNum) {
+    if (!classNum || !section || !academicYear) {
+        subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+        return;
+    }
+
+    if ((classNum === "11" || classNum === "12") && !stream) {
         subjectSelect.innerHTML = '<option value="">Select Subject</option>';
         return;
     }
@@ -977,7 +982,8 @@ export async function initMarksEntryView() {
                     if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
                     if (subjectSelect) subjectSelect.innerHTML = '<option value="">Select Subject</option>';
                 } else {
-                    await Promise.all([updateAvailableSections(), updateSubjectsDropdown()]);
+                    await updateAvailableSections();
+                    await updateSubjectsDropdown();
                 }
             });
         }
@@ -989,7 +995,8 @@ export async function initMarksEntryView() {
                     if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
                     if (subjectSelect) subjectSelect.innerHTML = '<option value="">Select Subject</option>';
                     if (streamSelect.value) {
-                        await Promise.all([updateAvailableSections(), updateSubjectsDropdown()]);
+                        await updateAvailableSections();
+                        await updateSubjectsDropdown();
                     }
                 } else {
                     await updateSubjectsDropdown();
@@ -1015,7 +1022,8 @@ export async function initMarksEntryView() {
                         if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
                         if (subjectSelect) subjectSelect.innerHTML = '<option value="">Select Subject</option>';
                     } else {
-                        await Promise.all([updateAvailableSections(), updateSubjectsDropdown()]);
+                        await updateAvailableSections();
+                        await updateSubjectsDropdown();
                     }
                 }, 300);
             });
