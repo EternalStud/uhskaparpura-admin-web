@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=202608030530";
+import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=202608030545";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=202608030530";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030545";
 
 // Local state variables
 let dropdownSubjects = [];  // All available subjects for selected class & stream
@@ -773,25 +773,30 @@ const handleLoadStudents = async () => {
     try {
         currentFilters = { academicYear, classNum, section, stream };
 
-        // 1. Fetch valid subjects for the dropdowns
+        // Parallel: subject dropdown metadata + student roster (was sequential ~2× wait)
         const cacheKey = `${classNum}_${stream}`;
-        if (!metadataCache[cacheKey]) {
-            const dropResponse = await apiRequest(`subject.tag.getDropdowns?classNum=${classNum}&stream=${stream}`);
-            if (!dropResponse.success) {
-                throw new Error(dropResponse.error || "Failed to load subjects configuration.");
-            }
-            metadataCache[cacheKey] = dropResponse.subjects || [];
-        }
-        dropdownSubjects = metadataCache[cacheKey];
+        const dropPromise = metadataCache[cacheKey]
+            ? Promise.resolve({ success: true, subjects: metadataCache[cacheKey] })
+            : apiRequest(`subject.tag.getDropdowns?classNum=${classNum}&stream=${stream}`);
 
-        // 2. Fetch student list with saved subject tags
         const queryParams = new URLSearchParams({
             academicYear,
             classNum,
             section,
             stream
         });
-        const stuResponse = await apiRequest(`subject.tag.loadStudents?${queryParams.toString()}`);
+        const stuPromise = apiRequest(`subject.tag.loadStudents?${queryParams.toString()}`);
+
+        const [dropResponse, stuResponse] = await Promise.all([dropPromise, stuPromise]);
+
+        if (!dropResponse.success) {
+            throw new Error(dropResponse.error || "Failed to load subjects configuration.");
+        }
+        if (!metadataCache[cacheKey]) {
+            metadataCache[cacheKey] = dropResponse.subjects || [];
+        }
+        dropdownSubjects = metadataCache[cacheKey];
+
         if (!stuResponse.success) {
             throw new Error(stuResponse.error || "Failed to load student records.");
         }

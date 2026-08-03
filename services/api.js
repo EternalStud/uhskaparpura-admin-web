@@ -6,15 +6,28 @@ import { getSession, clearSession } from "./session.js";
 // In-Memory API Cache Map
 const apiCache = new Map();
 
-// Caching Rules for GET / Read operations
+// Caching Rules for GET / Read operations (teacher-critical paths first)
 const CACHE_RULES = [
     { prefix: "exam.list", ttl: 5 * 60 * 1000 },
     { prefix: "auth.profile", ttl: 10 * 60 * 1000 },
     { prefix: "settings.load", ttl: 2 * 60 * 1000 },
     { prefix: "subject.tag.getSections", ttl: 10 * 60 * 1000 },
     { prefix: "subject.tag.getDropdowns", ttl: 10 * 60 * 1000 },
-    { prefix: "exam.config.load", ttl: 5 * 60 * 1000 }
+    { prefix: "subject.tag.loadStudents", ttl: 60 * 1000 },
+    { prefix: "exam.config.load", ttl: 5 * 60 * 1000 },
+    { prefix: "exam.marks.load", ttl: 45 * 1000 },
+    { prefix: "student.master.load", ttl: 2 * 60 * 1000 }
 ];
+
+/** Persist these across SPA navigations within the tab (survives module reloads). */
+const SESSION_PERSIST_PREFIXES = [
+    "exam.list",
+    "auth.profile",
+    "subject.tag.getSections",
+    "subject.tag.getDropdowns"
+];
+
+const SESSION_CACHE_PREFIX = "uhs_api_cache_v1:";
 
 // Mutation actions that invalidate cache
 const INVALIDATION_RULES = {
@@ -23,10 +36,51 @@ const INVALIDATION_RULES = {
     "exam.status.toggle": ["exam.list"],
     "exam.config.save": ["exam.config.load"],
     "settings.save": ["settings.load"],
-    "subject.tag.save": ["subject.tag.getSections", "subject.tag.loadStudents"],
+    "subject.tag.save": ["subject.tag.getSections", "subject.tag.loadStudents", "subject.tag.getDropdowns"],
     "exam.marks.save": ["exam.marks.load", "exam.results.generate"],
     "student.master.sync": ["student.master.load"]
 };
+
+function shouldPersistAction(actionPath) {
+    return SESSION_PERSIST_PREFIXES.some((prefix) => actionPath.startsWith(prefix));
+}
+
+function readSessionCache(cacheKey) {
+    try {
+        const raw = sessionStorage.getItem(SESSION_CACHE_PREFIX + cacheKey);
+        if (!raw) return null;
+        const entry = JSON.parse(raw);
+        if (!entry || !entry.expiry || Date.now() >= entry.expiry) {
+            sessionStorage.removeItem(SESSION_CACHE_PREFIX + cacheKey);
+            return null;
+        }
+        return entry;
+    } catch (_) {
+        return null;
+    }
+}
+
+function writeSessionCache(cacheKey, entry, actionPath) {
+    if (!shouldPersistAction(actionPath)) return;
+    try {
+        sessionStorage.setItem(SESSION_CACHE_PREFIX + cacheKey, JSON.stringify(entry));
+    } catch (_) { /* quota */ }
+}
+
+function clearSessionCacheByPrefix(prefixFilter) {
+    try {
+        const keys = [];
+        for (let i = 0; i < sessionStorage.length; i++) {
+            const k = sessionStorage.key(i);
+            if (k && k.startsWith(SESSION_CACHE_PREFIX)) keys.push(k);
+        }
+        keys.forEach((k) => {
+            if (!prefixFilter || k.includes(prefixFilter)) {
+                sessionStorage.removeItem(k);
+            }
+        });
+    } catch (_) { /* ignore */ }
+}
 
 /**
  * Clears cached API responses matching prefix or all cache if omitted.
@@ -34,6 +88,7 @@ const INVALIDATION_RULES = {
 export function clearApiCache(prefixFilter = null) {
     if (!prefixFilter) {
         apiCache.clear();
+        clearSessionCacheByPrefix(null);
         return;
     }
     for (const key of apiCache.keys()) {
@@ -41,6 +96,7 @@ export function clearApiCache(prefixFilter = null) {
             apiCache.delete(key);
         }
     }
+    clearSessionCacheByPrefix(prefixFilter);
 }
 
 /**
@@ -119,8 +175,15 @@ export async function apiRequest(path, options = {}) {
             const entry = apiCache.get(cacheKey);
             if (Date.now() < entry.expiry) {
                 return JSON.parse(JSON.stringify(entry.payload));
-            } else {
-                apiCache.delete(cacheKey);
+            }
+            apiCache.delete(cacheKey);
+        }
+
+        if (cacheKey) {
+            const sessionEntry = readSessionCache(cacheKey);
+            if (sessionEntry) {
+                apiCache.set(cacheKey, sessionEntry);
+                return JSON.parse(JSON.stringify(sessionEntry.payload));
             }
         }
 
@@ -161,12 +224,14 @@ export async function apiRequest(path, options = {}) {
             throw new Error(payload.error ?? payload.message ?? "API request failed.");
         }
 
-        // Save to cache if eligible
+        // Save to memory (+ sessionStorage for stable teacher dropdowns)
         if (cacheKey && cacheRule && payload?.success !== false) {
-            apiCache.set(cacheKey, {
+            const entry = {
                 expiry: Date.now() + cacheRule.ttl,
                 payload: JSON.parse(JSON.stringify(payload))
-            });
+            };
+            apiCache.set(cacheKey, entry);
+            writeSessionCache(cacheKey, entry, actionPath);
         }
 
         return payload;

@@ -1,30 +1,66 @@
 "use strict";
 
-import { initLoginView } from "./login.js?t=202608030530";
-import { initDashboardView } from "./dashboard.js?t=202608030530";
-import { initSubjectTagView } from "./modules/subjectTag.js?t=202608030530";
-import { initMarksEntryView } from "./modules/marksEntry.js?t=202608030530";
-import { initResultGenerationView } from "./modules/resultGeneration.js?t=202608030530";
-import { initStudentMasterView } from "./modules/studentMaster.js?t=202608030530";
-import { initSyncSchoolDBView } from "./modules/syncSchoolDB.js?t=202608030530";
-import { init as initExamControlView } from "./modules/examControl.js?t=202608030530";
-import { initPortalControlView } from "./modules/portalControl.js?t=202608030530";
 import { getSession, clearSession } from "../../services/session.js";
-import { hideLoader, showLoader } from "../../components/loader.js?t=202608030530";
+import { hideLoader, showLoader } from "../../components/loader.js?t=202608030545";
 import { showToast } from "../../components/toast.js";
 
+/** Cache-bust for lazy-loaded feature modules (keep in sync with index.html). */
+const MODULE_T = "202608030545";
 
+/**
+ * Route table — modules are dynamically imported so login/dashboard
+ * do not download marks/results/sync code until needed.
+ */
 const routes = new Map([
-    ["/login", { view: "views/login.html", init: initLoginView, public: true }],
-    ["/dashboard", { view: "views/dashboard.html", init: initDashboardView, public: false }],
-    ["/subject-tag", { view: "views/subjectTag.html", init: initSubjectTagView, public: false }],
-    ["/marks-entry", { view: "views/marksEntry.html", init: initMarksEntryView, public: false }],
-    ["/result-generation", { view: "views/resultGeneration.html", init: initResultGenerationView, public: false }],
-    ["/student-master", { view: "views/studentMaster.html", init: initStudentMasterView, public: false }],
-    ["/sync-schooldb", { view: "views/syncSchoolDB.html", init: initSyncSchoolDBView, public: false }],
-    ["/exam-control", { view: "views/examControl.html", init: initExamControlView, public: false }],
-    ["/portal-control", { view: "views/portalControl.html", init: initPortalControlView, public: false }]
+    ["/login", {
+        view: "views/login.html",
+        public: true,
+        load: () => import(`./login.js?t=${MODULE_T}`).then((m) => m.initLoginView)
+    }],
+    ["/dashboard", {
+        view: "views/dashboard.html",
+        public: false,
+        load: () => import(`./dashboard.js?t=${MODULE_T}`).then((m) => m.initDashboardView)
+    }],
+    ["/subject-tag", {
+        view: "views/subjectTag.html",
+        public: false,
+        load: () => import(`./modules/subjectTag.js?t=${MODULE_T}`).then((m) => m.initSubjectTagView)
+    }],
+    ["/marks-entry", {
+        view: "views/marksEntry.html",
+        public: false,
+        load: () => import(`./modules/marksEntry.js?t=${MODULE_T}`).then((m) => m.initMarksEntryView)
+    }],
+    ["/result-generation", {
+        view: "views/resultGeneration.html",
+        public: false,
+        load: () => import(`./modules/resultGeneration.js?t=${MODULE_T}`).then((m) => m.initResultGenerationView)
+    }],
+    ["/student-master", {
+        view: "views/studentMaster.html",
+        public: false,
+        load: () => import(`./modules/studentMaster.js?t=${MODULE_T}`).then((m) => m.initStudentMasterView)
+    }],
+    ["/sync-schooldb", {
+        view: "views/syncSchoolDB.html",
+        public: false,
+        load: () => import(`./modules/syncSchoolDB.js?t=${MODULE_T}`).then((m) => m.initSyncSchoolDBView)
+    }],
+    ["/exam-control", {
+        view: "views/examControl.html",
+        public: false,
+        load: () => import(`./modules/examControl.js?t=${MODULE_T}`).then((m) => m.init)
+    }],
+    ["/portal-control", {
+        view: "views/portalControl.html",
+        public: false,
+        load: () => import(`./modules/portalControl.js?t=${MODULE_T}`).then((m) => m.initPortalControlView)
+    }]
 ]);
+
+/** In-memory HTML view templates (avoid re-fetching on every navigation). */
+const viewHtmlCache = new Map();
 
 const getCurrentPath = () => {
     const hashPath = window.location.hash.replace("#", "");
@@ -97,7 +133,6 @@ export async function renderRoute(path) {
             return;
         }
 
-
         const userRole = (session?.user?.role || "").toUpperCase();
         if (session && userRole === "TEACHER" && path === "/result-generation") {
             showToast("You do not have permission to access Result Generation.", "error");
@@ -123,13 +158,24 @@ export async function renderRoute(path) {
             return;
         }
 
-        const response = await fetch(route.view, { cache: "no-store" });
-        if (!response.ok) {
-            throw new Error(`Unable to load ${route.view}`);
-        }
+        // Parallel: fetch HTML view + start module download
+        let html = viewHtmlCache.get(route.view);
+        const htmlPromise = html
+            ? Promise.resolve(html)
+            : fetch(route.view).then(async (response) => {
+                if (!response.ok) throw new Error(`Unable to load ${route.view}`);
+                const text = await response.text();
+                viewHtmlCache.set(route.view, text);
+                return text;
+            });
 
-        app.innerHTML = await response.text();
-        await route.init();
+        const [viewHtml, initFn] = await Promise.all([
+            htmlPromise,
+            route.load()
+        ]);
+
+        app.innerHTML = viewHtml;
+        await initFn();
     } catch (error) {
         console.error(error);
         showToast("The page could not be loaded.", "error");

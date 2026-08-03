@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=202608030530";
+import { showLoader, hideLoader, showLocalLoader, hideLocalLoader } from "../../../components/loader.js?t=202608030545";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=202608030530";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030545";
 import { getSession } from "../../../services/session.js";
 
 // Local state variables
@@ -931,25 +931,31 @@ export async function initMarksEntryView() {
         }
 
         const examSelect = document.querySelector("#filter-exam");
-        if (examSelect) {
-            try {
-                const res = await apiRequest("exam.list");
-                if (res.success && res.exams) {
-                    const openExams = res.exams.filter(exam => exam.status === "OPEN");
-                    const opts = openExams.map(exam => `<option value="${exam.name}">${exam.name}</option>`).join("");
-                    examSelect.innerHTML = '<option value="">Select Exam</option>' + opts;
-                }
-            } catch (err) {
-                console.error("Failed to load exams list:", err);
-            }
-        }
-
         const classSelect = document.querySelector("#filter-class");
         const streamSelect = document.querySelector("#filter-stream");
         const sectionSelect = document.querySelector("#filter-section");
         const subjectSelect = document.querySelector("#filter-subject");
         const loadBtn = document.querySelector("#load-students-btn");
         const saveBtn = document.querySelector("#save-all-btn");
+
+        // Parallel warm-up: open exams + sections for default class
+        updateStreamFilterVisibility("");
+        await Promise.all([
+            (async () => {
+                if (!examSelect) return;
+                try {
+                    const res = await apiRequest("exam.list");
+                    if (res.success && res.exams) {
+                        const openExams = res.exams.filter(exam => exam.status === "OPEN");
+                        const opts = openExams.map(exam => `<option value="${exam.name}">${exam.name}</option>`).join("");
+                        examSelect.innerHTML = '<option value="">Select Exam</option>' + opts;
+                    }
+                } catch (err) {
+                    console.error("Failed to load exams list:", err);
+                }
+            })(),
+            updateAvailableSections()
+        ]);
 
         if (classSelect) {
             classSelect.addEventListener("change", async () => {
@@ -960,8 +966,7 @@ export async function initMarksEntryView() {
                     if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
                     if (subjectSelect) subjectSelect.innerHTML = '<option value="">Select Subject</option>';
                 } else {
-                    await updateAvailableSections();
-                    await updateSubjectsDropdown();
+                    await Promise.all([updateAvailableSections(), updateSubjectsDropdown()]);
                 }
             });
         }
@@ -973,8 +978,7 @@ export async function initMarksEntryView() {
                     if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
                     if (subjectSelect) subjectSelect.innerHTML = '<option value="">Select Subject</option>';
                     if (streamSelect.value) {
-                        await updateAvailableSections();
-                        await updateSubjectsDropdown();
+                        await Promise.all([updateAvailableSections(), updateSubjectsDropdown()]);
                     }
                 } else {
                     await updateSubjectsDropdown();
@@ -1000,8 +1004,7 @@ export async function initMarksEntryView() {
                         if (sectionSelect) sectionSelect.innerHTML = '<option value="">Select Section</option>';
                         if (subjectSelect) subjectSelect.innerHTML = '<option value="">Select Subject</option>';
                     } else {
-                        await updateAvailableSections();
-                        await updateSubjectsDropdown();
+                        await Promise.all([updateAvailableSections(), updateSubjectsDropdown()]);
                     }
                 }, 300);
             });
@@ -1014,10 +1017,6 @@ export async function initMarksEntryView() {
         if (saveBtn) {
             saveBtn.addEventListener("click", saveAllMarks);
         }
-
-        // Initial setup
-        updateStreamFilterVisibility("");
-        await updateAvailableSections();
 
     } catch (error) {
         console.error(error);

@@ -1,9 +1,9 @@
 "use strict";
 
 import { showToast } from "../../../components/toast.js";
-import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030530";
+import { showLoader, hideLoader } from "../../../components/loader.js?t=202608030545";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=202608030530";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030545";
 
 // Local state
 let examsList = [];

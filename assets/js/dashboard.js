@@ -1,6 +1,6 @@
-import { renderNavbar } from "../../components/navbar.js?t=202608030530";
+import { renderNavbar } from "../../components/navbar.js?t=202608030545";
 import { logout } from "../../services/auth.js";
-import { navigateTo } from "./router.js?t=202608030530";
+import { navigateTo } from "./router.js?t=202608030545";
 import { showToast } from "../../components/toast.js";
 import { getSession, saveSession } from "../../services/session.js";
 import { apiRequest } from "../../services/api.js";
@@ -185,6 +185,9 @@ export async function initDashboardView() {
                 void handleAction(card.dataset.action);
             }
         });
+
+        // Warm exam.list cache in background so Marks Entry / Results open faster
+        void apiRequest("exam.list").catch(() => {});
     } catch (error) {
         console.error(error);
         showToast("Dashboard could not be initialized.", "error");

@@ -2,8 +2,8 @@
 
 import { showToast } from "../../../components/toast.js";
 import { apiRequest } from "../../../services/api.js";
-import { renderNavbar } from "../../../components/navbar.js?t=202608030530";
-import { hideLoader, showLoader } from "../../../components/loader.js?t=202608030530";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030545";
+import { hideLoader, showLoader } from "../../../components/loader.js?t=202608030545";
 
 let parsedStudents = [];
 let fileAcademicYear = "";
@@ -111,16 +111,29 @@ function resetUpload() {
     showToast("File selection reset.", "info");
 }
 
-function handleFileSelect(file) {
+async function ensureXlsxLoaded() {
+    if (typeof window.XLSX !== "undefined") return;
+    await new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error("Failed to load Excel parsing library."));
+        document.head.appendChild(script);
+    });
+}
+
+async function handleFileSelect(file) {
     if (!file) return;
 
-    // Check if XLSX global is available (loaded via CDN in index.html)
-    if (typeof XLSX === "undefined") {
-        showToast("Excel parsing library is not loaded. Please try refreshing.", "error");
+    showLoader();
+    try {
+        await ensureXlsxLoaded();
+    } catch (err) {
+        hideLoader();
+        showToast(err.message || "Excel parsing library is not loaded. Please try refreshing.", "error");
         return;
     }
-
-    showLoader();
 
     const reader = new FileReader();
     reader.onload = function(e) {
