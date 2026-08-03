@@ -18,8 +18,35 @@ export const initPortalControlView = async () => {
 
     if (!toggleAdmission || !toggleResult) return;
 
-    // Load initial settings
+    // Populate Academic Session dropdowns
+    const assetYearSelect = document.querySelector("#asset-academic-year");
+    const assetExamSelect = document.querySelector("#asset-exam-name");
+
+    const getAcademicYears = () => {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const startYear = (currentMonth < 3) ? currentYear - 1 : currentYear;
+        const current = `${startYear}-${String(startYear + 1).slice(-2)}`;
+        const next = `${startYear + 1}-${String(startYear + 2).slice(-2)}`;
+        return [current, next];
+    };
+
+    if (assetYearSelect) {
+        const years = getAcademicYears();
+        assetYearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
+    }
+
+    // Load initial settings and exams concurrently
     showLoader();
+    let examPromise = null;
+    if (assetExamSelect) {
+        examPromise = apiRequest("exam.list").catch(err => {
+            console.error("Failed to load exams for asset control:", err);
+            return null;
+        });
+    }
+
     try {
         const response = await apiRequest("settings.load");
         if (response.success && response.settings) {
@@ -105,39 +132,11 @@ export const initPortalControlView = async () => {
         }
     });
 
-    // Populate Academic Session and Exam Name dropdowns for Asset Control
-    const assetYearSelect = document.querySelector("#asset-academic-year");
-    const assetExamSelect = document.querySelector("#asset-exam-name");
-
-    const getAcademicYears = () => {
-        const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth();
-        const startYear = (currentMonth < 3) ? currentYear - 1 : currentYear;
-        const current = `${startYear}-${String(startYear + 1).slice(-2)}`;
-        const next = `${startYear + 1}-${String(startYear + 2).slice(-2)}`;
-        return [current, next];
-    };
-
-    if (assetYearSelect) {
-        const years = getAcademicYears();
-        assetYearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join("");
-    }
-
-    if (assetExamSelect) {
-        try {
-            const res = await apiRequest("exam.list");
-            if (res.success && res.exams && res.exams.length) {
-                assetExamSelect.innerHTML = res.exams.map(e => `<option value="${e.name}">${e.name}</option>`).join("");
-            } else {
-                assetExamSelect.innerHTML = `
-                    <option value="Quarterly">Quarterly</option>
-                    <option value="Half Yearly">Half Yearly</option>
-                    <option value="Annual">Annual</option>
-                `;
-            }
-        } catch (err) {
-            console.error("Failed to load exams for asset control:", err);
+    if (assetExamSelect && examPromise) {
+        const res = await examPromise;
+        if (res && res.success && res.exams && res.exams.length) {
+            assetExamSelect.innerHTML = res.exams.map(e => `<option value="${e.name}">${e.name}</option>`).join("");
+        } else {
             assetExamSelect.innerHTML = `
                 <option value="Quarterly">Quarterly</option>
                 <option value="Half Yearly">Half Yearly</option>

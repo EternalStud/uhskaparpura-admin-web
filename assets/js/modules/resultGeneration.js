@@ -901,12 +901,6 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
             <div class="print-wrapper">
                 ${htmlContent}
             </div>
-
-            <script>
-                setTimeout(function() {
-                    window.print();
-                }, 300);
-            </script>
         </body>
         </html>
     `);
@@ -1316,7 +1310,7 @@ const renderCardsView = (container, activeSubjects, filteredStudents) => {
                 </div>
                 <div>
                     <div style="font-size: 0.7rem; color: var(--color-muted); text-transform: uppercase; font-weight: 700;">Percentage</div>
-                    <div style="font-size: 0.95rem; font-weight: 800; color: var(--color-primary);">${stud.percentage !== undefined ? stud.percentage + '%' : '-'}</div>
+                    <div style="font-size: 0.95rem; font-weight: 800; color: var(--color-primary);">${stud.percentage !== undefined ? stud.percentage : '-'}</div>
                 </div>
                 <div>
                     <div style="font-size: 0.7rem; color: var(--color-muted); text-transform: uppercase; font-weight: 700;">Rank</div>
