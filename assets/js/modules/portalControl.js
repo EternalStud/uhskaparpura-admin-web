@@ -13,8 +13,10 @@ export const initPortalControlView = async () => {
 
     const toggleAdmission = document.querySelector("#toggle-admission-open");
     const toggleResult = document.querySelector("#toggle-result-published");
+    const toggleRegistration = document.querySelector("#toggle-registration-open");
     const admissionText = document.querySelector("#admission-status-text");
     const resultText = document.querySelector("#result-status-text");
+    const registrationText = document.querySelector("#registration-status-text");
 
     if (!toggleAdmission || !toggleResult) return;
 
@@ -61,6 +63,13 @@ export const initPortalControlView = async () => {
             const isResultPublished = settings["result_published"] === "ON" || settings["result_published"] === "true";
             toggleResult.checked = isResultPublished;
             updateStatusText(resultText, isResultPublished);
+
+            // Registration Open setting
+            if (toggleRegistration && registrationText) {
+                const isRegistrationOpen = settings["registration_open"] === "ON" || settings["registration_open"] === "true";
+                toggleRegistration.checked = isRegistrationOpen;
+                updateStatusText(registrationText, isRegistrationOpen);
+            }
 
             // Sync backend settings to localStorage for issue date & assets
             if (settings["report_card_issue_date"]) {
@@ -131,6 +140,33 @@ export const initPortalControlView = async () => {
             hideLoader();
         }
     });
+
+    if (toggleRegistration) {
+        toggleRegistration.addEventListener("change", async () => {
+            const checked = toggleRegistration.checked;
+            const value = checked ? "ON" : "OFF";
+            
+            showLoader();
+            try {
+                const res = await apiRequest("settings.save", {
+                    method: "POST",
+                    body: JSON.stringify({ "registration_open": value })
+                });
+                if (res.success) {
+                    updateStatusText(registrationText, checked);
+                    showToast(`Registration status set to ${value}.`, "success");
+                } else {
+                    toggleRegistration.checked = !checked;
+                    showToast("Failed to save settings.", "error");
+                }
+            } catch (err) {
+                toggleRegistration.checked = !checked;
+                showToast("Error updating settings.", "error");
+            } finally {
+                hideLoader();
+            }
+        });
+    }
 
     if (assetExamSelect && examPromise) {
         const res = await examPromise;
