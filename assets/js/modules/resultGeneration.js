@@ -369,7 +369,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const totalPassMarks = l1Pass + l2Pass + matPass + sciPass + sscPass;
 
     return `
-    <div class="bseb-report-card-page" style="width: 210mm; height: 297mm; max-height: 297mm; padding: 12mm 14mm; margin: 0 auto; background-color: #ffffff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: 'Arial', 'Helvetica Neue', sans-serif; color: #1e293b; position: relative; overflow: hidden; border: 2.5px solid #0f172a;">
+    <div class="bseb-report-card-page" style="width: 210mm; height: 295mm; max-height: 295mm; padding: 12mm 14mm; margin: 0 auto; background-color: #ffffff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: 'Arial', 'Helvetica Neue', sans-serif; color: #1e293b; position: relative; overflow: hidden; border: 2.5px solid #0f172a;">
 
         <!-- Centered Emblem Watermark Layer (Single Light Seal) -->
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; height: 440px; opacity: 0.05; pointer-events: none; z-index: 5; mix-blend-mode: multiply;">
@@ -672,7 +672,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     };
 
     return `
-    <div class="bseb-report-card-page" style="width: 210mm; height: 297mm; max-height: 297mm; padding: 12mm 14mm; margin: 0 auto; background-color: #ffffff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: 'Arial', 'Helvetica Neue', sans-serif; color: #1e293b; position: relative; overflow: hidden; border: 2.5px solid #0f172a;">
+    <div class="bseb-report-card-page" style="width: 210mm; height: 295mm; max-height: 295mm; padding: 12mm 14mm; margin: 0 auto; background-color: #ffffff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: 'Arial', 'Helvetica Neue', sans-serif; color: #1e293b; position: relative; overflow: hidden; border: 2.5px solid #0f172a;">
 
         
 
@@ -908,8 +908,8 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
                         box-shadow: none !important; 
                         border: 2px solid #000 !important;
                         width: 210mm !important;
-                        height: 297mm !important; 
-                        max-height: 297mm !important; 
+                        height: 295mm !important; 
+                        max-height: 295mm !important; 
                         overflow: hidden !important; 
                         page-break-after: always !important; 
                         break-after: page !important; 
@@ -1020,6 +1020,13 @@ const handlePrintAllReportCards = async () => {
         const resolved = resolveReportAsset(baseKey, year, examName, activeClassVal, streamName || "ALL", section, cachedAssets);
         if (resolved) cachedAssets[baseKey] = resolved;
     });
+
+    // Ensure any legacy raw Base64 image (>100KB) is optimized before rendering
+    for (const key of Object.keys(cachedAssets)) {
+        if (cachedAssets[key] && typeof cachedAssets[key] === "string" && cachedAssets[key].startsWith("data:image") && cachedAssets[key].length > 100000) {
+            cachedAssets[key] = await compressImage(cachedAssets[key], 600, 600);
+        }
+    }
 
     clearAssetRegistry();
 
