@@ -281,21 +281,21 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const hmSig = getAsset("report_card_hm_sig", "");
     const schoolStamp = getAsset("report_card_school_stamp", "");
 
-    const teacherSigClass = getAssetClassName(teacherSig);
-    const hmSigClass = getAssetClassName(hmSig);
-    const schoolStampClass = getAssetClassName(schoolStamp);
-
-    const teacherSigHtml = teacherSigClass 
-        ? `<div class="${teacherSigClass}" style="height: 44px; width: 150px; margin: 0 auto 2px auto;"></div>` 
+    const teacherSigHtml = teacherSig 
+        ? `<img src="${teacherSig}" style="height: 44px; width: 150px; object-fit: contain; display: block; margin: 0 auto 2px auto;">` 
         : `<div style="height: 38px;"></div>`;
 
-    const hmSigHtml = hmSigClass 
-        ? `<div class="${hmSigClass}" style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; mix-blend-mode: multiply;"></div>` 
+    const hmSigHtml = hmSig 
+        ? `<img src="${hmSig}" style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; object-fit: contain;">` 
         : `<div style="height: 38px;"></div>`;
 
-    const stampHtml = schoolStampClass
-        ? `<div class="${schoolStampClass}" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; mix-blend-mode: multiply;"></div>`
+    const stampHtml = schoolStamp
+        ? `<img src="${schoolStamp}" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; object-fit: contain;">`
         : ``;
+
+    const fullLogoUrl = (logoB64.startsWith("http") || logoB64.startsWith("data:"))
+        ? logoB64
+        : new URL(logoB64, window.location.href).href;
 
     const getSubObj = (subId) => {
         if (!subId) return {};
@@ -372,8 +372,8 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     <div class="bseb-report-card-page" style="width: 210mm; height: 295mm; max-height: 295mm; padding: 12mm 14mm; margin: 0 auto; background-color: #ffffff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: 'Arial', 'Helvetica Neue', sans-serif; color: #1e293b; position: relative; overflow: hidden; border: 2.5px solid #0f172a;">
 
         <!-- Centered Emblem Watermark Layer (Single Light Seal) -->
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; height: 440px; opacity: 0.05; pointer-events: none; z-index: 5; mix-blend-mode: multiply;">
-            <div class="bseb-logo-img" style="width: 100%; height: 100%;"></div>
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px; height: 440px; opacity: 0.05; pointer-events: none; z-index: 5;">
+            <img src="${fullLogoUrl}" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
 
         <!-- Main Content Area -->
@@ -381,7 +381,7 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
             <!-- Header Container -->
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                 <div style="width: 120px; text-align: left; display: flex; align-items: center;">
-                    <div class="bseb-logo-circular"></div>
+                    <img src="${fullLogoUrl}" style="width: 110px; height: 110px; object-fit: contain;">
                 </div>
                 <div style="flex: 1; text-align: center; padding: 0 10px;">
                     <h1 style="font-size: 24px; font-weight: 700; margin: 0; color: #1e3a8a; letter-spacing: 0.5px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1);">बिहार विद्यालय परीक्षा समिति, पटना</h1>
@@ -598,7 +598,6 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
         return val || fallback || "";
     };
 
-    // Missing issue date → today; missing signatures/stamp → blank spacer
     const issueDate = formatIssueDateDisplay(getAsset("report_card_issue_date", ""));
     const issuePlace = (getAsset("report_card_issue_place", "MUZAFFARPUR") || "MUZAFFARPUR").toUpperCase();
 
@@ -606,23 +605,22 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const hmSig = getAsset("report_card_hm_sig", "");
     const schoolStamp = getAsset("report_card_school_stamp", "");
 
-    const teacherSigClass = getAssetClassName(teacherSig);
-    const hmSigClass = getAssetClassName(hmSig);
-    const schoolStampClass = getAssetClassName(schoolStamp);
-
-    const teacherSigHtml = teacherSigClass 
-        ? `<div class="${teacherSigClass}" style="height: 44px; width: 150px; margin: 0 auto 2px auto;"></div>` 
+    const teacherSigHtml = teacherSig 
+        ? `<img src="${teacherSig}" style="height: 44px; width: 150px; object-fit: contain; display: block; margin: 0 auto 2px auto;">` 
         : `<div style="height: 38px;"></div>`;
 
-    const hmSigHtml = hmSigClass 
-        ? `<div class="${hmSigClass}" style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; mix-blend-mode: multiply;"></div>` 
+    const hmSigHtml = hmSig 
+        ? `<img src="${hmSig}" style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; object-fit: contain;">` 
         : `<div style="height: 38px;"></div>`;
 
-    const stampHtml = schoolStampClass
-        ? `<div class="${schoolStampClass}" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; mix-blend-mode: multiply;"></div>`
+    const stampHtml = schoolStamp
+        ? `<img src="${schoolStamp}" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; object-fit: contain;">`
         : ``;
 
-    // Document Certificate Number & QR Code
+    const fullLogoUrl = (logoB64.startsWith("http") || logoB64.startsWith("data:"))
+        ? logoB64
+        : new URL(logoB64, window.location.href).href;
+
     const cleanExam = examName.replace(/\s+/g, '_').toUpperCase();
     const certNo = `Academic Session = ${academicYear} ,Exam Name = ${examName} ,class = ${activeClassVal} , Student Code = ${res.studentId || res.rollNo}`;
 
@@ -637,25 +635,30 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
         const tMax = subObj.tMax || 100;
         const pMax = subObj.pMax || 0;
         const fullMarks = tMax + pMax;
-        const passMarks = subObj.passMarks || Math.round(fullMarks * 0.3);
+        const passMarks = Math.ceil(fullMarks * 0.3);
+
+        if (!scoreObj) {
+            return { name: subObj.subjectName, theoryObt: "-", practicalObt: "-", totalObt: "-", score: "-", tMax, pMax, fullMarks, passMarks, code: subObj.subjectCode || "" };
+        }
+
+        const theoryObt = scoreObj.theoryObt !== undefined && scoreObj.theoryObt !== null ? scoreObj.theoryObt : "-";
+        const practicalObt = pMax > 0 ? (scoreObj.practicalObt !== undefined && scoreObj.practicalObt !== null ? scoreObj.practicalObt : "-") : "-";
+        const totalObt = scoreObj.totalObt !== undefined && scoreObj.totalObt !== null ? scoreObj.totalObt : "-";
+        const score = scoreObj.score !== undefined && scoreObj.score !== null ? scoreObj.score : "-";
+
         return {
-            code: subObj.code || "",
-            name: subObj.name,
-            theoryObt: scoreObj ? scoreObj.theoryObt : "",
-            practicalObt: scoreObj ? scoreObj.practicalObt : "",
-            totalObt: scoreObj ? scoreObj.totalObt : "",
-            pMax: pMax,
-            fullMarks: fullMarks,
-            passMarks: passMarks
+            name: subObj.subjectName,
+            theoryObt,
+            practicalObt,
+            totalObt,
+            score,
+            tMax,
+            pMax,
+            fullMarks,
+            passMarks,
+            code: subObj.subjectCode || ""
         };
     };
-
-    const sdL1 = getSubData(getSubDetails(res.language1));
-    const sdL2 = getSubData(getSubDetails(res.language2));
-    const sdE1 = getSubData(getSubDetails(res.elective1));
-    const sdE2 = getSubData(getSubDetails(res.elective2));
-    const sdE3 = getSubData(getSubDetails(res.elective3));
-    const sdAdd = getSubData(getSubDetails(res.additional));
 
     const renderSubRow = (sd) => {
         if (!sd.name) return "";
@@ -674,14 +677,12 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     return `
     <div class="bseb-report-card-page" style="width: 210mm; height: 295mm; max-height: 295mm; padding: 12mm 14mm; margin: 0 auto; background-color: #ffffff; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: 'Arial', 'Helvetica Neue', sans-serif; color: #1e293b; position: relative; overflow: hidden; border: 2.5px solid #0f172a;">
 
-        
-
         <!-- Double Inner Border Frame -->
         <div style="position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px; border: 1px solid #0f172a; pointer-events: none; z-index: 10;"></div>
 
         <!-- Single Centered Faint BSEB Seal Watermark (~5% opacity) -->
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 420px; height: 420px; opacity: 0.05; pointer-events: none; z-index: 5; mix-blend-mode: multiply;">
-            <div class="bseb-logo-img" style="width: 100%; height: 100%;"></div>
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 420px; height: 420px; opacity: 0.05; pointer-events: none; z-index: 5;">
+            <img src="${fullLogoUrl}" style="width: 100%; height: 100%; object-fit: contain;">
         </div>
 
         <!-- Main Content Area -->
@@ -689,7 +690,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
             <!-- Header Container -->
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
                 <div style="width: 120px; text-align: left; display: flex; align-items: center;">
-                    <div class="bseb-logo-circular"></div>
+                    <img src="${fullLogoUrl}" style="width: 110px; height: 110px; object-fit: contain;">
                 </div>
                 <div style="flex: 1; text-align: center; padding: 0 10px;">
                     <h1 style="font-size: 24px; font-weight: 700; margin: 0; color: #1e3a8a; letter-spacing: 0.5px; text-shadow: 0.5px 0.5px 0px rgba(0,0,0,0.1);">बिहार विद्यालय परीक्षा समिति, पटना</h1>
