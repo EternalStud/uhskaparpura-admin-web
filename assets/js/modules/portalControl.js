@@ -339,20 +339,55 @@ export const initPortalControlView = async () => {
 
         btnUpload.addEventListener("click", () => fileInput.click());
 
+const optimizeImageForPrint = (base64Str, maxDim = 800) => {
+    return new Promise((resolve) => {
+        if (!base64Str || !base64Str.startsWith("data:image")) {
+            resolve(base64Str);
+            return;
+        }
+        const img = new Image();
+        img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width <= maxDim && height <= maxDim && base64Str.length < 200000) {
+                resolve(base64Str);
+                return;
+            }
+            if (width > maxDim || height > maxDim) {
+                if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                }
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/png"));
+        };
+        img.onerror = () => resolve(base64Str);
+        img.src = base64Str;
+    });
+};
+
         fileInput.addEventListener("change", (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            if (file.size > 3 * 1024 * 1024) {
-                showToast("File size must be under 3MB.", "error");
+            if (file.size > 5 * 1024 * 1024) {
+                showToast("File size must be under 5MB.", "error");
                 return;
             }
             const reader = new FileReader();
-            reader.onload = (evt) => {
+            reader.onload = async (evt) => {
                 showLoader();
                 let b64 = evt.target.result;
-                
-                // Use raw uncompressed image for premium print quality
-                pendingBase64 = b64;
+                pendingBase64 = await optimizeImageForPrint(b64, 800);
                 hideLoader();
 
                 previewEl.innerHTML = `<img src="${pendingBase64}" style="max-height: 60px; max-width: 100%; object-fit: contain; border: 2px solid var(--color-primary); border-radius: 4px;">`;

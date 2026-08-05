@@ -95,6 +95,33 @@ const streamKeyVariant = (raw) => {
  */
 const cssUrl = (url) => String(url || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 
+// Asset registry for deduplicating Base64 background images across batch report cards
+const assetRegistry = new Map();
+
+const getAssetClassName = (rawUrl) => {
+    if (!rawUrl || rawUrl === 'REMOVED') return '';
+    const cleanUrl = cssUrl(rawUrl);
+    if (!cleanUrl) return '';
+    
+    if (!assetRegistry.has(cleanUrl)) {
+        const className = `rc-img-asset-${assetRegistry.size + 1}`;
+        assetRegistry.set(cleanUrl, className);
+    }
+    return assetRegistry.get(cleanUrl);
+};
+
+const clearAssetRegistry = () => {
+    assetRegistry.clear();
+};
+
+const generateAssetCssRules = () => {
+    let css = '';
+    assetRegistry.forEach((className, url) => {
+        css += `.${className} { background-image: url('${url}'); background-size: contain; background-repeat: no-repeat; background-position: center; }\n`;
+    });
+    return css;
+};
+
 /**
  * Resolve report-card asset from localStorage (year/exam/class scoped) with fallbacks.
  * Explicit REMOVED / empty at a scoped key wins (no fallback to older bare keys).
@@ -254,17 +281,20 @@ const generateJuniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const hmSig = getAsset("report_card_hm_sig", "");
     const schoolStamp = getAsset("report_card_school_stamp", "");
 
-    // Inline backgrounds so print window does not depend on bare localStorage CSS keys
-    const teacherSigHtml = teacherSig 
-        ? `<div style="height: 44px; width: 150px; margin: 0 auto 2px auto; background-image: url('${cssUrl(teacherSig)}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>` 
+    const teacherSigClass = getAssetClassName(teacherSig);
+    const hmSigClass = getAssetClassName(hmSig);
+    const schoolStampClass = getAssetClassName(schoolStamp);
+
+    const teacherSigHtml = teacherSigClass 
+        ? `<div class="${teacherSigClass}" style="height: 44px; width: 150px; margin: 0 auto 2px auto;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
-    const hmSigHtml = hmSig 
-        ? `<div style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; mix-blend-mode: multiply; background-image: url('${cssUrl(hmSig)}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>` 
+    const hmSigHtml = hmSigClass 
+        ? `<div class="${hmSigClass}" style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; mix-blend-mode: multiply;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
-    const stampHtml = schoolStamp
-        ? `<div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; mix-blend-mode: multiply; background-image: url('${cssUrl(schoolStamp)}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>`
+    const stampHtml = schoolStampClass
+        ? `<div class="${schoolStampClass}" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; mix-blend-mode: multiply;"></div>`
         : ``;
 
     const getSubObj = (subId) => {
@@ -576,16 +606,20 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     const hmSig = getAsset("report_card_hm_sig", "");
     const schoolStamp = getAsset("report_card_school_stamp", "");
 
-    const teacherSigHtml = teacherSig 
-        ? `<div style="height: 44px; width: 150px; margin: 0 auto 2px auto; background-image: url('${cssUrl(teacherSig)}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>` 
+    const teacherSigClass = getAssetClassName(teacherSig);
+    const hmSigClass = getAssetClassName(hmSig);
+    const schoolStampClass = getAssetClassName(schoolStamp);
+
+    const teacherSigHtml = teacherSigClass 
+        ? `<div class="${teacherSigClass}" style="height: 44px; width: 150px; margin: 0 auto 2px auto;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
-    const hmSigHtml = hmSig 
-        ? `<div style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; mix-blend-mode: multiply; background-image: url('${cssUrl(hmSig)}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>` 
+    const hmSigHtml = hmSigClass 
+        ? `<div class="${hmSigClass}" style="position: absolute; bottom: 42px; left: 50%; transform: translateX(-50%); height: 50px; width: 160px; z-index: 2; mix-blend-mode: multiply;"></div>` 
         : `<div style="height: 38px;"></div>`;
 
-    const stampHtml = schoolStamp
-        ? `<div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; mix-blend-mode: multiply; background-image: url('${cssUrl(schoolStamp)}'); background-size: contain; background-repeat: no-repeat; background-position: center;"></div>`
+    const stampHtml = schoolStampClass
+        ? `<div class="${schoolStampClass}" style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 85mm; height: 42mm; z-index: 1; opacity: 0.90; mix-blend-mode: multiply;"></div>`
         : ``;
 
     // Document Certificate Number & QR Code
@@ -828,10 +862,11 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
         return;
     }
 
-    // Signatures/stamps are inlined on each card via resolveReportAsset — only logo CSS needed here
+    // Signatures/stamps use deduplicated CSS classes from assetRegistry
     const assetStyles = `
         .bseb-logo-img { background-image: url("${BSEB_LOGO_B64}"); background-size: contain; background-repeat: no-repeat; background-position: center; }
         .bseb-logo-circular { width: 110px; height: 110px; background-image: url("${BSEB_LOGO_B64}"); background-size: 90%; background-repeat: no-repeat; background-position: center; }
+        ${generateAssetCssRules()}
     `;
 
     hideLoader();
@@ -930,6 +965,8 @@ const handlePrintSingleReportCard = async (studentId) => {
     const examName = examSelect ? examSelect.value : "";
     const streamName = (streamSelect && streamSelect.value) ? streamSelect.value : (student.stream || "");
 
+    clearAssetRegistry();
+
     const isSenior = (activeClassVal === 11 || activeClassVal === 12);
     const cardHtml = isSenior
         ? generateSeniorReportCardHtml(student, examName, year, activeClassVal, streamName, BSEB_LOGO_B64)
@@ -977,6 +1014,8 @@ const handlePrintAllReportCards = async () => {
         const resolved = resolveReportAsset(baseKey, year, examName, activeClassVal, streamName || "ALL", section, cachedAssets);
         if (resolved) cachedAssets[baseKey] = resolved;
     });
+
+    clearAssetRegistry();
 
     let allCardsHtml = "";
     activeData.studentResults.forEach(student => {
