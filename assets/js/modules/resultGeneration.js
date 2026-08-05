@@ -862,10 +862,14 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
         return;
     }
 
+    const fullLogoUrl = (BSEB_LOGO_B64.startsWith("http") || BSEB_LOGO_B64.startsWith("data:"))
+        ? BSEB_LOGO_B64
+        : new URL(BSEB_LOGO_B64, window.location.href).href;
+
     // Signatures/stamps use deduplicated CSS classes from assetRegistry
     const assetStyles = `
-        .bseb-logo-img { background-image: url("${BSEB_LOGO_B64}"); background-size: contain; background-repeat: no-repeat; background-position: center; }
-        .bseb-logo-circular { width: 110px; height: 110px; background-image: url("${BSEB_LOGO_B64}"); background-size: 90%; background-repeat: no-repeat; background-position: center; }
+        .bseb-logo-img { background-image: url("${fullLogoUrl}"); background-size: contain; background-repeat: no-repeat; background-position: center; }
+        .bseb-logo-circular { width: 110px; height: 110px; background-image: url("${fullLogoUrl}"); background-size: 90%; background-repeat: no-repeat; background-position: center; }
         ${generateAssetCssRules()}
     `;
 
@@ -875,6 +879,7 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
         <!DOCTYPE html>
         <html>
         <head>
+            <base href="${window.location.origin}/">
             <title>${documentTitle}</title>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -892,6 +897,7 @@ const openPrintWindow = async (htmlContent, documentTitle) => {
                         box-shadow: none !important; 
                         text-shadow: none !important; 
                         filter: none !important; 
+                        mix-blend-mode: normal !important;
                         -webkit-print-color-adjust: exact !important; 
                         print-color-adjust: exact !important; 
                     }
