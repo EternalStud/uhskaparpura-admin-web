@@ -61,6 +61,11 @@ const routes = new Map([
         view: "views/registrationMgmt.html",
         public: false,
         load: () => import(`./modules/registrationMgmt.js?t=${MODULE_T}`).then((m) => m.initRegistrationMgmtView)
+    }],
+    ["/admission-mgmt", {
+        view: "views/admissionMgmt.html",
+        public: false,
+        load: () => import(`./modules/admissionMgmt.js?t=${MODULE_T}`).then((m) => m.initAdmissionMgmtView)
     }]
 ]);
 
