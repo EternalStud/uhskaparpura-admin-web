@@ -9,6 +9,33 @@
             <h1 id="dashboard-title">Dashboard</h1>
             <p>Choose a module to continue. Student, marks, and result workflows are prepared for navigation only.</p>
         </section>
+        <!-- Registration Live Stats Widget -->
+        <section id="dashboard-reg-stats" style="margin-bottom: 30px; display: none;">
+            <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 20px; padding: 22px 25px; color: white; box-shadow: 0 10px 25px rgba(15,23,42,0.15); border-top: 4px solid #d97706;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="material-symbols-rounded" style="color: #f59e0b; font-size: 1.8rem;">app_registration</span>
+                        <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0; color: white;">छात्र पंजीयन स्थिति (Registration Overview)</h2>
+                    </div>
+                    <button type="button" id="btnGoToRegMgmt" class="btn btn-sm" style="background: #d97706; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">📋 सत्यापन करें (Verify Forms)</button>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                    <div style="background: rgba(255,255,255,0.08); border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.12);">
+                        <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">कुल भरे गए फॉर्म</div>
+                        <div id="dash-reg-total" style="font-size: 1.8rem; font-weight: 700; color: #f8fafc; margin-top: 4px;">-</div>
+                    </div>
+                    <div style="background: rgba(16,185,129,0.12); border-radius: 12px; padding: 15px; border: 1px solid rgba(16,185,129,0.25);">
+                        <div style="font-size: 0.8rem; color: #6ee7b7; font-weight: 600; text-transform: uppercase;">सत्यापित (Verified)</div>
+                        <div id="dash-reg-verified" style="font-size: 1.8rem; font-weight: 700; color: #34d399; margin-top: 4px;">-</div>
+                    </div>
+                    <div style="background: rgba(245,158,11,0.12); border-radius: 12px; padding: 15px; border: 1px solid rgba(245,158,11,0.25);">
+                        <div style="font-size: 0.8rem; color: #fde047; font-weight: 600; text-transform: uppercase;">लंबित (Pending)</div>
+                        <div id="dash-reg-pending" style="font-size: 1.8rem; font-weight: 700; color: #facc15; margin-top: 4px;">-</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="dashboard-actions" class="dashboard-grid" aria-label="Dashboard modules"></section>
     </main>
 </div>

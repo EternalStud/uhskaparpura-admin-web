@@ -56,6 +56,11 @@ const routes = new Map([
         view: "views/portalControl.html",
         public: false,
         load: () => import(`./modules/portalControl.js?t=${MODULE_T}`).then((m) => m.initPortalControlView)
+    }],
+    ["/registration-mgmt", {
+        view: "views/registrationMgmt.html",
+        public: false,
+        load: () => import(`./modules/registrationMgmt.js?t=${MODULE_T}`).then((m) => m.initRegistrationMgmtView)
     }]
 ]);
 

@@ -38,11 +38,10 @@ const modules = [
         hidden: true
     },
     {
-        title: "Registration Approval",
-        description: "Review registration approvals.",
+        title: "Registration Verification",
+        description: "Review & verify student registrations.",
         icon: "app_registration",
-        action: "registration-approval",
-        hidden: true
+        action: "registration-mgmt"
     },
     {
         title: "Sync SchoolDB",
@@ -125,6 +124,11 @@ const handleAction = async (action) => {
             return;
         }
 
+        if (action === "registration-mgmt") {
+            await navigateTo("/registration-mgmt");
+            return;
+        }
+
         showToast("This module will be implemented next.", "success");
     } catch (error) {
         console.error(error);
@@ -186,10 +190,33 @@ export async function initDashboardView() {
             }
         });
 
+        // Load registration stats for dashboard widget
+        void loadRegistrationStats();
+
         // Warm exam.list cache in background so Marks Entry / Results open faster
         void apiRequest("exam.list").catch(() => {});
     } catch (error) {
         console.error(error);
         showToast("Dashboard could not be initialized.", "error");
+    }
+}
+
+async function loadRegistrationStats() {
+    try {
+        const statsSec = document.getElementById("dashboard-reg-stats");
+        const btnGo = document.getElementById("btnGoToRegMgmt");
+        if (btnGo) {
+            btnGo.addEventListener("click", () => navigateTo("/registration-mgmt"));
+        }
+
+        const res = await apiRequest("registration.getAll");
+        if (res && res.success && statsSec) {
+            document.getElementById("dash-reg-total").textContent = res.total || 0;
+            document.getElementById("dash-reg-verified").textContent = res.verified || 0;
+            document.getElementById("dash-reg-pending").textContent = res.pending || 0;
+            statsSec.style.display = "block";
+        }
+    } catch(e) {
+        // ignore error on dashboard load
     }
 }
