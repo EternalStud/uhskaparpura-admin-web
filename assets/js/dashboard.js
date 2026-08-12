@@ -194,71 +194,10 @@ export async function initDashboardView() {
             }
         });
 
-        // Load registration and admission stats for dashboard widgets
-        void loadRegistrationStats();
-        void loadAdmissionStats();
-
         // Warm exam.list cache in background so Marks Entry / Results open faster
         void apiRequest("exam.list").catch(() => {});
     } catch (error) {
         console.error(error);
         showToast("Dashboard could not be initialized.", "error");
-    }
-}
-
-async function loadRegistrationStats() {
-    try {
-        const statsSec = document.getElementById("dashboard-reg-stats");
-        const btnGo = document.getElementById("btnGoToRegMgmt");
-        if (btnGo) {
-            btnGo.addEventListener("click", () => navigateTo("/registration-mgmt"));
-        }
-
-        const res = await apiRequest("registration.getAll");
-        if (res && res.success && statsSec) {
-            document.getElementById("dash-reg-total").textContent = res.total || 0;
-            document.getElementById("dash-reg-verified").textContent = res.verified || 0;
-            document.getElementById("dash-reg-pending").textContent = res.pending || 0;
-            statsSec.style.display = "block";
-        }
-    } catch(e) {
-        // ignore error on dashboard load
-    }
-}
-
-async function loadAdmissionStats() {
-    try {
-        const statsSec = document.getElementById("dashboard-adm-stats");
-        const btnGo = document.getElementById("btnGoToAdmMgmt");
-        if (btnGo) {
-            btnGo.addEventListener("click", () => navigateTo("/admission-mgmt"));
-        }
-
-        const res = await apiRequest("admission.getAll");
-        if (res && res.success && statsSec) {
-            document.getElementById("dash-adm-total").textContent = res.total || 0;
-            document.getElementById("dash-adm-verified").textContent = res.verified || 0;
-            document.getElementById("dash-adm-pending").textContent = res.pending || 0;
-
-            // Build Class chips
-            const chipsDiv = document.getElementById("dash-adm-class-chips");
-            if (chipsDiv && res.byClass) {
-                const classes = Object.keys(res.byClass).sort((a,b) => parseInt(a) - parseInt(b));
-                let chipsHtml = "";
-                classes.forEach(cls => {
-                    const st = res.byClass[cls];
-                    chipsHtml += `
-                        <div style="background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 8px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2);">
-                            <strong>Class ${cls}:</strong> ${st.total} Total | <span style="color:#6ee7b7;">✓${st.verified}</span> | <span style="color:#fde047;">⏳${st.pending}</span>
-                        </div>
-                    `;
-                });
-                chipsDiv.innerHTML = chipsHtml;
-            }
-
-            statsSec.style.display = "block";
-        }
-    } catch(e) {
-        // ignore error on dashboard load
     }
 }

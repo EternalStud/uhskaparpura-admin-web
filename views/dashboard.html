@@ -9,63 +9,6 @@
             <h1 id="dashboard-title">Dashboard</h1>
             <p>Choose a module to continue. Student, marks, and result workflows are prepared for navigation only.</p>
         </section>
-        <!-- Registration Live Stats Widget -->
-        <section id="dashboard-reg-stats" style="margin-bottom: 25px; display: none;">
-            <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius: 20px; padding: 22px 25px; color: white; box-shadow: 0 10px 25px rgba(15,23,42,0.15); border-top: 4px solid #d97706;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="material-symbols-rounded" style="color: #f59e0b; font-size: 1.8rem;">app_registration</span>
-                        <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0; color: white;">छात्र पंजीयन स्थिति (Registration Overview)</h2>
-                    </div>
-                    <button type="button" id="btnGoToRegMgmt" class="btn btn-sm" style="background: #d97706; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">📋 सत्यापन करें (Verify Registrations)</button>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
-                    <div style="background: rgba(255,255,255,0.08); border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.12);">
-                        <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">कुल भरे गए फॉर्म</div>
-                        <div id="dash-reg-total" style="font-size: 1.8rem; font-weight: 700; color: #f8fafc; margin-top: 4px;">-</div>
-                    </div>
-                    <div style="background: rgba(16,185,129,0.12); border-radius: 12px; padding: 15px; border: 1px solid rgba(16,185,129,0.25);">
-                        <div style="font-size: 0.8rem; color: #6ee7b7; font-weight: 600; text-transform: uppercase;">सत्यापित (Verified)</div>
-                        <div id="dash-reg-verified" style="font-size: 1.8rem; font-weight: 700; color: #34d399; margin-top: 4px;">-</div>
-                    </div>
-                    <div style="background: rgba(245,158,11,0.12); border-radius: 12px; padding: 15px; border: 1px solid rgba(245,158,11,0.25);">
-                        <div style="font-size: 0.8rem; color: #fde047; font-weight: 600; text-transform: uppercase;">लंबित (Pending)</div>
-                        <div id="dash-reg-pending" style="font-size: 1.8rem; font-weight: 700; color: #facc15; margin-top: 4px;">-</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Admission Live Stats Widget (Class-wise) -->
-        <section id="dashboard-adm-stats" style="margin-bottom: 30px; display: none;">
-            <div style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-radius: 20px; padding: 22px 25px; color: white; box-shadow: 0 10px 25px rgba(2,132,199,0.15); border-top: 4px solid #38bdf8;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="material-symbols-rounded" style="color: #7dd3fc; font-size: 1.8rem;">how_to_reg</span>
-                        <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0; color: white;">नामांकन स्थिति कक्षा वार (Admission Overview Class-wise)</h2>
-                    </div>
-                    <button type="button" id="btnGoToAdmMgmt" class="btn btn-sm" style="background: #0284c7; color: white; border: 1px solid #38bdf8; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer;">📋 सत्यापन करें (Verify Admissions)</button>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                    <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 15px; border: 1px solid rgba(255,255,255,0.15);">
-                        <div style="font-size: 0.8rem; color: #e0f2fe; font-weight: 600; text-transform: uppercase;">कुल प्राप्त आवेदन</div>
-                        <div id="dash-adm-total" style="font-size: 1.8rem; font-weight: 700; color: white; margin-top: 4px;">-</div>
-                    </div>
-                    <div style="background: rgba(16,185,129,0.2); border-radius: 12px; padding: 15px; border: 1px solid rgba(16,185,129,0.3);">
-                        <div style="font-size: 0.8rem; color: #a7f3d0; font-weight: 600; text-transform: uppercase;">सत्यापित (Verified)</div>
-                        <div id="dash-adm-verified" style="font-size: 1.8rem; font-weight: 700; color: #6ee7b7; margin-top: 4px;">-</div>
-                    </div>
-                    <div style="background: rgba(245,158,11,0.2); border-radius: 12px; padding: 15px; border: 1px solid rgba(245,158,11,0.3);">
-                        <div style="font-size: 0.8rem; color: #fef08a; font-weight: 600; text-transform: uppercase;">लंबित (Pending)</div>
-                        <div id="dash-adm-pending" style="font-size: 1.8rem; font-weight: 700; color: #fde047; margin-top: 4px;">-</div>
-                    </div>
-                </div>
-                <div id="dash-adm-class-chips" style="display: flex; gap: 10px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.15);">
-                    <!-- Class wise chips populated by JS -->
-                </div>
-            </div>
-        </section>
-
         <section id="dashboard-actions" class="dashboard-grid" aria-label="Dashboard modules"></section>
     </main>
 </div>
