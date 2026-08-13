@@ -45,11 +45,24 @@ The Admin Web Portal is a modern Single Page Application (SPA) built for Headmas
   * Tiled Hindi school name background watermark (`उ.मा.वि. कपरपुरा, काँटी, मुजफ्फरपुर`).
   * Dynamic Full/Pass Marks and Today's Issue Date (`DD/MM/YYYY`).
 
-### 6. `examControl.js` (Exam Rules & Configurations)
+### 6. `registrationMgmt.js` (BSEB Registration Verification & Management)
+* Review, search, and verify submitted student registration forms.
+* **Full Multi-Section Form Modal**: Inspect and edit complete bio-data, parent details, bank information, Aadhaar, APAAR ID, and address.
+* **Interactive Dynamic Subject Dropdowns**: Select and modify Bihar Board subject combinations (Language 1/2, Electives 1-3, Additional) with real-time conflict filtering.
+* **Direct Google CDN Image Previews**: View uploaded student photos and signatures via `https://lh3.googleusercontent.com/d/FILE_ID` with fallback cascade.
+* **Synchronized Subject Tagging**: Verified subjects are automatically synced into the `SubjectTags` sheet upon verification.
+* **1-Click Receipt Print**: Print official BSEB registration receipts directly from the verification view.
+
+### 7. `admissionMgmt.js` (Online Admission Verification & Live Stats)
+* Class-wise admission application verification and editing.
+* Live stats counters for Total, Verified, and Pending applications, with **Class-wise breakdown** (Class 1, 9, 11, etc.).
+* Aadhaar Verhoeff validation and 1-click admission receipt printing.
+
+### 8. `examControl.js` (Exam Rules & Configurations)
 * Create, lock, and unlock exams (Quarterly, Half-Yearly, Annual, Sent-up).
 * Set theory and practical pass/full marks boundaries per subject and class.
 
-### 7. `portalControl.js` (Website Control Panel)
+### 9. `portalControl.js` (Website Control Panel)
 * Remote toggle for public school website features (Online Admissions, Notices, Results Publishing, Gallery).
 
 ---
