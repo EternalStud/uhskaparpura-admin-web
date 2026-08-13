@@ -2190,76 +2190,83 @@ const handleExportToExcel = () => {
         });
 
     } else {
-        // ── Class 11-12 (Senior) BSEB Official Layout ──
-        const slotHasPractical = (slotId) => {
-            return filteredStudents.some(res => {
-                const subId = res[slotId];
-                if (!subId) return false;
-                const config = activeSubjects.find(s => String(s.subjectId) === String(subId));
-                return config && (config.pMax || 0) > 0;
-            });
-        };
-
-        const e1HasPrac = slotHasPractical("elective1");
-        const e2HasPrac = slotHasPractical("elective2");
-        const e3HasPrac = slotHasPractical("elective3");
-        const addHasPrac = slotHasPractical("additional");
-
-        const e1ColSpan = e1HasPrac ? 3 : 2;
-        const e2ColSpan = e2HasPrac ? 3 : 2;
-        const e3ColSpan = e3HasPrac ? 3 : 2;
-        const addColSpan = addHasPrac ? 3 : 2;
-
-        const totalCols = 7 + 4 + e1ColSpan + e2ColSpan + e3ColSpan + addColSpan + 2;
-
+        // ── Class 11-12 (Senior) BSEB Official Layout (Exact 19-Column Format from Screenshot) ──
         tableHtml += `
         <tr>
-            <th colspan="${totalCols}" style="text-align: center; font-size: 13pt; font-weight: bold; border: 1px solid #000000; padding: 6px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
-                उत्क्रमित उच्चतर माध्यमिक (+2) विद्यालय कपरपुरा ,कांटी ,मुजफ्फरपुर<br>
-                विद्यालय कोड : ${schoolCode}
+            <th colspan="19" style="text-align: center; font-size: 13pt; font-weight: bold; border: 1px solid #000000; padding: 6px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
+                ${activeClassVal}वीं की ${hindiExamName}, ${displayYear} का प्राप्तांक प्रविष्टि प्रारूप
             </th>
         </tr>
         <tr>
-            <th colspan="${totalCols}" style="text-align: center; font-size: 11pt; font-weight: bold; border: 1px solid #000000; padding: 6px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
-                कक्षा ${String(activeClassVal).padStart(2, '0')} की ${hindiExamName}, ${displayYear} का प्राप्तांक प्रविष्टि प्रारूप
+            <th colspan="9" style="text-align: left; font-size: 11pt; font-weight: bold; border: 1px solid #000000; padding: 5px 8px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
+                +2 School / College code :- 31445
+            </th>
+            <th colspan="10" style="text-align: right; font-size: 11pt; font-weight: bold; border: 1px solid #000000; padding: 5px 8px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
+                +2 School / College Name :- U.H.S. KAPARPURA
             </th>
         </tr>`;
 
-        let headerRow = `<tr>
-            <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">SL NO</th>
-            <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">ROLL NO.</th>
-            <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">CLASS</th>
-            <th rowspan="2" style="text-align: left; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">STUDENT NAME</th>
-            <th rowspan="2" style="text-align: left; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">MOTHER'S NAME</th>
-            <th rowspan="2" style="text-align: left; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">FATHER'S NAME</th>
-            <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">GENDER</th>
+        // Multi-level table headers
+        let headerRow1 = `<tr>
+            <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">sl no</th>
+            <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Roll no.</th>
+            <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Class</th>
+            <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">Student's Name<br>Mother's Name<br>Father's Name</th>
+            <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">M<br>/<br>F</th>
             <th colspan="4" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Compulsory Language Subjects</th>
-            <th colspan="${e1ColSpan + e2ColSpan + e3ColSpan}" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Elective Subjects</th>
-            <th colspan="${addColSpan}" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Additional Subjects</th>
-            <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">AGGREGATE</th>
-            <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">RESULT</th>
+            <th colspan="9" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Elective Subjects</th>
+            <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Aggregate &amp; Result</th>
+            <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Result</th>
         </tr>`;
 
-        let subRow = `<tr>
-            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Sub-1</th>
-            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>
-            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Sub-2</th>
-            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>
-
-            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Elec-1</th>
-            ${e1HasPrac ? '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Th</th><th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Pr</th>' : '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>'}
-
-            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Elec-2</th>
-            ${e2HasPrac ? '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Th</th><th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Pr</th>' : '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>'}
-
-            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Elec-3</th>
-            ${e3HasPrac ? '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Th</th><th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Pr</th>' : '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>'}
-
-            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Addl</th>
-            ${addHasPrac ? '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Th</th><th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Pr</th>' : '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>'}
+        let headerRow2 = `<tr>
+            <th colspan="4" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks Obtained</th>
+            <th colspan="9" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks Obtained</th>
         </tr>`;
 
-        tableHtml += headerRow + subRow;
+        let headerRow3 = `<tr>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Subject -1</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Subject -2</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>
+
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Subject -1</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Theory</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>
+
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Subject -2</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Theory</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>
+
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Subject -3</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Theory</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>
+        </tr>`;
+
+        let headerRow4 = `<tr>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">no</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">1</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">2</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">3</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">4</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">5</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">6</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">7</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">8</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">9</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">10</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">11</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">12</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">13</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">14</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">15</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">16</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">17</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">18</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">19</th>
+        </tr>`;
+
+        tableHtml += headerRow1 + headerRow2 + headerRow3 + headerRow4;
 
         filteredStudents.forEach((res, index) => {
             const getSubDetails = (subId) => {
@@ -2272,46 +2279,55 @@ const handleExportToExcel = () => {
             const e1 = getSubDetails(res.elective1);
             const e2 = getSubDetails(res.elective2);
             const e3 = getSubDetails(res.elective3);
-            const add = getSubDetails(res.additional);
 
-            const formatScoreCell = (sub, field) => {
-                if (!sub) return "-";
-                const val = sub[field];
-                return val !== undefined && val !== null ? val : "-";
+            const getSubData = (subObj) => {
+                if (!subObj) return { name: "", totalObt: "", tMax: "100" };
+                const scoreObj = res.subjectScores ? res.subjectScores[subObj.subjectId] : null;
+                return {
+                    name: subObj.subjectName || subObj.name || "",
+                    totalObt: scoreObj ? (scoreObj.totalObt !== undefined ? scoreObj.totalObt : (scoreObj.displayVal || "")) : "",
+                    tMax: subObj.tMax || "100"
+                };
             };
+
+            const sdL1 = getSubData(l1);
+            const sdL2 = getSubData(l2);
+            const sdE1 = getSubData(e1);
+            const sdE2 = getSubData(e2);
+            const sdE3 = getSubData(e3);
 
             const genderRaw = String(res.gender || "").toLowerCase().trim();
             const genderText = (genderRaw === "female" || genderRaw === "f") ? "F" : ((genderRaw === "male" || genderRaw === "m") ? "M" : "");
+            const studentNameBlock = `${res.studentName || ""}<br>${res.motherName || ""}<br>${res.fatherName || ""}`;
+            const resultText = res.result === "Fail" ? "Fail" : "Pass";
 
             tableHtml += `
             <tr>
                 <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${index + 1}</td>
                 <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${res.rollNo}</td>
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${classNumeral}</td>
-                <td style="text-align: left; border: 1px solid #000000; padding: 4px 6px;">${res.studentName || ""}</td>
-                <td style="text-align: left; border: 1px solid #000000; padding: 4px 6px;">${res.motherName || ""}</td>
-                <td style="text-align: left; border: 1px solid #000000; padding: 4px 6px;">${res.fatherName || ""}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${activeClassVal}</td>
+                <td style="text-align: left; border: 1px solid #000000; padding: 4px 6px;">${studentNameBlock}</td>
                 <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${genderText}</td>
 
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${l1 ? l1.subjectName : "-"}</td>
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(l1, "totalObt")}</td>
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${l2 ? l2.subjectName : "-"}</td>
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(l2, "totalObt")}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdL1.name}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdL1.totalObt}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdL2.name}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdL2.totalObt}</td>
 
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${e1 ? e1.subjectName : "-"}</td>
-                ${e1HasPrac ? `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e1, "theoryObt")}</td><td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e1, "practicalObt")}</td>` : `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e1, "totalObt")}</td>`}
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE1.name}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE1.tMax}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE1.totalObt}</td>
 
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${e2 ? e2.subjectName : "-"}</td>
-                ${e2HasPrac ? `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e2, "theoryObt")}</td><td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e2, "practicalObt")}</td>` : `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e2, "totalObt")}</td>`}
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE2.name}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE2.tMax}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE2.totalObt}</td>
 
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${e3 ? e3.subjectName : "-"}</td>
-                ${e3HasPrac ? `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e3, "theoryObt")}</td><td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e3, "practicalObt")}</td>` : `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e3, "totalObt")}</td>`}
-
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${add ? add.subjectName : "-"}</td>
-                ${addHasPrac ? `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(add, "theoryObt")}</td><td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(add, "practicalObt")}</td>` : `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(add, "totalObt")}</td>`}
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE3.name}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE3.tMax}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE3.totalObt}</td>
 
                 <td style="text-align: center; font-weight: bold; border: 1px solid #000000; padding: 4px;">${res.grandTotal}</td>
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${res.division || res.result || ""}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${resultText}</td>
             </tr>`;
         });
     }
