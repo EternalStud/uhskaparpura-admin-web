@@ -8,7 +8,7 @@ import { apiRequest } from "../../services/api.js";
 let allRegistrations = [];
 
 export async function initRegistrationMgmtView() {
-    renderNavbar();
+    renderNavbar(document.querySelector("#navbar-registration-mgmt"));
     await loadRegistrations();
 
     // Event listeners for filters

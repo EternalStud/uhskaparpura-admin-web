@@ -9,7 +9,7 @@ let allAdmissions = [];
 let classWiseStats = {};
 
 export async function initAdmissionMgmtView() {
-    renderNavbar();
+    renderNavbar(document.querySelector("#navbar-admission-mgmt"));
     await loadAdmissions();
 
     // Event listeners for filters
