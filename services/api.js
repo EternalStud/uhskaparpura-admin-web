@@ -200,15 +200,23 @@ export async function apiRequest(path, options = {}) {
         url.searchParams.set("action", actionPath);
         const session = getSession();
 
-        if (session?.user?.email) {
-            url.searchParams.set("email", session.user.email);
-        }
-
-        if (session?.token) {
-            url.searchParams.set("token", session.token);
-        }
-
         const isMutation = (options.method && options.method.toUpperCase() !== "GET") || !!options.body;
+
+        if (!isMutation) {
+            if (session?.user?.email) {
+                url.searchParams.set("email", session.user.email);
+            }
+            if (session?.token) {
+                url.searchParams.set("token", session.token);
+            }
+        } else {
+            // For POST requests, put auth in the body to avoid URL leakage
+            if (!options.body) options.body = {};
+            if (typeof options.body === "object") {
+                if (session?.user?.email) options.body.email = session.user.email;
+                if (session?.token) options.body.token = session.token;
+            }
+        }
 
         // Handle Cache Invalidation on Mutation
         if (isMutation) {
