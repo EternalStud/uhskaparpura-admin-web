@@ -56,8 +56,8 @@ export async function initLoginView() {
                     saveSession({
                         token: "DEV_LOCAL_BYPASS_TOKEN",
                         user: {
-                            name: "MD ZAFAR ALI (Admin)",
-                            email: "mdzafarali.ali@gmail.com",
+                            name: "Administrator (Dev)",
+                            email: "admin@uhskaparpura.local",
                             role: "ADMIN"
                         },
                         expiresAt: Date.now() + 8 * 60 * 60 * 1000
