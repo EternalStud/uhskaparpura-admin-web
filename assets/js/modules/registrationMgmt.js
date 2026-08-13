@@ -1,9 +1,9 @@
 "use strict";
 
-import { renderNavbar } from "../../components/navbar.js?t=202608030555";
-import { showToast } from "../../components/toast.js";
-import { hideLoader, showLoader } from "../../components/loader.js?t=202608030555";
-import { apiRequest } from "../../services/api.js";
+import { renderNavbar } from "../../../components/navbar.js?t=202608030555";
+import { showToast } from "../../../components/toast.js";
+import { hideLoader, showLoader } from "../../../components/loader.js?t=202608030555";
+import { apiRequest } from "../../../services/api.js";
 
 let allRegistrations = [];
 
