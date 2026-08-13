@@ -2034,17 +2034,46 @@ const handleExportToExcel = () => {
         );
     });
 
-    // Sort by roll number
-    filteredStudents.sort((a, b) => {
-        const rollA = parseInt(a.rollNo, 10);
-        const rollB = parseInt(b.rollNo, 10);
-        if (isNaN(rollA) && isNaN(rollB)) return 0;
-        if (isNaN(rollA)) return 1;
-        if (isNaN(rollB)) return -1;
-        return rollA - rollB;
-    });
+    // Streamwise sorting helper (Science -> Arts -> Commerce -> others)
+    const getStreamOrder = (s) => {
+        const raw = String(s.stream || "").toLowerCase().trim();
+        if (raw.includes("sci") || raw.includes("विज्ञान")) return 1;
+        if (raw.includes("art") || raw.includes("कला")) return 2;
+        if (raw.includes("com") || raw.includes("वाणिज्य")) return 3;
+
+        const subNames = (s.subjectDetails || []).map(sub => String(sub.subjectName || sub.name || "").toLowerCase()).join(" ");
+        if (subNames.includes("physic") || subNames.includes("chem") || subNames.includes("biol") || subNames.includes("math")) return 1;
+        if (subNames.includes("hist") || subNames.includes("polit") || subNames.includes("geog") || subNames.includes("home") || subNames.includes("socio") || subNames.includes("psycho") || subNames.includes("econ")) return 2;
+        if (subNames.includes("account") || subNames.includes("busi") || subNames.includes("entre")) return 3;
+        return 4;
+    };
 
     const isSenior = (activeClassVal === 11 || activeClassVal === 12);
+
+    // Sort students: for 11-12, sort by Stream (Science first, then Arts) and then by Roll No
+    if (isSenior) {
+        filteredStudents.sort((a, b) => {
+            const streamDiff = getStreamOrder(a) - getStreamOrder(b);
+            if (streamDiff !== 0) return streamDiff;
+
+            const rollA = parseInt(a.rollNo, 10);
+            const rollB = parseInt(b.rollNo, 10);
+            if (isNaN(rollA) && isNaN(rollB)) return 0;
+            if (isNaN(rollA)) return 1;
+            if (isNaN(rollB)) return -1;
+            return rollA - rollB;
+        });
+    } else {
+        filteredStudents.sort((a, b) => {
+            const rollA = parseInt(a.rollNo, 10);
+            const rollB = parseInt(b.rollNo, 10);
+            if (isNaN(rollA) && isNaN(rollB)) return 0;
+            if (isNaN(rollA)) return 1;
+            if (isNaN(rollB)) return -1;
+            return rollA - rollB;
+        });
+    }
+
     let tableHtml = "";
 
     if (!isSenior) {
@@ -2190,18 +2219,18 @@ const handleExportToExcel = () => {
         });
 
     } else {
-        // ── Class 11-12 (Senior) BSEB Official Layout (Exact 19-Column Format from Screenshot) ──
+        // ── Class 11-12 (Senior) BSEB Official Layout (Exact 22-Column Format with Additional Subjects) ──
         tableHtml += `
         <tr>
-            <th colspan="19" style="text-align: center; font-size: 13pt; font-weight: bold; border: 1px solid #000000; padding: 6px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
+            <th colspan="22" style="text-align: center; font-size: 13pt; font-weight: bold; border: 1px solid #000000; padding: 6px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
                 ${activeClassVal}वीं की ${hindiExamName}, ${displayYear} का प्राप्तांक प्रविष्टि प्रारूप
             </th>
         </tr>
         <tr>
-            <th colspan="9" style="text-align: left; font-size: 11pt; font-weight: bold; border: 1px solid #000000; padding: 5px 8px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
+            <th colspan="11" style="text-align: left; font-size: 11pt; font-weight: bold; border: 1px solid #000000; padding: 5px 8px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
                 +2 School / College code :- 31445
             </th>
-            <th colspan="10" style="text-align: right; font-size: 11pt; font-weight: bold; border: 1px solid #000000; padding: 5px 8px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
+            <th colspan="11" style="text-align: right; font-size: 11pt; font-weight: bold; border: 1px solid #000000; padding: 5px 8px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
                 +2 School / College Name :- U.H.S. KAPARPURA
             </th>
         </tr>`;
@@ -2215,6 +2244,7 @@ const handleExportToExcel = () => {
             <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">M<br>/<br>F</th>
             <th colspan="4" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Compulsory Language Subjects</th>
             <th colspan="9" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Elective Subjects</th>
+            <th colspan="2" rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Additional Subjects</th>
             <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Aggregate &amp; Result</th>
             <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Result</th>
         </tr>`;
@@ -2241,6 +2271,9 @@ const handleExportToExcel = () => {
             <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Subject -3</th>
             <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Theory</th>
             <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>
+
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Addl</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>
         </tr>`;
 
         let headerRow4 = `<tr>
@@ -2264,6 +2297,8 @@ const handleExportToExcel = () => {
             <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">17</th>
             <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">18</th>
             <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">19</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">20</th>
+            <th style="text-align: center; font-weight: normal; border: 1px solid #000000; background-color: #FFFFFF; padding: 2px;">21</th>
         </tr>`;
 
         tableHtml += headerRow1 + headerRow2 + headerRow3 + headerRow4;
@@ -2279,14 +2314,18 @@ const handleExportToExcel = () => {
             const e1 = getSubDetails(res.elective1);
             const e2 = getSubDetails(res.elective2);
             const e3 = getSubDetails(res.elective3);
+            const add = getSubDetails(res.additional);
 
             const getSubData = (subObj) => {
-                if (!subObj) return { name: "", totalObt: "", tMax: "100" };
+                if (!subObj) return { name: "", totalObt: "", tMax: "" };
                 const scoreObj = res.subjectScores ? res.subjectScores[subObj.subjectId] : null;
+                const theoryScore = scoreObj ? (scoreObj.theoryObt !== undefined ? scoreObj.theoryObt : "") : "";
+                const totalScore = scoreObj ? (scoreObj.totalObt !== undefined ? scoreObj.totalObt : (scoreObj.displayVal || "")) : "";
                 return {
                     name: subObj.subjectName || subObj.name || "",
-                    totalObt: scoreObj ? (scoreObj.totalObt !== undefined ? scoreObj.totalObt : (scoreObj.displayVal || "")) : "",
-                    tMax: subObj.tMax || "100"
+                    theoryObt: theoryScore,
+                    totalObt: totalScore,
+                    tMax: subObj.tMax || (theoryScore === "A" ? "80" : "80")
                 };
             };
 
@@ -2295,11 +2334,12 @@ const handleExportToExcel = () => {
             const sdE1 = getSubData(e1);
             const sdE2 = getSubData(e2);
             const sdE3 = getSubData(e3);
+            const sdAdd = getSubData(add);
 
             const genderRaw = String(res.gender || "").toLowerCase().trim();
             const genderText = (genderRaw === "female" || genderRaw === "f") ? "F" : ((genderRaw === "male" || genderRaw === "m") ? "M" : "");
             const studentNameBlock = `${res.studentName || ""}<br>${res.motherName || ""}<br>${res.fatherName || ""}`;
-            const resultText = res.result === "Fail" ? "Fail" : "Pass";
+            const resultText = res.result === "Fail" ? "Fail" : (res.division || res.result || "Pass");
 
             tableHtml += `
             <tr>
@@ -2315,16 +2355,19 @@ const handleExportToExcel = () => {
                 <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdL2.totalObt}</td>
 
                 <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE1.name}</td>
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE1.tMax}</td>
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE1.totalObt}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE1.name ? (sdE1.tMax || "80") : ""}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE1.totalObt || sdE1.theoryObt}</td>
 
                 <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE2.name}</td>
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE2.tMax}</td>
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE2.totalObt}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE2.name ? (sdE2.tMax || "80") : ""}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE2.totalObt || sdE2.theoryObt}</td>
 
                 <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE3.name}</td>
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE3.tMax}</td>
-                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE3.totalObt}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE3.name ? (sdE3.tMax || "80") : ""}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdE3.totalObt || sdE3.theoryObt}</td>
+
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdAdd.name || ""}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sdAdd.name ? (sdAdd.totalObt || sdAdd.theoryObt || "0") : ""}</td>
 
                 <td style="text-align: center; font-weight: bold; border: 1px solid #000000; padding: 4px;">${res.grandTotal}</td>
                 <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${resultText}</td>
