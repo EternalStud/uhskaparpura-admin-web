@@ -237,10 +237,18 @@ export async function apiRequest(path, options = {}) {
         }
 
         const finalUrl = url.toString().replace(/\+/g, "%20");
+        // Auto-stringify body objects for POST requests
+        const fetchOptions = { ...options };
+        if (fetchOptions.body && typeof fetchOptions.body === "object") {
+            fetchOptions.body = JSON.stringify(fetchOptions.body);
+        }
+        if (fetchOptions.body && !fetchOptions.method) {
+            fetchOptions.method = "POST";
+        }
         let response;
         let rawText;
         try {
-            const fetched = await fetchAppsScript(finalUrl, options);
+            const fetched = await fetchAppsScript(finalUrl, fetchOptions);
             response = fetched.response;
             rawText = fetched.text;
         } catch (netErr) {
