@@ -8,6 +8,53 @@ import { apiRequest } from "../../../services/api.js";
 let allAdmissions = [];
 let classWiseStats = {};
 
+// Verhoeff Checksum Algorithm
+const Verhoeff = {
+    d: [
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
+        [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
+        [3, 4, 0, 1, 2, 8, 9, 5, 6, 7],
+        [4, 0, 1, 2, 3, 9, 5, 6, 7, 8],
+        [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
+        [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
+        [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
+        [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
+        [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+    ],
+    p: [
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        [1, 5, 7, 6, 2, 8, 3, 0, 9, 4],
+        [5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
+        [8, 9, 1, 6, 0, 4, 3, 5, 2, 7],
+        [9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
+        [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
+        [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
+        [7, 0, 4, 6, 9, 1, 3, 2, 5, 8]
+    ],
+    validate(num) {
+        if (!num) return false;
+        const clean = String(num).replace(/\D/g, '');
+        if (clean.length !== 12) return false;
+        if (/^(\d)\1{11}$/.test(clean)) return false;
+
+        let c = 0;
+        const invertedArray = clean.split('').map(Number).reverse();
+        for (let i = 0; i < invertedArray.length; i++) {
+            c = this.d[c][this.p[i % 8][invertedArray[i]]];
+        }
+        return c === 0;
+    }
+};
+
+function driveThumbnailUrl(url) {
+    if (!url) return '';
+    if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+    const match = url.match(/id=([a-zA-Z0-9_-]+)/) || url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) return `https://lh3.googleusercontent.com/d/${match[1]}`;
+    return url;
+}
+
 export async function initAdmissionMgmtView() {
     renderNavbar(document.querySelector("#navbar-admission-mgmt"));
     await loadAdmissions();
@@ -28,6 +75,16 @@ export async function initAdmissionMgmtView() {
     const btnCancelModal = document.getElementById("btnCancelAdmModal");
     if (btnCloseModal) btnCloseModal.addEventListener("click", closeModal);
     if (btnCancelModal) btnCancelModal.addEventListener("click", closeModal);
+
+    const btnPrintModal = document.getElementById("btnAdmModalPrintReceipt");
+    if (btnPrintModal) {
+        btnPrintModal.addEventListener("click", () => {
+            const appId = document.getElementById("modalAdmAppId")?.value;
+            if (appId) {
+                window.open(`../uhskaparpurakanti-website/admission-receipt.html?id=${encodeURIComponent(appId)}`, '_blank');
+            }
+        });
+    }
 
     const verifyForm = document.getElementById("verifyAdmForm");
     if (verifyForm) {
@@ -96,7 +153,7 @@ function applyFilters() {
         if (classVal && item.admissionClass !== classVal) return false;
         if (statusVal && item.status.toLowerCase() !== statusVal.toLowerCase()) return false;
         if (query) {
-            const searchStr = `${item.applicationId} ${item.studentNameEnglish} ${item.fatherName} ${item.mobile}`.toLowerCase();
+            const searchStr = `${item.applicationId} ${item.studentNameEnglish} ${item.fatherName} ${item.mobile} ${item.studentAadhaar || ''} ${item.penNumber || ''}`.toLowerCase();
             if (!searchStr.includes(query)) return false;
         }
         return true;
@@ -116,7 +173,7 @@ function renderTable(list) {
 
     let html = "";
     list.forEach(item => {
-        const isVerified = item.status.toLowerCase() === "verified";
+        const isVerified = (item.status || "").toLowerCase() === "verified";
         const statusBadge = isVerified 
             ? `<span style="background: #d1fae5; color: #047857; padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 0.8rem;">✓ Verified</span>`
             : `<span style="background: #fef3c7; color: #b45309; padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 0.8rem;">⏳ Pending</span>`;
@@ -159,15 +216,30 @@ function openModal(appId) {
     const item = allAdmissions.find(r => r.applicationId === appId);
     if (!item) return;
 
-    document.getElementById("modalAdmAppId").value = item.applicationId;
-    document.getElementById("modalAdmAppIdDisplay").value = item.applicationId;
+    const isVerified = (item.status || "").toLowerCase() === "verified";
+
+    // Header Badges
+    document.getElementById("modalAdmStudentTitle").textContent = `${item.studentNameEnglish} - नामांकन आवेदन सत्यापन`;
+    document.getElementById("modalAdmAppIdBadge").textContent = item.applicationId || "-";
+    document.getElementById("modalAdmClassBadge").textContent = `Class ${item.admissionClass} ${item.stream ? '(' + item.stream + ')' : ''}`;
+
+    const statusBadge = document.getElementById("modalAdmStatusBadge");
+    if (statusBadge) {
+        statusBadge.textContent = isVerified ? "Verified (सत्यापित)" : "Pending (लंबित)";
+        statusBadge.style.background = isVerified ? "#d1fae5" : "#fef3c7";
+        statusBadge.style.color = isVerified ? "#047857" : "#92400e";
+    }
+
+    // Section 0: Identifiers
+    document.getElementById("modalAdmAppId").value = item.applicationId || "";
+    document.getElementById("modalAdmAppIdDisplay").value = item.applicationId || "";
     document.getElementById("modalAdmClassStream").value = `Class ${item.admissionClass} ${item.stream ? '(' + item.stream + ')' : ''}`;
+    document.getElementById("modalAdmPen").value = item.penNumber || "";
+    document.getElementById("modalAdmApaar").value = item.apaarId || item.eshikshakoshId || "";
 
-    document.getElementById("modalAdmStudentName").value = item.studentNameEnglish;
-    document.getElementById("modalAdmFatherName").value = item.fatherName;
-    document.getElementById("modalAdmMotherName").value = item.motherName;
+    // Section 1: Basic Details
+    document.getElementById("modalAdmStudentName").value = item.studentNameEnglish || "";
 
-    // Format DOB for date input
     let formattedDob = "";
     if (item.dob) {
         try {
@@ -177,25 +249,83 @@ function openModal(appId) {
             }
         } catch(e) {}
     }
-    document.getElementById("modalAdmDob").value = formattedDob || item.dob;
+    document.getElementById("modalAdmDob").value = formattedDob || item.dob || "";
+    document.getElementById("modalAdmGender").value = item.gender || "Male";
+    document.getElementById("modalAdmAadhaar").value = item.studentAadhaar || "";
+    document.getElementById("modalAdmMobile").value = item.mobile || "";
+    document.getElementById("modalAdmCategory").value = item.category || "GEN";
+    document.getElementById("modalAdmReligion").value = item.religion || "Hindu";
+    document.getElementById("modalAdmBloodGroup").value = item.bloodGroup || "";
 
-    document.getElementById("modalAdmMobile").value = item.mobile;
-    document.getElementById("modalAdmBankName").value = item.bankName;
-    document.getElementById("modalAdmBankAccount").value = item.bankAccount;
-    document.getElementById("modalAdmBankIFSC").value = item.bankIFSC;
-
-    // Previews
+    // Photo & Signature with Drive Thumbnail Resolver
     const photoBox = document.getElementById("modalAdmPhotoPreview");
     const sigBox = document.getElementById("modalAdmSignaturePreview");
+    const photoLink = document.getElementById("modalAdmPhotoLink");
+    const signLink = document.getElementById("modalAdmSignLink");
 
-    photoBox.innerHTML = item.photoUrl ? `<img src="${item.photoUrl}" style="max-width:100%; max-height:100%; object-fit:contain;">` : 'No Photo';
-    sigBox.innerHTML = item.signatureUrl ? `<img src="${item.signatureUrl}" style="max-width:100%; max-height:100%; object-fit:contain;">` : 'No Sig';
+    if (item.photoUrl && item.photoUrl !== "UPLOAD_FAILED") {
+        const thumbPhoto = driveThumbnailUrl(item.photoUrl);
+        const match = item.photoUrl.match(/id=([a-zA-Z0-9_-]+)/) || item.photoUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        const fileId = match ? match[1] : "";
+        photoBox.innerHTML = `<img src="${thumbPhoto}" referrerpolicy="no-referrer" alt="Photo" style="width: 100%; height: 100%; object-fit: cover;" onerror="if(!this.dataset.tried){this.dataset.tried='1'; this.src='https://drive.google.com/thumbnail?id=${fileId}&sz=w800';} else if(this.dataset.tried==='1'){this.dataset.tried='2'; this.src='https://drive.google.com/uc?export=view&id=${fileId}';} else {this.onerror=null; this.parentElement.innerHTML='<span style=\\'color:#ef4444;font-size:0.75rem;\\'>Image error</span>';}">`;
+        if (photoLink) {
+            photoLink.href = item.photoUrl;
+            photoLink.style.display = "inline-block";
+        }
+    } else {
+        photoBox.innerHTML = '<span style="color: #94a3b8; font-size: 0.8rem;">No Photo</span>';
+        if (photoLink) photoLink.style.display = "none";
+    }
 
-    document.getElementById("admDetailModal").style.display = "block";
+    if (item.signatureUrl && item.signatureUrl !== "UPLOAD_FAILED") {
+        const thumbSig = driveThumbnailUrl(item.signatureUrl);
+        const match = item.signatureUrl.match(/id=([a-zA-Z0-9_-]+)/) || item.signatureUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        const fileId = match ? match[1] : "";
+        sigBox.innerHTML = `<img src="${thumbSig}" referrerpolicy="no-referrer" alt="Signature" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="if(!this.dataset.tried){this.dataset.tried='1'; this.src='https://drive.google.com/thumbnail?id=${fileId}&sz=w800';} else if(this.dataset.tried==='1'){this.dataset.tried='2'; this.src='https://drive.google.com/uc?export=view&id=${fileId}';} else {this.onerror=null; this.parentElement.innerHTML='<span style=\\'color:#ef4444;font-size:0.75rem;\\'>Sig error</span>';}">`;
+        if (signLink) {
+            signLink.href = item.signatureUrl;
+            signLink.style.display = "inline-block";
+        }
+    } else {
+        sigBox.innerHTML = '<span style="color: #94a3b8; font-size: 0.8rem;">No Sig</span>';
+        if (signLink) signLink.style.display = "none";
+    }
+
+    // Section 2: Parent Details
+    document.getElementById("modalAdmFatherName").value = item.fatherName || "";
+    document.getElementById("modalAdmMotherName").value = item.motherName || "";
+    document.getElementById("modalAdmParentAadhaarType").value = item.parentAadhaarType || "Father";
+    document.getElementById("modalAdmParentAadhaar").value = item.parentAadhaar || "";
+
+    // Section 3: Address & Distance
+    document.getElementById("modalAdmAddress").value = item.address || "";
+    document.getElementById("modalAdmPinCode").value = item.pinCode || "";
+    document.getElementById("modalAdmDistance").value = item.distance || "";
+    document.getElementById("modalAdmPreviousUdise").value = item.previousUdise || "";
+
+    // Section 4: Bank Details
+    document.getElementById("modalAdmBankName").value = item.bankName || "";
+    document.getElementById("modalAdmBankAccount").value = item.accountNumber || item.bankAccount || "";
+    document.getElementById("modalAdmBankIFSC").value = item.ifscCode || item.bankIFSC || "";
+    document.getElementById("modalAdmAccountHolder").value = item.accountHolder || "";
+
+    // Section 5: Health & CWSN
+    document.getElementById("modalAdmCwsn").value = item.cwsn || "No";
+    document.getElementById("modalAdmIncome").value = item.income || "";
+    document.getElementById("modalAdmHeight").value = item.height || "";
+    document.getElementById("modalAdmWeight").value = item.weight || "";
+
+    const modal = document.getElementById("admDetailModal");
+    if (modal) {
+        modal.style.display = "flex";
+    }
 }
 
 function closeModal() {
-    document.getElementById("admDetailModal").style.display = "none";
+    const modal = document.getElementById("admDetailModal");
+    if (modal) {
+        modal.style.display = "none";
+    }
 }
 
 async function quickVerify(appId) {
@@ -224,19 +354,43 @@ async function handleVerifySubmit(e) {
     const appId = document.getElementById("modalAdmAppId").value;
     if (!appId) return;
 
+    const aadhaarVal = document.getElementById("modalAdmAadhaar").value.trim();
+    if (aadhaarVal && !Verhoeff.validate(aadhaarVal)) {
+        showToast("कृपया 12 अंकों का वैध आधार नंबर दर्ज करें (Aadhaar Checksum Failed)!", "error");
+        return;
+    }
+
     showLoader("संशोधन सहेजा जा रहा है एवं सत्यापित किया जा रहा है...");
 
     const payload = {
         applicationId: appId,
         status: "Verified",
-        studentNameEnglish: document.getElementById("modalAdmStudentName").value,
-        fatherName: document.getElementById("modalAdmFatherName").value,
-        motherName: document.getElementById("modalAdmMotherName").value,
+        studentNameEnglish: document.getElementById("modalAdmStudentName").value.trim(),
         dob: document.getElementById("modalAdmDob").value,
-        mobile: document.getElementById("modalAdmMobile").value,
-        bankName: document.getElementById("modalAdmBankName").value,
-        bankAccount: document.getElementById("modalAdmBankAccount").value,
-        bankIFSC: document.getElementById("modalAdmBankIFSC").value
+        gender: document.getElementById("modalAdmGender").value,
+        studentAadhaar: aadhaarVal,
+        mobile: document.getElementById("modalAdmMobile").value.trim(),
+        category: document.getElementById("modalAdmCategory").value,
+        religion: document.getElementById("modalAdmReligion").value,
+        bloodGroup: document.getElementById("modalAdmBloodGroup").value,
+        fatherName: document.getElementById("modalAdmFatherName").value.trim(),
+        motherName: document.getElementById("modalAdmMotherName").value.trim(),
+        parentAadhaarType: document.getElementById("modalAdmParentAadhaarType").value,
+        parentAadhaar: document.getElementById("modalAdmParentAadhaar").value.trim(),
+        address: document.getElementById("modalAdmAddress").value.trim(),
+        pinCode: document.getElementById("modalAdmPinCode").value.trim(),
+        distance: document.getElementById("modalAdmDistance").value.trim(),
+        previousUdise: document.getElementById("modalAdmPreviousUdise").value.trim(),
+        bankName: document.getElementById("modalAdmBankName").value.trim(),
+        accountNumber: document.getElementById("modalAdmBankAccount").value.trim(),
+        ifscCode: document.getElementById("modalAdmBankIFSC").value.trim(),
+        accountHolder: document.getElementById("modalAdmAccountHolder").value.trim(),
+        cwsn: document.getElementById("modalAdmCwsn").value,
+        income: document.getElementById("modalAdmIncome").value.trim(),
+        height: document.getElementById("modalAdmHeight").value.trim(),
+        weight: document.getElementById("modalAdmWeight").value.trim(),
+        penNumber: document.getElementById("modalAdmPen").value.trim(),
+        apaarId: document.getElementById("modalAdmApaar").value.trim()
     };
 
     try {
@@ -244,7 +398,7 @@ async function handleVerifySubmit(e) {
             body: payload
         });
         if (response && response.success) {
-            showToast("संशोधन सहेजा गया एवं नामांकन सत्यापित किया गया!", "success");
+            showToast("संशोधन सहेजा गया एवं नामांकन सफलतापूर्वक सत्यापित हुआ!", "success");
             closeModal();
             await loadAdmissions();
         } else {

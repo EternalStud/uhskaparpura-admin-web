@@ -630,7 +630,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
     };
 
     const getSubData = (subObj) => {
-        if (!subObj) return { name: "", theoryObt: "", practicalObt: "", totalObt: "", score: "", tMax: 100, pMax: 0, fullMarks: 100, passMarks: 30, code: "" };
+        if (!subObj) return { name: "", theoryObt: "-", practicalObt: "-", totalObt: "-", score: "-", tMax: 100, pMax: 0, fullMarks: 100, passMarks: 30, code: "" };
         const scoreObj = res.subjectScores[subObj.subjectId];
         const tMax = subObj.tMax || 100;
         const pMax = subObj.pMax || 0;
@@ -638,7 +638,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
         const passMarks = Math.ceil(fullMarks * 0.3);
 
         if (!scoreObj) {
-            return { name: subObj.subjectName, theoryObt: "-", practicalObt: "-", totalObt: "-", score: "-", tMax, pMax, fullMarks, passMarks, code: subObj.subjectCode || "" };
+            return { name: subObj.name, theoryObt: "-", practicalObt: "-", totalObt: "-", score: "-", tMax, pMax, fullMarks, passMarks, code: subObj.code || "" };
         }
 
         const theoryObt = scoreObj.theoryObt !== undefined && scoreObj.theoryObt !== null ? scoreObj.theoryObt : "-";
@@ -647,7 +647,7 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
         const score = scoreObj.score !== undefined && scoreObj.score !== null ? scoreObj.score : "-";
 
         return {
-            name: subObj.subjectName,
+            name: subObj.name,
             theoryObt,
             practicalObt,
             totalObt,
@@ -656,9 +656,23 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
             pMax,
             fullMarks,
             passMarks,
-            code: subObj.subjectCode || ""
+            code: subObj.code || ""
         };
     };
+
+    const l1 = getSubDetails(res.language1);
+    const l2 = getSubDetails(res.language2);
+    const e1 = getSubDetails(res.elective1);
+    const e2 = getSubDetails(res.elective2);
+    const e3 = getSubDetails(res.elective3);
+    const add = getSubDetails(res.additional);
+
+    const sdL1 = getSubData(l1);
+    const sdL2 = getSubData(l2);
+    const sdE1 = getSubData(e1);
+    const sdE2 = getSubData(e2);
+    const sdE3 = getSubData(e3);
+    const sdAdd = getSubData(add);
 
     const renderSubRow = (sd) => {
         if (!sd.name) return "";
