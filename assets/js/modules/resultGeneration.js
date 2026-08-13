@@ -1973,11 +1973,37 @@ const handleGenerateResults = async () => {
 };
 
 /**
- * Exports the currently displayed HTML table to an Excel file with exact formatting.
+ * Maps any exam code or English name to standard official Hindi exam name.
+ */
+const formatExamNameHindi = (raw) => {
+    if (!raw) return "त्रैमासिक परीक्षा";
+    const str = String(raw).trim();
+    const lower = str.toLowerCase();
+    
+    if (lower.includes("quarterly") || lower.includes("trimasik") || lower.includes("त्रैमासिक") || lower.includes("1st terminal") || lower.includes("first terminal")) {
+        return "त्रैमासिक परीक्षा";
+    }
+    if (lower.includes("half") || lower.includes("ardh") || lower.includes("अर्द्ध") || lower.includes("2nd terminal") || lower.includes("second terminal")) {
+        return "अर्द्धवार्षिक परीक्षा";
+    }
+    if (lower.includes("annual") || lower.includes("varshik") || lower.includes("वार्षिक") || lower.includes("final")) {
+        return "वार्षिक परीक्षा";
+    }
+    if (lower.includes("monthly") || lower.includes("masik") || lower.includes("मासिक")) {
+        return "मासिक परीक्षा";
+    }
+    if (lower.includes("sent up") || lower.includes("sentup") || lower.includes("सेंटअप") || lower.includes("जांच")) {
+        return "सेंट-अप परीक्षा";
+    }
+    return str.includes("परीक्षा") ? str : `${str} परीक्षा`;
+};
+
+/**
+ * Exports the currently displayed results to an official bordered Excel file matching BSEB specification.
  */
 const handleExportToExcel = () => {
-    const table = document.querySelector(".data-table");
-    if (!table) {
+    const activeData = currentResults.find(r => r.classVal === activeClassVal);
+    if (!activeData || !activeData.studentResults || !activeData.studentResults.length) {
         showToast("No data available to export.", "error");
         return;
     }
@@ -1990,11 +2016,308 @@ const handleExportToExcel = () => {
     const examName = examSelect ? examSelect.value : "";
     const section = sectionSelect ? sectionSelect.value : "";
 
+    const displayYear = (year && year.split("-")[0]) ? year.split("-")[0] : (year || new Date().getFullYear());
+    const hindiExamName = formatExamNameHindi(examName);
+    const schoolCode = (activeClassVal === 11 || activeClassVal === 12) ? "31445" : "51375";
+    const classNumeral = activeClassVal === 10 ? "X" : (activeClassVal === 9 ? "IX" : (activeClassVal === 11 ? "XI" : "XII"));
+
+    const { activeSubjects, studentResults } = activeData;
+
+    // Filter students by search query
+    const filteredStudents = studentResults.filter(stud => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return true;
+        return (
+            String(stud.studentName || "").toLowerCase().includes(query) ||
+            String(stud.rollNo || "").toLowerCase().includes(query) ||
+            String(stud.fatherName || "").toLowerCase().includes(query)
+        );
+    });
+
+    // Sort by roll number
+    filteredStudents.sort((a, b) => {
+        const rollA = parseInt(a.rollNo, 10);
+        const rollB = parseInt(b.rollNo, 10);
+        if (isNaN(rollA) && isNaN(rollB)) return 0;
+        if (isNaN(rollA)) return 1;
+        if (isNaN(rollB)) return -1;
+        return rollA - rollB;
+    });
+
+    const isSenior = (activeClassVal === 11 || activeClassVal === 12);
+    let tableHtml = "";
+
+    if (!isSenior) {
+        // ── Class 9-10 (Junior) BSEB Official Layout ──
+        const juniorSlots = [
+            { label: "MIL", slotId: "language1", defaultSubId: "" },
+            { label: "SIL", slotId: "language2", defaultSubId: "" },
+            { label: "MAT", slotId: "compulsory", defaultSubId: `${activeClassVal}_MAT` },
+            { label: "SCI", slotId: "compulsory", defaultSubId: `${activeClassVal}_SCI` },
+            { label: "SSC", slotId: "compulsory", defaultSubId: `${activeClassVal}_SST` },
+            { label: "ENG", slotId: "compulsory", defaultSubId: `${activeClassVal}_ENG` }
+        ];
+
+        const slotHasPractical = (slot) => {
+            return filteredStudents.some(res => {
+                const subId = (slot.slotId === "compulsory") ? slot.defaultSubId : res[slot.slotId];
+                if (!subId) return false;
+                const details = res.subjectDetails && res.subjectDetails.find(s => String(s.subjectId) === String(subId));
+                return details && (details.pMax || 0) > 0;
+            });
+        };
+
+        const hasPrac = juniorSlots.some(slotHasPractical);
+        const totalCols = hasPrac ? 17 : 15;
+
+        // Title Header Rows
+        tableHtml += `
+        <tr>
+            <th colspan="${totalCols}" style="text-align: center; font-size: 13pt; font-weight: bold; border: 1px solid #000000; padding: 6px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
+                उत्क्रमित उच्चतर माध्यमिक (+2) विद्यालय कपरपुरा ,कांटी ,मुजफ्फरपुर<br>
+                विद्यालय कोड : ${schoolCode}
+            </th>
+        </tr>
+        <tr>
+            <th colspan="${totalCols}" style="text-align: center; font-size: 11pt; font-weight: bold; border: 1px solid #000000; padding: 6px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
+                कक्षा ${String(activeClassVal).padStart(2, '0')} की ${hindiExamName}, ${displayYear} का प्राप्तांक प्रविष्टि प्रारूप
+            </th>
+        </tr>`;
+
+        if (hasPrac) {
+            tableHtml += `
+            <tr>
+                <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">SL NO</th>
+                <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">ROLL NO.</th>
+                <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">CLASS</th>
+                <th rowspan="3" style="text-align: left; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">STUDENT NAME</th>
+                <th rowspan="3" style="text-align: left; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">MOTHER'S NAME</th>
+                <th rowspan="3" style="text-align: left; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">FATHER'S NAME</th>
+                <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">GENDER</th>
+                <th colspan="6" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">MARKS OBTAINED(THEORY)</th>
+                <th colspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">MARKS OBTAINED (INTERNAL ASSEMENT &amp; PRACTICAL)</th>
+                <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">AGGREGATE</th>
+                <th rowspan="3" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">RESULT</th>
+            </tr>
+            <tr>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">MIL</th>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">SIL</th>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">MAT</th>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">SCI</th>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">SSC</th>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">ENG</th>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">SCI</th>
+                <th colspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">SSC</th>
+            </tr>
+            <tr>
+                <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">LIT.ACT</th>
+                <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Project Work</th>
+            </tr>`;
+        } else {
+            tableHtml += `
+            <tr>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">SL NO</th>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">ROLL NO.</th>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">CLASS</th>
+                <th rowspan="2" style="text-align: left; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">STUDENT NAME</th>
+                <th rowspan="2" style="text-align: left; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">MOTHER'S NAME</th>
+                <th rowspan="2" style="text-align: left; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">FATHER'S NAME</th>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">GENDER</th>
+                <th colspan="6" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">MARKS OBTAINED(THEORY)</th>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">AGGREGATE</th>
+                <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">RESULT</th>
+            </tr>
+            <tr>
+                <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">MIL</th>
+                <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">SIL</th>
+                <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">MAT</th>
+                <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">SCI</th>
+                <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">SSC</th>
+                <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">ENG</th>
+            </tr>`;
+        }
+
+        // Student Data Rows
+        filteredStudents.forEach((res, index) => {
+            const genderRaw = String(res.gender || "").toLowerCase().trim();
+            const genderText = (genderRaw === "female" || genderRaw === "f") ? "F" : ((genderRaw === "male" || genderRaw === "m") ? "M" : "");
+
+            const milId = res.language1;
+            const silId = res.language2;
+            const matId = `${activeClassVal}_MAT`;
+            const sciId = `${activeClassVal}_SCI`;
+            const sscId = `${activeClassVal}_SST`;
+            const engId = `${activeClassVal}_ENG`;
+
+            const milTheory = milId ? getScore(res.subjectScores, milId, "theoryObt") : "";
+            const silTheory = silId ? getScore(res.subjectScores, silId, "theoryObt") : "";
+            const matTheory = getScore(res.subjectScores, matId, "theoryObt");
+            const sciTheory = getScore(res.subjectScores, sciId, "theoryObt");
+            const sscTheory = getScore(res.subjectScores, sscId, "theoryObt");
+            const engTheory = getScore(res.subjectScores, engId, "theoryObt");
+
+            tableHtml += `
+            <tr>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${index + 1}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${res.rollNo}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${classNumeral}</td>
+                <td style="text-align: left; border: 1px solid #000000; padding: 4px 6px;">${res.studentName || ""}</td>
+                <td style="text-align: left; border: 1px solid #000000; padding: 4px 6px;">${res.motherName || ""}</td>
+                <td style="text-align: left; border: 1px solid #000000; padding: 4px 6px;">${res.fatherName || ""}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${genderText}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${milTheory}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${silTheory}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${matTheory}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sciTheory}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sscTheory}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${engTheory}</td>`;
+
+            if (hasPrac) {
+                const sciPrac = getScore(res.subjectScores, sciId, "practicalObt");
+                const sscLitAct = getScore(res.subjectScores, sscId, "practicalObt");
+                const sscProjectWork = getScore(res.subjectScores, sscId, "internalObt");
+
+                tableHtml += `
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sciPrac}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sscLitAct}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${sscProjectWork}</td>`;
+            }
+
+            tableHtml += `
+                <td style="text-align: center; font-weight: bold; border: 1px solid #000000; padding: 4px;">${res.grandTotal}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${res.division || res.result || ""}</td>
+            </tr>`;
+        });
+
+    } else {
+        // ── Class 11-12 (Senior) BSEB Official Layout ──
+        const slotHasPractical = (slotId) => {
+            return filteredStudents.some(res => {
+                const subId = res[slotId];
+                if (!subId) return false;
+                const config = activeSubjects.find(s => String(s.subjectId) === String(subId));
+                return config && (config.pMax || 0) > 0;
+            });
+        };
+
+        const e1HasPrac = slotHasPractical("elective1");
+        const e2HasPrac = slotHasPractical("elective2");
+        const e3HasPrac = slotHasPractical("elective3");
+        const addHasPrac = slotHasPractical("additional");
+
+        const e1ColSpan = e1HasPrac ? 3 : 2;
+        const e2ColSpan = e2HasPrac ? 3 : 2;
+        const e3ColSpan = e3HasPrac ? 3 : 2;
+        const addColSpan = addHasPrac ? 3 : 2;
+
+        const totalCols = 7 + 4 + e1ColSpan + e2ColSpan + e3ColSpan + addColSpan + 2;
+
+        tableHtml += `
+        <tr>
+            <th colspan="${totalCols}" style="text-align: center; font-size: 13pt; font-weight: bold; border: 1px solid #000000; padding: 6px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
+                उत्क्रमित उच्चतर माध्यमिक (+2) विद्यालय कपरपुरा ,कांटी ,मुजफ्फरपुर<br>
+                विद्यालय कोड : ${schoolCode}
+            </th>
+        </tr>
+        <tr>
+            <th colspan="${totalCols}" style="text-align: center; font-size: 11pt; font-weight: bold; border: 1px solid #000000; padding: 6px; background-color: #FFFFFF; font-family: Arial, sans-serif;">
+                कक्षा ${String(activeClassVal).padStart(2, '0')} की ${hindiExamName}, ${displayYear} का प्राप्तांक प्रविष्टि प्रारूप
+            </th>
+        </tr>`;
+
+        let headerRow = `<tr>
+            <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">SL NO</th>
+            <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">ROLL NO.</th>
+            <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">CLASS</th>
+            <th rowspan="2" style="text-align: left; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">STUDENT NAME</th>
+            <th rowspan="2" style="text-align: left; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">MOTHER'S NAME</th>
+            <th rowspan="2" style="text-align: left; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px 6px;">FATHER'S NAME</th>
+            <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">GENDER</th>
+            <th colspan="4" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Compulsory Language Subjects</th>
+            <th colspan="${e1ColSpan + e2ColSpan + e3ColSpan}" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Elective Subjects</th>
+            <th colspan="${addColSpan}" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Additional Subjects</th>
+            <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">AGGREGATE</th>
+            <th rowspan="2" style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">RESULT</th>
+        </tr>`;
+
+        let subRow = `<tr>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Sub-1</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Sub-2</th>
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>
+
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Elec-1</th>
+            ${e1HasPrac ? '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Th</th><th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Pr</th>' : '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>'}
+
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Elec-2</th>
+            ${e2HasPrac ? '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Th</th><th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Pr</th>' : '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>'}
+
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Elec-3</th>
+            ${e3HasPrac ? '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Th</th><th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Pr</th>' : '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>'}
+
+            <th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Addl</th>
+            ${addHasPrac ? '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Th</th><th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Pr</th>' : '<th style="text-align: center; font-weight: bold; border: 1px solid #000000; background-color: #FFFFFF; padding: 4px;">Marks</th>'}
+        </tr>`;
+
+        tableHtml += headerRow + subRow;
+
+        filteredStudents.forEach((res, index) => {
+            const getSubDetails = (subId) => {
+                if (!subId) return null;
+                return res.subjectDetails && res.subjectDetails.find(s => String(s.subjectId) === String(subId)) || null;
+            };
+
+            const l1 = getSubDetails(res.language1);
+            const l2 = getSubDetails(res.language2);
+            const e1 = getSubDetails(res.elective1);
+            const e2 = getSubDetails(res.elective2);
+            const e3 = getSubDetails(res.elective3);
+            const add = getSubDetails(res.additional);
+
+            const formatScoreCell = (sub, field) => {
+                if (!sub) return "-";
+                const val = sub[field];
+                return val !== undefined && val !== null ? val : "-";
+            };
+
+            const genderRaw = String(res.gender || "").toLowerCase().trim();
+            const genderText = (genderRaw === "female" || genderRaw === "f") ? "F" : ((genderRaw === "male" || genderRaw === "m") ? "M" : "");
+
+            tableHtml += `
+            <tr>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${index + 1}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${res.rollNo}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${classNumeral}</td>
+                <td style="text-align: left; border: 1px solid #000000; padding: 4px 6px;">${res.studentName || ""}</td>
+                <td style="text-align: left; border: 1px solid #000000; padding: 4px 6px;">${res.motherName || ""}</td>
+                <td style="text-align: left; border: 1px solid #000000; padding: 4px 6px;">${res.fatherName || ""}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${genderText}</td>
+
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${l1 ? l1.subjectName : "-"}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(l1, "totalObt")}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${l2 ? l2.subjectName : "-"}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(l2, "totalObt")}</td>
+
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${e1 ? e1.subjectName : "-"}</td>
+                ${e1HasPrac ? `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e1, "theoryObt")}</td><td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e1, "practicalObt")}</td>` : `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e1, "totalObt")}</td>`}
+
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${e2 ? e2.subjectName : "-"}</td>
+                ${e2HasPrac ? `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e2, "theoryObt")}</td><td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e2, "practicalObt")}</td>` : `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e2, "totalObt")}</td>`}
+
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${e3 ? e3.subjectName : "-"}</td>
+                ${e3HasPrac ? `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e3, "theoryObt")}</td><td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e3, "practicalObt")}</td>` : `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(e3, "totalObt")}</td>`}
+
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${add ? add.subjectName : "-"}</td>
+                ${addHasPrac ? `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(add, "theoryObt")}</td><td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(add, "practicalObt")}</td>` : `<td style="text-align: center; border: 1px solid #000000; padding: 4px;">${formatScoreCell(add, "totalObt")}</td>`}
+
+                <td style="text-align: center; font-weight: bold; border: 1px solid #000000; padding: 4px;">${res.grandTotal}</td>
+                <td style="text-align: center; border: 1px solid #000000; padding: 4px;">${res.division || res.result || ""}</td>
+            </tr>`;
+        });
+    }
+
     const filename = `Results_Class_${activeClassVal}_${examName.replace(/\s+/g, '_')}_Section_${section}_${year}.xls`;
 
-    // Clone table to clean styles
-    const clonedTable = table.cloneNode(true);
-    const html = clonedTable.outerHTML;
     const template = `
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
@@ -2015,12 +2338,14 @@ const handleExportToExcel = () => {
   <![endif]-->
   <style>
     table { border-collapse: collapse; font-family: Arial, sans-serif; }
-    th { background-color: #F3F4F6; color: #111827; border: 1px solid #D1D5DB; font-weight: bold; text-align: center; font-size: 11px; padding: 6px; }
-    td { border: 1px solid #E5E7EB; padding: 6px; text-align: center; font-size: 11px; }
+    th { border: 1px solid #000000; background-color: #FFFFFF; color: #000000; font-size: 10pt; }
+    td { border: 1px solid #000000; background-color: #FFFFFF; color: #000000; font-size: 10pt; }
   </style>
 </head>
 <body>
-  ${html}
+  <table border="1" style="border-collapse: collapse;">
+    ${tableHtml}
+  </table>
 </body>
 </html>
     `;
