@@ -34,11 +34,15 @@ The Admin Web Portal is a modern Single Page Application (SPA) built for Headmas
 * **Absent Marker ("A")**: Entering `"A"` marks the student as absent cleanly without corrupting numeric operations.
 * **Class 9-10 SST Practicals**: Separate inputs for `LIT.ACT` (10 Marks) and `Project Work` (10 Marks).
 
-### 5. `resultGeneration.js` (Result Generation & Report Cards)
+### 5. `resultGeneration.js` (Result Generation, Official Excel Export & Report Cards)
 * **Live Result Calculation**: Calculates grand totals, percentage, division, and ranks on the fly.
 * **Sorting**: Interactive dropdown to sort results by **Roll Number** or **Aggregate Marks / Rank**.
 * **Sticky Table Headers**: Headers stay fixed on screen while scrolling long rosters.
-* **Excel Export**: 1-Click export to `.xlsx` formatted matching the register layout.
+* **Official BSEB Excel Spreadsheet Export**:
+  * **Class 9–10 (Junior)**: Exports clean, bordered 15/17-column registers with 2-level headers (`MARKS OBTAINED(THEORY)`, MIL, SIL, MAT, SCI, SSC, ENG, and practical splits).
+  * **Class 11–12 (Senior)**: Exports the full official 22-column register with 4-level headers, column index numbers (`no`, `1`..`21`), **Additional Subjects** (`Addl` + `Marks`), and automatic **Streamwise sorting (Science Stream ➔ Arts Stream ➔ Commerce Stream)**.
+  * **Dynamic Hindi Headers & Translation**: Populates `${class}वीं की ${hindiExamName}, ${year} का प्राप्तांक प्रविष्टि प्रारूप` and school codes (`51375`/`31445`) with automatic translation of exam terms (Quarterly ➔ त्रैमासिक, Half-Yearly ➔ अर्द्धवार्षिक, Annual ➔ वार्षिक, etc.).
+  * **Print-Grade Bordered Styling**: Solid single-pixel black borders (`border: 1px solid #000000`), left-aligned names, and centered scores/results.
 * **Official BSEB Report Card Generator**:
   * Print individual student marksheets or batch print whole classes.
   * Centered official BSEB emblem watermark.
