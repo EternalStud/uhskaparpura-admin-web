@@ -46,6 +46,14 @@ const Verhoeff = {
     }
 };
 
+function getPublicSiteBaseUrl() {
+    const hostname = window.location.hostname;
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+        return "http://localhost:8080";
+    }
+    return "https://uhskaparpurakanti.in";
+}
+
 function driveThumbnailUrl(url) {
     if (!url) return '';
     if (url.startsWith('data:') || url.startsWith('blob:')) return url;
@@ -80,7 +88,9 @@ export async function initRegistrationMgmtView() {
         btnPrintModal.addEventListener("click", () => {
             const regId = document.getElementById("modalRegId")?.value;
             if (regId) {
-                window.open(`../uhskaparpurakanti-website/registration-receipt.html?id=${encodeURIComponent(regId)}`, '_blank');
+                window.open(`${getPublicSiteBaseUrl()}/registration-receipt.html?id=${encodeURIComponent(regId)}`, '_blank');
+            } else {
+                showToast("रजिस्ट्रेशन आईडी नहीं मिली।", "error");
             }
         });
     }
@@ -170,8 +180,9 @@ function renderTable(list) {
                 <td style="padding: 12px 15px;">${item.mobile ? `<a href="tel:${item.mobile}" style="color: #2563eb; text-decoration: none;">${item.mobile}</a>` : '-'}</td>
                 <td style="padding: 12px 15px; font-size: 0.85rem; color: #64748b;">${formattedDate}</td>
                 <td style="padding: 12px 15px;">${statusBadge}</td>
-                <td style="padding: 12px 15px; text-align: center;">
+                <td style="padding: 12px 15px; text-align: center; white-space: nowrap;">
                     <button type="button" class="btn btn-sm btn-open-detail" data-regid="${item.regId}" style="background: #e0f2fe; color: #0369a1; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 5px;">👁️ जांचें / संपादित करें</button>
+                    <button type="button" class="btn btn-sm btn-print-reg-direct" data-regid="${item.regId}" style="background: #e2e8f0; color: #1e293b; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 5px;" title="प्रपत्र प्रिंट करें">🖨️</button>
                     ${!isVerified ? `<button type="button" class="btn btn-sm btn-quick-verify" data-regid="${item.regId}" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">✅ Verify</button>` : ''}
                 </td>
             </tr>
@@ -209,7 +220,10 @@ function renderTable(list) {
 
                 <div class="reg-mobile-actions">
                     <button type="button" class="btn-open-detail" data-regid="${item.regId}" style="background: #e0f2fe; color: #0369a1;">
-                        👁️ विवरण जांचें / संपादित करें
+                        👁️ विवरण जांचें
+                    </button>
+                    <button type="button" class="btn-print-reg-direct" data-regid="${item.regId}" style="background: #e2e8f0; color: #1e293b; max-width: 50px;" title="प्रपत्र प्रिंट करें">
+                        🖨️
                     </button>
                     ${!isVerified ? `
                     <button type="button" class="btn-quick-verify" data-regid="${item.regId}" style="background: #10b981; color: white;">
@@ -226,6 +240,15 @@ function renderTable(list) {
     // Attach listeners to both desktop table and mobile cards
     document.querySelectorAll(".btn-open-detail").forEach(btn => {
         btn.addEventListener("click", () => openModal(btn.dataset.regid));
+    });
+
+    document.querySelectorAll(".btn-print-reg-direct").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const regId = btn.dataset.regid;
+            if (regId) {
+                window.open(`${getPublicSiteBaseUrl()}/registration-receipt.html?id=${encodeURIComponent(regId)}`, '_blank');
+            }
+        });
     });
 
     document.querySelectorAll(".btn-quick-verify").forEach(btn => {

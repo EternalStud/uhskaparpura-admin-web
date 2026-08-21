@@ -47,6 +47,14 @@ const Verhoeff = {
     }
 };
 
+function getPublicSiteBaseUrl() {
+    const hostname = window.location.hostname;
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+        return "http://localhost:8080";
+    }
+    return "https://uhskaparpurakanti.in";
+}
+
 function driveThumbnailUrl(url) {
     if (!url) return '';
     if (url.startsWith('data:') || url.startsWith('blob:')) return url;
@@ -81,7 +89,9 @@ export async function initAdmissionMgmtView() {
         btnPrintModal.addEventListener("click", () => {
             const appId = document.getElementById("modalAdmAppId")?.value;
             if (appId) {
-                window.open(`../uhskaparpurakanti-website/admission-receipt.html?id=${encodeURIComponent(appId)}`, '_blank');
+                window.open(`${getPublicSiteBaseUrl()}/admission-receipt.html?id=${encodeURIComponent(appId)}`, '_blank');
+            } else {
+                showToast("एप्लीकेशन आईडी नहीं मिली।", "error");
             }
         });
     }
@@ -199,8 +209,9 @@ function renderTable(list) {
                 <td style="padding: 12px 15px;">${item.mobile ? `<a href="tel:${item.mobile}" style="color: #2563eb; text-decoration: none;">📞 ${item.mobile}</a>` : '-'}</td>
                 <td style="padding: 12px 15px; font-size: 0.85rem; color: #64748b;">${formattedDate}</td>
                 <td style="padding: 12px 15px;">${statusBadge}</td>
-                <td style="padding: 12px 15px; text-align: center;">
+                <td style="padding: 12px 15px; text-align: center; white-space: nowrap;">
                     <button type="button" class="btn btn-sm btn-open-adm-detail" data-appid="${item.applicationId}" style="background: #e0f2fe; color: #0369a1; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 5px;">👁️ जांचें / संपादित करें</button>
+                    <button type="button" class="btn btn-sm btn-print-adm-direct" data-appid="${item.applicationId}" style="background: #e2e8f0; color: #1e293b; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 5px;" title="प्रपत्र प्रिंट करें">🖨️</button>
                     ${!isVerified ? `<button type="button" class="btn btn-sm btn-quick-verify-adm" data-appid="${item.applicationId}" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">✅ Verify</button>` : ''}
                 </td>
             </tr>
@@ -238,7 +249,10 @@ function renderTable(list) {
 
                 <div class="adm-mobile-actions">
                     <button type="button" class="btn-open-adm-detail" data-appid="${item.applicationId}" style="background: #e0f2fe; color: #0369a1;">
-                        👁️ विवरण जांचें / संपादित करें
+                        👁️ विवरण जांचें
+                    </button>
+                    <button type="button" class="btn-print-adm-direct" data-appid="${item.applicationId}" style="background: #e2e8f0; color: #1e293b; max-width: 50px;" title="प्रपत्र प्रिंट करें">
+                        🖨️
                     </button>
                     ${!isVerified ? `
                     <button type="button" class="btn-quick-verify-adm" data-appid="${item.applicationId}" style="background: #10b981; color: white;">
@@ -257,6 +271,15 @@ function renderTable(list) {
     // Attach row and card button listeners
     document.querySelectorAll(".btn-open-adm-detail").forEach(btn => {
         btn.addEventListener("click", () => openModal(btn.dataset.appid));
+    });
+
+    document.querySelectorAll(".btn-print-adm-direct").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const appId = btn.dataset.appid;
+            if (appId) {
+                window.open(`${getPublicSiteBaseUrl()}/admission-receipt.html?id=${encodeURIComponent(appId)}`, '_blank');
+            }
+        });
     });
 
     document.querySelectorAll(".btn-quick-verify-adm").forEach(btn => {
