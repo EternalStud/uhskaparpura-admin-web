@@ -135,14 +135,20 @@ function applyFilters() {
 
 function renderTable(list) {
     const tbody = document.getElementById("regListTableBody");
+    const mobileContainer = document.getElementById("regMobileCardList");
     if (!tbody) return;
 
     if (list.length === 0) {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: #94a3b8;">कोई पंजीयन रिकॉर्ड नहीं मिला। (No registrations found.)</td></tr>`;
+        if (mobileContainer) {
+            mobileContainer.innerHTML = `<div style="text-align: center; padding: 30px; color: #94a3b8; background: white; border-radius: 12px; border: 1px dashed #cbd5e1;">कोई पंजीयन रिकॉर्ड नहीं मिला। (No registrations found.)</div>`;
+        }
         return;
     }
 
-    let html = "";
+    let desktopHtml = "";
+    let mobileHtml = "";
+
     list.forEach(item => {
         const isVerified = (item.status || "").toLowerCase() === "verified";
         const statusBadge = isVerified 
@@ -151,7 +157,8 @@ function renderTable(list) {
 
         let formattedDate = item.timestamp ? new Date(item.timestamp).toLocaleDateString("en-IN") : "-";
 
-        html += `
+        // Desktop Row HTML
+        desktopHtml += `
             <tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding: 12px 15px; font-weight: 700; color: #d97706;">${item.regId || '-'}</td>
                 <td style="padding: 12px 15px; font-weight: 600;">${item.rollNo || '-'}</td>
@@ -160,7 +167,7 @@ function renderTable(list) {
                     <div style="font-size: 0.8rem; color: #64748b; font-weight: 400;">F: ${item.fatherName}</div>
                 </td>
                 <td style="padding: 12px 15px;">Class ${item.className} ${item.stream ? '(' + item.stream + ')' : ''}</td>
-                <td style="padding: 12px 15px;">${item.mobile || '-'}</td>
+                <td style="padding: 12px 15px;">${item.mobile ? `<a href="tel:${item.mobile}" style="color: #2563eb; text-decoration: none;">${item.mobile}</a>` : '-'}</td>
                 <td style="padding: 12px 15px; font-size: 0.85rem; color: #64748b;">${formattedDate}</td>
                 <td style="padding: 12px 15px;">${statusBadge}</td>
                 <td style="padding: 12px 15px; text-align: center;">
@@ -169,16 +176,59 @@ function renderTable(list) {
                 </td>
             </tr>
         `;
+
+        // Mobile Card HTML
+        mobileHtml += `
+            <div class="reg-mobile-card">
+                <div class="reg-mobile-card-header">
+                    <div>
+                        <div class="reg-mobile-title">${item.studentName}</div>
+                        <div class="reg-mobile-sub">पिता: ${item.fatherName} | रोल: <strong>${item.rollNo || '-'}</strong></div>
+                    </div>
+                    <div>${statusBadge}</div>
+                </div>
+
+                <div class="reg-mobile-grid">
+                    <div>
+                        <div class="reg-mobile-label">Reg ID</div>
+                        <div class="reg-mobile-val" style="color: #d97706;">${item.regId || '-'}</div>
+                    </div>
+                    <div>
+                        <div class="reg-mobile-label">Class & Stream</div>
+                        <div class="reg-mobile-val">Class ${item.className} ${item.stream ? '(' + item.stream + ')' : ''}</div>
+                    </div>
+                    <div>
+                        <div class="reg-mobile-label">मोबाइल (Mobile)</div>
+                        <div class="reg-mobile-val">${item.mobile ? `<a href="tel:${item.mobile}" style="color: #2563eb; text-decoration: none;">📞 ${item.mobile}</a>` : '-'}</div>
+                    </div>
+                    <div>
+                        <div class="reg-mobile-label">दिनांक (Date)</div>
+                        <div class="reg-mobile-val">${formattedDate}</div>
+                    </div>
+                </div>
+
+                <div class="reg-mobile-actions">
+                    <button type="button" class="btn-open-detail" data-regid="${item.regId}" style="background: #e0f2fe; color: #0369a1;">
+                        👁️ विवरण जांचें / संपादित करें
+                    </button>
+                    ${!isVerified ? `
+                    <button type="button" class="btn-quick-verify" data-regid="${item.regId}" style="background: #10b981; color: white;">
+                        ✅ Verify
+                    </button>` : ''}
+                </div>
+            </div>
+        `;
     });
 
-    tbody.innerHTML = html;
+    tbody.innerHTML = desktopHtml;
+    if (mobileContainer) mobileContainer.innerHTML = mobileHtml;
 
-    // Attach row button listeners
-    tbody.querySelectorAll(".btn-open-detail").forEach(btn => {
+    // Attach listeners to both desktop table and mobile cards
+    document.querySelectorAll(".btn-open-detail").forEach(btn => {
         btn.addEventListener("click", () => openModal(btn.dataset.regid));
     });
 
-    tbody.querySelectorAll(".btn-quick-verify").forEach(btn => {
+    document.querySelectorAll(".btn-quick-verify").forEach(btn => {
         btn.addEventListener("click", () => quickVerify(btn.dataset.regid));
     });
 }

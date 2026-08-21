@@ -200,21 +200,31 @@ export async function apiRequest(path, options = {}) {
         url.searchParams.set("action", actionPath);
         const session = getSession();
 
+        if (session?.user?.email) {
+            url.searchParams.set("email", session.user.email);
+        }
+        if (session?.token) {
+            url.searchParams.set("token", session.token);
+        }
+
         const isMutation = (options.method && options.method.toUpperCase() !== "GET") || !!options.body;
 
-        if (!isMutation) {
-            if (session?.user?.email) {
-                url.searchParams.set("email", session.user.email);
-            }
-            if (session?.token) {
-                url.searchParams.set("token", session.token);
-            }
-        } else {
-            // For POST requests, put auth in the body to avoid URL leakage
-            if (!options.body) options.body = {};
-            if (typeof options.body === "object") {
-                if (session?.user?.email) options.body.email = session.user.email;
-                if (session?.token) options.body.token = session.token;
+        // Auto-handle body payload and inject auth into body if JSON
+        let bodyPayload = options.body;
+        if (bodyPayload) {
+            if (typeof bodyPayload === "string") {
+                try {
+                    const parsed = JSON.parse(bodyPayload);
+                    if (session?.user?.email && !parsed.email) parsed.email = session.user.email;
+                    if (session?.token && !parsed.token) parsed.token = session.token;
+                    bodyPayload = JSON.stringify(parsed);
+                } catch (e) {
+                    // Keep original string if not JSON
+                }
+            } else if (typeof bodyPayload === "object") {
+                if (session?.user?.email && !bodyPayload.email) bodyPayload.email = session.user.email;
+                if (session?.token && !bodyPayload.token) bodyPayload.token = session.token;
+                bodyPayload = JSON.stringify(bodyPayload);
             }
         }
 
@@ -245,11 +255,7 @@ export async function apiRequest(path, options = {}) {
         }
 
         const finalUrl = url.toString().replace(/\+/g, "%20");
-        // Auto-stringify body objects for POST requests
-        const fetchOptions = { ...options };
-        if (fetchOptions.body && typeof fetchOptions.body === "object") {
-            fetchOptions.body = JSON.stringify(fetchOptions.body);
-        }
+        const fetchOptions = { ...options, body: bodyPayload };
         if (fetchOptions.body && !fetchOptions.method) {
             fetchOptions.method = "POST";
         }
