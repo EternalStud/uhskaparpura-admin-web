@@ -164,14 +164,20 @@ function applyFilters() {
 
 function renderTable(list) {
     const tbody = document.getElementById("admListTableBody");
+    const mobileContainer = document.getElementById("admMobileCardList");
     if (!tbody) return;
 
     if (list.length === 0) {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: #94a3b8;">कोई नामांकन रिकॉर्ड नहीं मिला। (No admission records found.)</td></tr>`;
+        if (mobileContainer) {
+            mobileContainer.innerHTML = `<div style="text-align: center; padding: 30px; color: #94a3b8; background: white; border-radius: 12px; border: 1px dashed #cbd5e1;">कोई नामांकन रिकॉर्ड नहीं मिला। (No admission records found.)</div>`;
+        }
         return;
     }
 
-    let html = "";
+    let desktopHtml = "";
+    let mobileHtml = "";
+
     list.forEach(item => {
         const isVerified = (item.status || "").toLowerCase() === "verified";
         const statusBadge = isVerified 
@@ -180,7 +186,8 @@ function renderTable(list) {
 
         let formattedDate = item.timestamp ? new Date(item.timestamp).toLocaleDateString("en-IN") : "-";
 
-        html += `
+        // Desktop Row HTML
+        desktopHtml += `
             <tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding: 12px 15px; font-weight: 700; color: #0284c7;">${item.applicationId || '-'}</td>
                 <td style="padding: 12px 15px; font-weight: 600; color: #1e293b;">
@@ -189,7 +196,7 @@ function renderTable(list) {
                 </td>
                 <td style="padding: 12px 15px; font-weight: 600;">${item.fatherName || '-'}</td>
                 <td style="padding: 12px 15px;">Class ${item.admissionClass} ${item.stream ? '(' + item.stream + ')' : ''}</td>
-                <td style="padding: 12px 15px;">${item.mobile || '-'}</td>
+                <td style="padding: 12px 15px;">${item.mobile ? `<a href="tel:${item.mobile}" style="color: #2563eb; text-decoration: none;">📞 ${item.mobile}</a>` : '-'}</td>
                 <td style="padding: 12px 15px; font-size: 0.85rem; color: #64748b;">${formattedDate}</td>
                 <td style="padding: 12px 15px;">${statusBadge}</td>
                 <td style="padding: 12px 15px; text-align: center;">
@@ -198,16 +205,61 @@ function renderTable(list) {
                 </td>
             </tr>
         `;
+
+        // Mobile Card HTML
+        mobileHtml += `
+            <div class="adm-mobile-card">
+                <div class="adm-mobile-card-header">
+                    <div>
+                        <div class="adm-mobile-title">${item.studentNameEnglish}</div>
+                        <div class="adm-mobile-sub">पिता: ${item.fatherName || '-'} | माता: ${item.motherName || '-'}</div>
+                    </div>
+                    <div>${statusBadge}</div>
+                </div>
+
+                <div class="adm-mobile-grid">
+                    <div>
+                        <div class="adm-mobile-label">App ID</div>
+                        <div class="adm-mobile-val" style="color: #0284c7;">${item.applicationId || '-'}</div>
+                    </div>
+                    <div>
+                        <div class="adm-mobile-label">Class & Stream</div>
+                        <div class="adm-mobile-val">Class ${item.admissionClass} ${item.stream ? '(' + item.stream + ')' : ''}</div>
+                    </div>
+                    <div>
+                        <div class="adm-mobile-label">मोबाइल (Mobile)</div>
+                        <div class="adm-mobile-val">${item.mobile ? `<a href="tel:${item.mobile}" style="color: #2563eb; text-decoration: none;">📞 ${item.mobile}</a>` : '-'}</div>
+                    </div>
+                    <div>
+                        <div class="adm-mobile-label">दिनांक (Date)</div>
+                        <div class="adm-mobile-val">${formattedDate}</div>
+                    </div>
+                </div>
+
+                <div class="adm-mobile-actions">
+                    <button type="button" class="btn-open-adm-detail" data-appid="${item.applicationId}" style="background: #e0f2fe; color: #0369a1;">
+                        👁️ विवरण जांचें / संपादित करें
+                    </button>
+                    ${!isVerified ? `
+                    <button type="button" class="btn-quick-verify-adm" data-appid="${item.applicationId}" style="background: #10b981; color: white;">
+                        ✅ Verify
+                    </button>` : ''}
+                </div>
+            </div>
+        `;
     });
 
-    tbody.innerHTML = html;
+    tbody.innerHTML = desktopHtml;
+    if (mobileContainer) {
+        mobileContainer.innerHTML = mobileHtml;
+    }
 
-    // Attach row button listeners
-    tbody.querySelectorAll(".btn-open-adm-detail").forEach(btn => {
+    // Attach row and card button listeners
+    document.querySelectorAll(".btn-open-adm-detail").forEach(btn => {
         btn.addEventListener("click", () => openModal(btn.dataset.appid));
     });
 
-    tbody.querySelectorAll(".btn-quick-verify-adm").forEach(btn => {
+    document.querySelectorAll(".btn-quick-verify-adm").forEach(btn => {
         btn.addEventListener("click", () => quickVerify(btn.dataset.appid));
     });
 }
