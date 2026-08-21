@@ -308,6 +308,9 @@ function openModal(regId) {
     // Section 3: Additional Details
     document.getElementById("modalApaarId").value = item.apaarId || "";
     document.getElementById("modalCaste").value = item.caste || "GEN";
+    if (document.getElementById("modalReligion")) {
+        document.getElementById("modalReligion").value = item.religion || "";
+    }
     document.getElementById("modalMaritalStatus").value = item.maritalStatus || "Unmarried";
     document.getElementById("modalDifferentlyAbled").value = item.differentlyAbled || "No";
     document.getElementById("modalMark1").value = item.mark1 || "";
@@ -569,6 +572,7 @@ async function handleVerifySubmit(e) {
         bankIFSC: document.getElementById("modalBankIFSC").value.trim(),
         apaarId: document.getElementById("modalApaarId").value.trim(),
         caste: document.getElementById("modalCaste").value,
+        religion: document.getElementById("modalReligion") ? document.getElementById("modalReligion").value : "",
         maritalStatus: document.getElementById("modalMaritalStatus").value,
         differentlyAbled: document.getElementById("modalDifferentlyAbled").value,
         mark1: document.getElementById("modalMark1").value.trim(),
