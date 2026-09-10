@@ -288,14 +288,50 @@ function openModal(regId) {
 
     let formattedDob = "";
     if (item.dob) {
-        try {
-            const d = new Date(item.dob);
-            if (!isNaN(d.getTime())) {
-                formattedDob = d.toISOString().split("T")[0];
+        let raw = String(item.dob).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+            formattedDob = raw;
+        } else if (raw.includes("/")) {
+            const parts = raw.split("/");
+            if (parts.length === 3) {
+                if (parts[2].length === 4) formattedDob = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                else formattedDob = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
             }
-        } catch(e) {}
+        } else if (raw.includes("T")) {
+            try {
+                const d = new Date(raw);
+                if (!isNaN(d.getTime())) {
+                    const ist = new Date(d.getTime() + (5.5 * 3600 * 1000));
+                    const year = ist.getUTCFullYear();
+                    const month = String(ist.getUTCMonth() + 1).padStart(2, '0');
+                    const day = String(ist.getUTCDate()).padStart(2, '0');
+                    formattedDob = `${year}-${month}-${day}`;
+                }
+            } catch(e) {}
+        } else {
+            try {
+                const d = new Date(raw);
+                if (!isNaN(d.getTime())) {
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    formattedDob = `${year}-${month}-${day}`;
+                }
+            } catch(e) {}
+        }
     }
     document.getElementById("modalDob").value = formattedDob || item.dob || "";
+
+    let g = String(item.gender || "").trim().toLowerCase();
+    let gVal = "";
+    if (g === "m" || g === "male" || g === "पुरुष" || g === "पु.") gVal = "Male";
+    else if (g === "f" || g === "female" || g === "महिला" || g === "म.") gVal = "Female";
+    else if (g === "transgender" || g === "other" || g === "तृतीय लिंग") gVal = "Transgender";
+    else gVal = item.gender || "";
+    if (document.getElementById("modalGender")) {
+        document.getElementById("modalGender").value = gVal;
+    }
+
     document.getElementById("modalAadhaar").value = item.aadhaar || "";
     document.getElementById("modalMobile").value = item.mobile || "";
     document.getElementById("modalEmail").value = item.email || "";
@@ -564,6 +600,7 @@ async function handleVerifySubmit(e) {
         fatherName: document.getElementById("modalFatherName").value.trim(),
         motherName: document.getElementById("modalMotherName").value.trim(),
         dob: document.getElementById("modalDob").value,
+        gender: document.getElementById("modalGender") ? document.getElementById("modalGender").value : "",
         aadhaar: aadhaarVal,
         mobile: document.getElementById("modalMobile").value.trim(),
         email: document.getElementById("modalEmail").value.trim(),
