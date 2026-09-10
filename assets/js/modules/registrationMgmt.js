@@ -702,9 +702,10 @@ function formatReceiptDate(dobStr) {
 
 function formatReceiptGender(g) {
     let raw = String(g || '').trim();
-    if (raw.toLowerCase() === 'male' || raw === 'पुरुष') return 'Male (पुरुष)';
-    if (raw.toLowerCase() === 'female' || raw === 'महिला') return 'Female (महिला)';
-    if (raw.toLowerCase() === 'transgender' || raw === 'तृतीय लिंग') return 'Transgender (तृतीय लिंग)';
+    let lower = raw.toLowerCase();
+    if (lower === 'm' || lower.startsWith('male') || lower.startsWith('boy') || raw === 'पुरुष' || raw === 'पु.') return 'Male (पुरुष)';
+    if (lower === 'f' || lower.startsWith('female') || lower.startsWith('girl') || raw === 'महिला' || raw === 'म.') return 'Female (महिला)';
+    if (lower === 'transgender' || lower === 'other' || raw === 'तृतीय लिंग') return 'Transgender (तृतीय लिंग)';
     return raw || 'Not Specified';
 }
 
