@@ -64,7 +64,7 @@
                     </div>
                     <div class="filter-group" style="align-self: flex-end; display: flex; gap: 10px; flex-wrap: wrap;">
                         <button type="button" id="btnRefreshRegList" class="btn btn-secondary" style="padding: 9px 18px; border-radius: 8px; font-weight: 600;">🔄 रिफ्रेश (Refresh)</button>
-                        <button type="button" id="btnPrintAllReg" class="btn btn-primary" style="padding: 9px 18px; border-radius: 8px; font-weight: 700; background: #d97706; border-color: #d97706; color: white; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" title="वर्तमान सूची के सभी प्रपत्र एक साथ प्रिंट करें">
+                        <button type="button" id="btnPrintAllReg" onclick="if(window.handlePrintAllRegistrationsDirect) window.handlePrintAllRegistrationsDirect();" class="btn btn-primary" style="padding: 9px 18px; border-radius: 8px; font-weight: 700; background: #d97706; border-color: #d97706; color: white; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" title="वर्तमान सूची के सभी प्रपत्र एक साथ प्रिंट करें">
                             <span style="font-size: 1.1rem;">🖨️</span> <span id="printAllBtnText">सभी प्रिंट करें (Print All)</span>
                         </button>
                     </div>

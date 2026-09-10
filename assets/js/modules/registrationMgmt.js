@@ -65,9 +65,8 @@ function driveThumbnailUrl(url) {
 
 export async function initRegistrationMgmtView() {
     renderNavbar(document.querySelector("#navbar-registration-mgmt"));
-    await loadRegistrations();
 
-    // Event listeners for filters
+    // Event listeners for filters - attach immediately so controls are responsive
     const filterClass = document.getElementById("filterRegClass");
     const filterStatus = document.getElementById("filterRegStatus");
     const searchInput = document.getElementById("searchRegInput");
@@ -78,7 +77,11 @@ export async function initRegistrationMgmtView() {
     if (filterStatus) filterStatus.addEventListener("change", applyFilters);
     if (searchInput) searchInput.addEventListener("input", applyFilters);
     if (btnRefresh) btnRefresh.addEventListener("click", loadRegistrations);
-    if (btnPrintAll) btnPrintAll.addEventListener("click", () => handlePrintAllRegistrations(currentFilteredRegistrations));
+    if (btnPrintAll) {
+        btnPrintAll.addEventListener("click", () => {
+            handlePrintAllRegistrations(currentFilteredRegistrations);
+        });
+    }
 
     // Modal listeners
     const btnCloseModal = document.getElementById("btnCloseRegModal");
@@ -102,6 +105,8 @@ export async function initRegistrationMgmtView() {
     if (verifyForm) {
         verifyForm.addEventListener("submit", handleVerifySubmit);
     }
+
+    await loadRegistrations();
 }
 
 async function loadRegistrations() {
@@ -934,13 +939,14 @@ function generateRegistrationReceiptPageHtml(data) {
 }
 
 function handlePrintAllRegistrations(list) {
-    if (!list || list.length === 0) {
+    const targets = (list && list.length > 0) ? list : allRegistrations;
+    if (!targets || targets.length === 0) {
         showToast("प्रिंट करने के लिए कोई पंजीयन रिकॉर्ड नहीं मिला। (No registrations available to print.)", "warning");
         return;
     }
 
     // Sort students: Class -> Stream -> Roll No
-    const sorted = [...list].sort((a, b) => {
+    const sorted = [...targets].sort((a, b) => {
         const classA = parseInt(a.className, 10) || 0;
         const classB = parseInt(b.className, 10) || 0;
         if (classA !== classB) return classA - classB;
@@ -1310,3 +1316,5 @@ function handlePrintAllRegistrations(list) {
     printWindow.document.close();
     printWindow.focus();
 }
+
+window.handlePrintAllRegistrationsDirect = () => handlePrintAllRegistrations(currentFilteredRegistrations);
