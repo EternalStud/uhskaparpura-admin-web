@@ -55,7 +55,13 @@ The Admin Web Portal is a modern Single Page Application (SPA) built for Headmas
 * **Interactive Dynamic Subject Dropdowns**: Select and modify Bihar Board subject combinations (Language 1/2, Electives 1-3, Additional) with real-time conflict filtering.
 * **Direct Google CDN Image Previews**: View uploaded student photos and signatures via `https://lh3.googleusercontent.com/d/FILE_ID` with fallback cascade.
 * **Synchronized Subject Tagging**: Verified subjects are automatically synced into the `SubjectTags` sheet upon verification.
-* **1-Click Receipt Print**: Print official BSEB registration receipts directly from the verification view.
+* **1-Click Individual Receipt Print**: Print official BSEB registration receipts directly from the verification view.
+* **🖨️ Batch "Print All" Engine**: 1-click bulk printing of all registered students in the active view/filter. Features:
+  * Dynamic count badges (`सभी प्रिंट करें (Print All - X)`).
+  * BSEB sorted sequence: **Class ➔ Stream (Science ➔ Arts ➔ Commerce) ➔ Roll Number**.
+  * Strict **1-page A4 layout per student** with centered BSEB watermark, school background pattern, and 52px signature clearance.
+  * Automated single-query bulk `SchoolDB` fallback for missing genders with bilingual formatting (`Male (पुरुष)` / `Female (महिला)`).
+* **Uniform Date Handling**: Custom masked `DD/MM/YYYY` input formatting and IST timezone offset handling (`+5.5 * 3600 * 1000`) preventing off-by-one date drops across devices.
 
 ### 7. `admissionMgmt.js` (Online Admission Verification & Live Stats)
 * Class-wise admission application verification and editing.
