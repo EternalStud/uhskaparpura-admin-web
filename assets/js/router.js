@@ -5,7 +5,7 @@ import { hideLoader, showLoader } from "../../components/loader.js?t=20260803055
 import { showToast } from "../../components/toast.js";
 
 /** Cache-bust for lazy-loaded feature modules (keep in sync with index.html). */
-const MODULE_T = "202609200255";
+const MODULE_T = "202609200310";
 
 /**
  * Route table — modules are dynamically imported so login/dashboard

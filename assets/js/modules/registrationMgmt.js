@@ -4,6 +4,7 @@ import { renderNavbar } from "../../../components/navbar.js?t=202608030555";
 import { showToast } from "../../../components/toast.js";
 import { hideLoader, showLoader } from "../../../components/loader.js?t=202608030555";
 import { apiRequest } from "../../../services/api.js";
+import { getSession } from "../../../services/session.js";
 
 let allRegistrations = [];
 let currentFilteredRegistrations = [];
@@ -47,6 +48,12 @@ const Verhoeff = {
     }
 };
 
+function isCurrentUserAdmin() {
+    const session = getSession();
+    const role = (session?.user?.role || "").toUpperCase();
+    return role === "ADMIN" || role === "HM";
+}
+
 function getPublicSiteBaseUrl() {
     const hostname = window.location.hostname;
     if (hostname === "localhost" || hostname === "127.0.0.1") {
@@ -73,12 +80,20 @@ export async function initRegistrationMgmtView() {
     const btnRefresh = document.getElementById("btnRefreshRegList");
     const btnCleanup = document.getElementById("btnCleanupDuplicates");
     const btnPrintAll = document.getElementById("btnPrintAllReg");
+    const isAdmin = isCurrentUserAdmin();
 
     if (filterClass) filterClass.addEventListener("change", applyFilters);
     if (filterStatus) filterStatus.addEventListener("change", applyFilters);
     if (searchInput) searchInput.addEventListener("input", applyFilters);
     if (btnRefresh) btnRefresh.addEventListener("click", loadRegistrations);
-    if (btnCleanup) btnCleanup.addEventListener("click", handleCleanupDuplicates);
+    if (btnCleanup) {
+        if (!isAdmin) {
+            btnCleanup.style.display = "none";
+        } else {
+            btnCleanup.style.display = "inline-flex";
+            btnCleanup.addEventListener("click", handleCleanupDuplicates);
+        }
+    }
     if (btnPrintAll) {
         btnPrintAll.addEventListener("click", () => {
             handlePrintAllRegistrations(currentFilteredRegistrations);
@@ -105,13 +120,18 @@ export async function initRegistrationMgmtView() {
 
     const btnModalDelete = document.getElementById("btnModalDeleteReg");
     if (btnModalDelete) {
-        btnModalDelete.addEventListener("click", () => {
-            const regId = document.getElementById("modalRegId")?.value;
-            const studentName = document.getElementById("modalStudentName")?.value || regId;
-            if (regId) {
-                handleDeleteRegistration(regId, studentName, true);
-            }
-        });
+        if (!isAdmin) {
+            btnModalDelete.style.display = "none";
+        } else {
+            btnModalDelete.style.display = "inline-flex";
+            btnModalDelete.addEventListener("click", () => {
+                const regId = document.getElementById("modalRegId")?.value;
+                const studentName = document.getElementById("modalStudentName")?.value || regId;
+                if (regId) {
+                    handleDeleteRegistration(regId, studentName, true);
+                }
+            });
+        }
     }
 
     const verifyForm = document.getElementById("verifyRegForm");
@@ -175,6 +195,8 @@ function renderTable(list) {
     const mobileContainer = document.getElementById("regMobileCardList");
     if (!tbody) return;
 
+    const isAdmin = isCurrentUserAdmin();
+
     if (list.length === 0) {
         tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 30px; color: #94a3b8;">कोई पंजीयन रिकॉर्ड नहीं मिला। (No registrations found.)</td></tr>`;
         if (mobileContainer) {
@@ -210,7 +232,7 @@ function renderTable(list) {
                 <td style="padding: 12px 15px; text-align: center; white-space: nowrap;">
                     <button type="button" class="btn btn-sm btn-open-detail" data-regid="${item.regId}" style="background: #e0f2fe; color: #0369a1; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 5px;">👁️ जांचें / संपादित करें</button>
                     <button type="button" class="btn btn-sm btn-print-reg-direct" data-regid="${item.regId}" style="background: #e2e8f0; color: #1e293b; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 5px;" title="प्रपत्र प्रिंट करें">🖨️</button>
-                    <button type="button" class="btn btn-sm btn-delete-reg" data-regid="${item.regId}" data-name="${encodeURIComponent(item.studentName)}" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 6px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 5px;" title="रजिस्ट्रेशन एवं ड्राइव फोटो हटाएं">🗑️</button>
+                    ${isAdmin ? `<button type="button" class="btn btn-sm btn-delete-reg" data-regid="${item.regId}" data-name="${encodeURIComponent(item.studentName)}" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 6px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 5px;" title="रजिस्ट्रेशन एवं ड्राइव फोटो हटाएं (Admin Only)">🗑️</button>` : ''}
                     ${!isVerified ? `<button type="button" class="btn btn-sm btn-quick-verify" data-regid="${item.regId}" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">✅ Verify</button>` : ''}
                 </td>
             </tr>
@@ -253,9 +275,10 @@ function renderTable(list) {
                     <button type="button" class="btn-print-reg-direct" data-regid="${item.regId}" style="background: #e2e8f0; color: #1e293b; max-width: 50px;" title="प्रपत्र प्रिंट करें">
                         🖨️
                     </button>
-                    <button type="button" class="btn-delete-reg" data-regid="${item.regId}" data-name="${encodeURIComponent(item.studentName)}" style="background: #fee2e2; color: #dc2626; max-width: 50px;" title="रजिस्ट्रेशन एवं ड्राइव फोटो हटाएं">
+                    ${isAdmin ? `
+                    <button type="button" class="btn-delete-reg" data-regid="${item.regId}" data-name="${encodeURIComponent(item.studentName)}" style="background: #fee2e2; color: #dc2626; max-width: 50px;" title="रजिस्ट्रेशन एवं ड्राइव फोटो हटाएं (Admin Only)">
                         🗑️
-                    </button>
+                    </button>` : ''}
                     ${!isVerified ? `
                     <button type="button" class="btn-quick-verify" data-regid="${item.regId}" style="background: #10b981; color: white;">
                         ✅ Verify
@@ -616,6 +639,10 @@ async function quickVerify(regId) {
 }
 
 async function handleDeleteRegistration(regId, studentName, isFromModal = false) {
+    if (!isCurrentUserAdmin()) {
+        showToast("रजिस्ट्रेशन हटाने की अनुमति केवल एडमिन (Admin) को है।", "error");
+        return;
+    }
     if (!regId) return;
     const displayName = studentName || regId;
     const confirmMsg = `क्या आप वाकई छात्र "${displayName}" (ID: ${regId}) का रजिस्ट्रेशन हटाना चाहते हैं?\n\n⚠️ इस क्रिया से:\n1. छात्र का रजिस्ट्रेशन रिकॉर्ड हट जाएगा।\n2. Google Drive से छात्र का फोटो एवं हस्ताक्षर Trashed/हटा दिया जाएगा।\n3. छात्र नए सिरे से बिना किसी डुप्लिकेट समस्या के फॉर्म पुनः भर सकेगा।`;
@@ -642,6 +669,10 @@ async function handleDeleteRegistration(regId, studentName, isFromModal = false)
 }
 
 async function handleCleanupDuplicates() {
+    if (!isCurrentUserAdmin()) {
+        showToast("डुप्लिकेट फाइलों की सफाई की अनुमति केवल एडमिन (Admin) को है।", "error");
+        return;
+    }
     const confirmMsg = `क्या आप Google Drive के Registration फोल्डर में मौजूद सभी छात्रों के पुराने/डुप्लिकेट फोटो एवं हस्ताक्षर को साफ़ (Clean) करना चाहते हैं?\n\n✓ प्रत्येक छात्र का केवल नवीनतम (latest) फोटो एवं हस्ताक्षर सुरक्षित रहेगा।\n✓ पुराने डुप्लिकेट फाइलों को स्वतः Trash कर दिया जाएगा।`;
     if (!confirm(confirmMsg)) return;
 
