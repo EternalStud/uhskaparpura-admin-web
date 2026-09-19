@@ -3,7 +3,7 @@
 import { CONFIG } from "../config/config.js";
 import { clearSession, saveSession } from "./session.js";
 
-const SESSION_DURATION_MS = 8 * 60 * 60 * 1000;
+const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days long-lived teacher session
 
 const decodeJwtPayload = (token) => {
     try {

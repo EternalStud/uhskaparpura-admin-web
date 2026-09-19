@@ -78,12 +78,18 @@ export async function initLoginView() {
             onSuccess: async () => {
                 showLoader();
                 try {
-                    // Fetch user role from backend Database dynamically
+                    // Fetch user role from backend Database dynamically and retrieve 30-day session token
                     const profileRes = await apiRequest("auth.profile");
                     if (profileRes.success && profileRes.user) {
                         const session = getSession();
                         if (session) {
                             session.user.role = profileRes.user.role;
+                            if (profileRes.token) {
+                                session.token = profileRes.token;
+                            }
+                            if (profileRes.expiresIn) {
+                                session.expiresAt = Date.now() + profileRes.expiresIn;
+                            }
                             saveSession(session);
                         }
                         showToast("Signed in successfully.", "success");
