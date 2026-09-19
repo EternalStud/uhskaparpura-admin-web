@@ -71,12 +71,14 @@ export async function initRegistrationMgmtView() {
     const filterStatus = document.getElementById("filterRegStatus");
     const searchInput = document.getElementById("searchRegInput");
     const btnRefresh = document.getElementById("btnRefreshRegList");
+    const btnCleanup = document.getElementById("btnCleanupDuplicates");
     const btnPrintAll = document.getElementById("btnPrintAllReg");
 
     if (filterClass) filterClass.addEventListener("change", applyFilters);
     if (filterStatus) filterStatus.addEventListener("change", applyFilters);
     if (searchInput) searchInput.addEventListener("input", applyFilters);
     if (btnRefresh) btnRefresh.addEventListener("click", loadRegistrations);
+    if (btnCleanup) btnCleanup.addEventListener("click", handleCleanupDuplicates);
     if (btnPrintAll) {
         btnPrintAll.addEventListener("click", () => {
             handlePrintAllRegistrations(currentFilteredRegistrations);
@@ -97,6 +99,17 @@ export async function initRegistrationMgmtView() {
                 window.open(`${getPublicSiteBaseUrl()}/registration-receipt.html?id=${encodeURIComponent(regId)}`, '_blank');
             } else {
                 showToast("रजिस्ट्रेशन आईडी नहीं मिली।", "error");
+            }
+        });
+    }
+
+    const btnModalDelete = document.getElementById("btnModalDeleteReg");
+    if (btnModalDelete) {
+        btnModalDelete.addEventListener("click", () => {
+            const regId = document.getElementById("modalRegId")?.value;
+            const studentName = document.getElementById("modalStudentName")?.value || regId;
+            if (regId) {
+                handleDeleteRegistration(regId, studentName, true);
             }
         });
     }
@@ -197,6 +210,7 @@ function renderTable(list) {
                 <td style="padding: 12px 15px; text-align: center; white-space: nowrap;">
                     <button type="button" class="btn btn-sm btn-open-detail" data-regid="${item.regId}" style="background: #e0f2fe; color: #0369a1; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 5px;">👁️ जांचें / संपादित करें</button>
                     <button type="button" class="btn btn-sm btn-print-reg-direct" data-regid="${item.regId}" style="background: #e2e8f0; color: #1e293b; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 5px;" title="प्रपत्र प्रिंट करें">🖨️</button>
+                    <button type="button" class="btn btn-sm btn-delete-reg" data-regid="${item.regId}" data-name="${encodeURIComponent(item.studentName)}" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 6px 10px; border-radius: 6px; font-weight: 600; cursor: pointer; margin-right: 5px;" title="रजिस्ट्रेशन एवं ड्राइव फोटो हटाएं">🗑️</button>
                     ${!isVerified ? `<button type="button" class="btn btn-sm btn-quick-verify" data-regid="${item.regId}" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">✅ Verify</button>` : ''}
                 </td>
             </tr>
@@ -239,6 +253,9 @@ function renderTable(list) {
                     <button type="button" class="btn-print-reg-direct" data-regid="${item.regId}" style="background: #e2e8f0; color: #1e293b; max-width: 50px;" title="प्रपत्र प्रिंट करें">
                         🖨️
                     </button>
+                    <button type="button" class="btn-delete-reg" data-regid="${item.regId}" data-name="${encodeURIComponent(item.studentName)}" style="background: #fee2e2; color: #dc2626; max-width: 50px;" title="रजिस्ट्रेशन एवं ड्राइव फोटो हटाएं">
+                        🗑️
+                    </button>
                     ${!isVerified ? `
                     <button type="button" class="btn-quick-verify" data-regid="${item.regId}" style="background: #10b981; color: white;">
                         ✅ Verify
@@ -263,6 +280,10 @@ function renderTable(list) {
                 window.open(`${getPublicSiteBaseUrl()}/registration-receipt.html?id=${encodeURIComponent(regId)}`, '_blank');
             }
         });
+    });
+
+    document.querySelectorAll(".btn-delete-reg").forEach(btn => {
+        btn.addEventListener("click", () => handleDeleteRegistration(btn.dataset.regid, decodeURIComponent(btn.dataset.name || '')));
     });
 
     document.querySelectorAll(".btn-quick-verify").forEach(btn => {
@@ -590,6 +611,66 @@ async function quickVerify(regId) {
     } catch(err) {
         showToast("सर्वर त्रुटि।", "error");
     } finally {
+        hideLoader();
+    }
+}
+
+async function handleDeleteRegistration(regId, studentName, isFromModal = false) {
+    if (!regId) return;
+    const displayName = studentName || regId;
+    const confirmMsg = `क्या आप वाकई छात्र "${displayName}" (ID: ${regId}) का रजिस्ट्रेशन हटाना चाहते हैं?\n\n⚠️ इस क्रिया से:\n1. छात्र का रजिस्ट्रेशन रिकॉर्ड हट जाएगा।\n2. Google Drive से छात्र का फोटो एवं हस्ताक्षर Trashed/हटा दिया जाएगा।\n3. छात्र नए सिरे से बिना किसी डुप्लिकेट समस्या के फॉर्म पुनः भर सकेगा।`;
+    if (!confirm(confirmMsg)) return;
+
+    showLoader("रजिस्ट्रेशन एवं संबंधित ड्राइव फाइलें हटाई जा रही हैं...");
+    try {
+        const response = await apiRequest("registration.delete", {
+            body: { regId: regId }
+        });
+        if (response && response.success) {
+            showToast(response.message || "रजिस्ट्रेशन सफलतापूर्वक हटाया गया!", "success");
+            if (isFromModal) closeModal();
+            await loadRegistrations();
+        } else {
+            showToast(response?.error || "हटाने में विफलता।", "error");
+        }
+    } catch(err) {
+        console.error(err);
+        showToast("सर्वर त्रुटि: " + (err.message || "हटाने में त्रुटि।"), "error");
+    } finally {
+        hideLoader();
+    }
+}
+
+async function handleCleanupDuplicates() {
+    const confirmMsg = `क्या आप Google Drive के Registration फोल्डर में मौजूद सभी छात्रों के पुराने/डुप्लिकेट फोटो एवं हस्ताक्षर को साफ़ (Clean) करना चाहते हैं?\n\n✓ प्रत्येक छात्र का केवल नवीनतम (latest) फोटो एवं हस्ताक्षर सुरक्षित रहेगा।\n✓ पुराने डुप्लिकेट फाइलों को स्वतः Trash कर दिया जाएगा।`;
+    if (!confirm(confirmMsg)) return;
+
+    const cleanupBtn = document.getElementById("btnCleanupDuplicates");
+    const cleanupBtnText = document.getElementById("cleanupBtnText");
+    if (cleanupBtnText) cleanupBtnText.textContent = "सफ़ाई जारी है...";
+    if (cleanupBtn) cleanupBtn.disabled = true;
+
+    showLoader("Google Drive में डुप्लिकेट फोटो/हस्ताक्षर की जांच एवं सफ़ाई की जा रही है...");
+    try {
+        const response = await apiRequest("registration.cleanupDriveDuplicates", {
+            body: {}
+        });
+        if (response && response.success) {
+            const count = response.trashedCount || 0;
+            if (count > 0) {
+                showToast(`सफ़ाई पूर्ण: ${count} डुप्लिकेट फाइलें Trash में स्थानांतरित कर दी गईं।`, "success");
+            } else {
+                showToast("सभी छात्रों के फोटो एवं हस्ताक्षर पहले से ही अद्वितीय (Unique) हैं। कोई डुप्लिकेट नहीं मिला।", "info");
+            }
+        } else {
+            showToast(response?.error || response?.message || "डुप्लिकेट सफ़ाई में त्रुटि आई।", "error");
+        }
+    } catch(err) {
+        console.error(err);
+        showToast("सर्वर त्रुटि: " + (err.message || "डुप्लिकेट सफ़ाई विफल।"), "error");
+    } finally {
+        if (cleanupBtnText) cleanupBtnText.textContent = "डुप्लिकेट हटाएं (Clean Duplicates)";
+        if (cleanupBtn) cleanupBtn.disabled = false;
         hideLoader();
     }
 }

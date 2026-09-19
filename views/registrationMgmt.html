@@ -64,6 +64,9 @@
                     </div>
                     <div class="filter-group" style="align-self: flex-end; display: flex; gap: 10px; flex-wrap: wrap;">
                         <button type="button" id="btnRefreshRegList" class="btn btn-secondary" style="padding: 9px 18px; border-radius: 8px; font-weight: 600;">🔄 रिफ्रेश (Refresh)</button>
+                        <button type="button" id="btnCleanupDuplicates" class="btn btn-outline-danger" style="padding: 9px 18px; border-radius: 8px; font-weight: 600; border: 1px solid #ef4444; color: #ef4444; background: #fef2f2; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" title="Google Drive में छात्रों के पुराने डुप्लिकेट फोटो एवं हस्ताक्षर स्वतः हटाएं">
+                            <span style="font-size: 1.1rem;">🧹</span> <span id="cleanupBtnText">डुप्लिकेट हटाएं (Clean Duplicates)</span>
+                        </button>
                         <button type="button" id="btnPrintAllReg" onclick="if(window.handlePrintAllRegistrationsDirect) window.handlePrintAllRegistrationsDirect();" class="btn btn-primary" style="padding: 9px 18px; border-radius: 8px; font-weight: 700; background: #d97706; border-color: #d97706; color: white; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" title="वर्तमान सूची के सभी प्रपत्र एक साथ प्रिंट करें">
                             <span style="font-size: 1.1rem;">🖨️</span> <span id="printAllBtnText">सभी प्रिंट करें (Print All)</span>
                         </button>
@@ -453,9 +456,12 @@
 
             <!-- Sticky Footer Action Buttons -->
             <div class="modal-footer-actions" style="display: flex; gap: 12px; justify-content: space-between; align-items: center; border-top: 2px solid #e2e8f0; padding-top: 20px; flex-wrap: wrap;">
-                <div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button type="button" id="btnModalPrintReceipt" class="btn btn-secondary" style="background: #0284c7; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
                         🖨️ पंजीयन प्रपत्र प्रिंट करें (Print Form)
+                    </button>
+                    <button type="button" id="btnModalDeleteReg" class="btn btn-outline-danger" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 10px 16px; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;" title="रजिस्ट्रेशन रिकॉर्ड एवं Google Drive से फोटो/हस्ताक्षर हटाएं">
+                        🗑️ हटाएं (Delete)
                     </button>
                 </div>
                 <div style="display: flex; gap: 12px;">
