@@ -626,12 +626,24 @@ const generateSeniorReportCardHtml = (res, examName, academicYear, activeClassVa
 
     const getSubDetails = (subId) => {
         if (!subId) return null;
-        return (res.subjectDetails || []).find(s => String(s.subjectId) === String(subId)) || null;
+        let found = (res.subjectDetails || []).find(s => String(s.subjectId) === String(subId));
+        if (!found && String(subId).includes("_")) {
+            const suffix = "_" + String(subId).split("_").pop();
+            found = (res.subjectDetails || []).find(s => String(s.subjectId).endsWith(suffix));
+        }
+        return found || null;
     };
 
     const getSubData = (subObj) => {
         if (!subObj) return { name: "", theoryObt: "-", practicalObt: "-", totalObt: "-", score: "-", tMax: 100, pMax: 0, fullMarks: 100, passMarks: 30, code: "" };
-        const scoreObj = res.subjectScores[subObj.subjectId];
+        let scoreObj = res.subjectScores ? res.subjectScores[subObj.subjectId] : null;
+        if (!scoreObj || (scoreObj.totalObt === "" && scoreObj.theoryObt === "")) {
+            if (res.subjectScores && subObj.subjectId && String(subObj.subjectId).includes("_")) {
+                const suffix = "_" + String(subObj.subjectId).split("_").pop();
+                const altKey = Object.keys(res.subjectScores).find(k => k.endsWith(suffix) && res.subjectScores[k] && (res.subjectScores[k].totalObt !== "" || res.subjectScores[k].theoryObt !== ""));
+                if (altKey) scoreObj = res.subjectScores[altKey];
+            }
+        }
         const tMax = subObj.tMax || 100;
         const pMax = subObj.pMax || 0;
         const fullMarks = tMax + pMax;
@@ -1790,7 +1802,12 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
     const rowsHtml = filteredStudents.map((res, index) => {
         const getSubDetails = (subId) => {
             if (!subId) return null;
-            return res.subjectDetails.find(s => String(s.subjectId) === String(subId)) || null;
+            let found = res.subjectDetails && res.subjectDetails.find(s => String(s.subjectId) === String(subId));
+            if (!found && res.subjectDetails && String(subId).includes("_")) {
+                const suffix = "_" + String(subId).split("_").pop();
+                found = res.subjectDetails.find(s => String(s.subjectId).endsWith(suffix));
+            }
+            return found || null;
         };
 
         const l1 = getSubDetails(res.language1);
@@ -1802,7 +1819,14 @@ const renderSeniorTable = (thead, tbody, activeSubjects, filteredStudents) => {
 
         const getSubData = (subObj) => {
             if (!subObj) return { name: "", theoryObt: "", practicalObt: "", totalObt: "", score: "", tMax: "", pMax: 0 };
-            const scoreObj = res.subjectScores[subObj.subjectId];
+            let scoreObj = res.subjectScores ? res.subjectScores[subObj.subjectId] : null;
+            if (!scoreObj || (scoreObj.totalObt === "" && scoreObj.theoryObt === "")) {
+                if (res.subjectScores && subObj.subjectId && String(subObj.subjectId).includes("_")) {
+                    const suffix = "_" + String(subObj.subjectId).split("_").pop();
+                    const altKey = Object.keys(res.subjectScores).find(k => k.endsWith(suffix) && res.subjectScores[k] && (res.subjectScores[k].totalObt !== "" || res.subjectScores[k].theoryObt !== ""));
+                    if (altKey) scoreObj = res.subjectScores[altKey];
+                }
+            }
             return {
                 name: subObj.name,
                 theoryObt: scoreObj ? scoreObj.theoryObt : "",
@@ -2306,7 +2330,12 @@ const handleExportToExcel = () => {
         filteredStudents.forEach((res, index) => {
             const getSubDetails = (subId) => {
                 if (!subId) return null;
-                return res.subjectDetails && res.subjectDetails.find(s => String(s.subjectId) === String(subId)) || null;
+                let found = res.subjectDetails && res.subjectDetails.find(s => String(s.subjectId) === String(subId));
+                if (!found && res.subjectDetails && String(subId).includes("_")) {
+                    const suffix = "_" + String(subId).split("_").pop();
+                    found = res.subjectDetails.find(s => String(s.subjectId).endsWith(suffix));
+                }
+                return found || null;
             };
 
             const l1 = getSubDetails(res.language1);
@@ -2318,7 +2347,14 @@ const handleExportToExcel = () => {
 
             const getSubData = (subObj) => {
                 if (!subObj) return { name: "", totalObt: "", tMax: "" };
-                const scoreObj = res.subjectScores ? res.subjectScores[subObj.subjectId] : null;
+                let scoreObj = res.subjectScores ? res.subjectScores[subObj.subjectId] : null;
+                if (!scoreObj || (scoreObj.totalObt === "" && scoreObj.theoryObt === "")) {
+                    if (res.subjectScores && subObj.subjectId && String(subObj.subjectId).includes("_")) {
+                        const suffix = "_" + String(subObj.subjectId).split("_").pop();
+                        const altKey = Object.keys(res.subjectScores).find(k => k.endsWith(suffix) && res.subjectScores[k] && (res.subjectScores[k].totalObt !== "" || res.subjectScores[k].theoryObt !== ""));
+                        if (altKey) scoreObj = res.subjectScores[altKey];
+                    }
+                }
                 const theoryScore = scoreObj ? (scoreObj.theoryObt !== undefined ? scoreObj.theoryObt : "") : "";
                 const totalScore = scoreObj ? (scoreObj.totalObt !== undefined ? scoreObj.totalObt : (scoreObj.displayVal || "")) : "";
                 return {
