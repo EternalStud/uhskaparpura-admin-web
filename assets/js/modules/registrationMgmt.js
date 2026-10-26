@@ -406,6 +406,9 @@ function openModal(regId) {
         document.getElementById("modalReligion").value = item.religion || "";
     }
     document.getElementById("modalMaritalStatus").value = item.maritalStatus || "Unmarried";
+    if (document.getElementById("modalMedium")) {
+        document.getElementById("modalMedium").value = item.medium || "Hindi";
+    }
     document.getElementById("modalDifferentlyAbled").value = item.differentlyAbled || "No";
     document.getElementById("modalMark1").value = item.mark1 || "";
     document.getElementById("modalMark2").value = item.mark2 || "";
@@ -736,6 +739,7 @@ async function handleVerifySubmit(e) {
         apaarId: document.getElementById("modalApaarId").value.trim(),
         caste: document.getElementById("modalCaste").value,
         religion: document.getElementById("modalReligion") ? document.getElementById("modalReligion").value : "",
+        medium: document.getElementById("modalMedium") ? document.getElementById("modalMedium").value : "Hindi",
         maritalStatus: document.getElementById("modalMaritalStatus").value,
         differentlyAbled: document.getElementById("modalDifferentlyAbled").value,
         mark1: document.getElementById("modalMark1").value.trim(),
@@ -986,8 +990,8 @@ function generateRegistrationReceiptPageHtml(data) {
                             <td class="val">${escapeHtml(data.caste || '-')} / ${escapeHtml(data.religion || '-')}</td>
                         </tr>
                         <tr>
-                            <td class="lbl">वैवाहिक स्थिति / दिव्यांग</td>
-                            <td class="val">${escapeHtml(data.maritalStatus || '-')} / ${escapeHtml((data.differentlyAbled === 'Yes' || data.differentlyAbled === 'हाँ') ? 'दिव्यांग (Yes)' : 'सामान्य (No)')}</td>
+                            <td class="lbl">माध्यम / वैवाहिक स्थिति</td>
+                            <td class="val">${escapeHtml(data.medium || 'Hindi')} / ${escapeHtml(data.maritalStatus || '-')}</td>
                         </tr>
                         <tr>
                             <td class="lbl">पहचान चिह्न 1 (Mark 1)</td>
